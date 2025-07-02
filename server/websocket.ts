@@ -10,7 +10,10 @@ let wss: WebSocketServer;
 const clients: Set<WebSocketClient> = new Set();
 
 export function setupWebSocket(server: Server) {
-  wss = new WebSocketServer({ server });
+  wss = new WebSocketServer({ 
+    server,
+    path: '/ws' // Use a specific path to avoid conflicts with Vite HMR
+  });
 
   wss.on('connection', (ws: WebSocketClient) => {
     ws.isAlive = true;

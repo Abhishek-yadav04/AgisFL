@@ -6,26 +6,9 @@ import { SystemHealth } from "@/components/dashboard/SystemHealth";
 import { IncidentTable } from "@/components/dashboard/IncidentTable";
 import { AIInsights } from "@/components/dashboard/AIInsights";
 import { AttackPathVisualization } from "@/components/dashboard/AttackPathVisualization";
-import { useWebSocket } from "@/lib/websocket";
-import { useEffect } from "react";
-
 export default function Dashboard() {
-  const { subscribe, unsubscribe } = useWebSocket();
-
-  useEffect(() => {
-    // Subscribe to real-time updates
-    subscribe('threats');
-    subscribe('incidents');
-    subscribe('system_metrics');
-    subscribe('ai_insights');
-
-    return () => {
-      unsubscribe('threats');
-      unsubscribe('incidents');
-      unsubscribe('system_metrics');
-      unsubscribe('ai_insights');
-    };
-  }, [subscribe, unsubscribe]);
+  // Temporarily disable WebSocket to fix infinite re-render bug
+  // TODO: Re-enable once authentication is implemented
 
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100">

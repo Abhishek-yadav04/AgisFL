@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 interface WebSocketMessage {
   type: string;
@@ -71,29 +71,33 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const subscribe = (channel: string) => {
+  const subscribe = useCallback((channel: string) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ type: 'subscribe', channel }));
-      const newSubs = new Set(subscriptions);
-      newSubs.add(channel);
-      setSubscriptions(newSubs);
+      setSubscriptions(prev => {
+        const newSubs = new Set(prev);
+        newSubs.add(channel);
+        return newSubs;
+      });
     }
-  };
+  }, [socket]);
 
-  const unsubscribe = (channel: string) => {
+  const unsubscribe = useCallback((channel: string) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ type: 'unsubscribe', channel }));
-      const newSubs = new Set(subscriptions);
-      newSubs.delete(channel);
-      setSubscriptions(newSubs);
+      setSubscriptions(prev => {
+        const newSubs = new Set(prev);
+        newSubs.delete(channel);
+        return newSubs;
+      });
     }
-  };
+  }, [socket]);
 
-  const send = (message: any) => {
+  const send = useCallback((message: any) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(message));
     }
-  };
+  }, [socket]);
 
   const contextValue: WebSocketContextType = {
     isConnected,

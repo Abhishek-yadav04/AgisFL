@@ -3,7 +3,7 @@ import { users, incidents, threats, aiInsights, attackPaths } from "@shared/sche
 
 async function seedData() {
   console.log('Adding sample enterprise security data...');
-  
+
   try {
     // Add sample user
     await db.insert(users).values({
@@ -57,6 +57,54 @@ async function seedData() {
     for (const incident of sampleIncidents) {
       await db.insert(incidents).values(incident).onConflictDoNothing();
     }
+
+    // Add FL-IDS specific incidents
+    await db.insert(incidents).values([
+    {
+      incidentId: "INC-FL-2024-001",
+      title: "FL-IDS Anomaly: Coordinated Attack Pattern",
+      description: "Federated Learning model detected sophisticated distributed attack pattern across multiple network segments with 94.7% confidence.",
+      severity: "critical",
+      type: "FL-IDS Detection",
+      status: "investigating",
+      riskScore: 95,
+      assignedTo: "alice.smith@company.com",
+      metadata: {
+        flDetectionRound: 12,
+        participatingNodes: ["node_rf_001", "node_if_002", "node_nn_003"],
+        anomalyScore: -0.847,
+        detectionMethod: "Federated Learning Ensemble",
+        privacyBudget: 1.0,
+        byzantineNodesDetected: 0,
+        sourceIps: ["192.168.1.100", "10.0.0.50", "172.16.0.25"],
+        affectedSystems: ["web-server-01", "database-cluster", "api-gateway"],
+        timeline: [
+          { time: "2024-01-15T10:00:00Z", event: "FL model convergence achieved" },
+          { time: "2024-01-15T10:02:00Z", event: "Anomaly detected across nodes" },
+          { time: "2024-01-15T10:05:00Z", event: "Byzantine fault tolerance activated" },
+          { time: "2024-01-15T10:15:00Z", event: "Escalated to SOC with 94.7% confidence" }
+        ]
+      }
+    },
+    {
+      incidentId: "INC-2024-001",
+      title: "Suspicious Network Activity Detected",
+      description: "Multiple failed authentication attempts from external IP addresses indicating potential brute force attack.",
+      severity: "high",
+      type: "Authentication",
+      status: "investigating",
+      riskScore: 85,
+      assignedTo: "alice.smith@company.com",
+      metadata: {
+        sourceIps: ["192.168.1.100", "10.0.0.50"],
+        affectedSystems: ["web-server-01", "database-cluster"],
+        timeline: [
+          { time: "2024-01-15T10:00:00Z", event: "Initial detection" },
+          { time: "2024-01-15T10:15:00Z", event: "Escalated to SOC" }
+        ]
+      }
+    },
+    
 
     // Add sample threats with realistic IOCs
     const sampleThreats = [
@@ -199,7 +247,7 @@ async function seedData() {
     console.log('🛡️ Added:', sampleThreats.length, 'threats');
     console.log('🧠 Added:', sampleInsights.length, 'AI insights');
     console.log('🔗 Added:', sampleAttackPaths.length, 'attack paths');
-    
+
   } catch (error) {
     console.error('❌ Error seeding data:', error);
   }

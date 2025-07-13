@@ -53,3 +53,20 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run electron-dev"
+
+[[workflows.workflow]]
+name = "FL-IDS Production"
+author = 24442136
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python scripts/fl_data_simulator.py"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py"

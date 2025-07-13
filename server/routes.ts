@@ -184,5 +184,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // FL-IDS specific endpoints
+  app.get("/api/fl-ids/status", async (req, res) => {
+    try {
+      const status = await storage.getFLIDSStatus();
+      res.json(status);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch FL-IDS status" });
+    }
+  });
+
+  app.get("/api/fl-ids/performance", async (req, res) => {
+    try {
+      const performance = await storage.getFLPerformanceMetrics();
+      res.json(performance);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch FL performance metrics" });
+    }
+  });
+
+  app.get("/api/fl-ids/nodes", async (req, res) => {
+    try {
+      const status = await storage.getFLIDSStatus();
+      res.json({
+        nodes: status.node_details || [],
+        total_nodes: status.active_nodes || 0,
+        federated_rounds: status.fl_rounds_completed || 0,
+        global_model_info: {
+          last_updated: new Date().toISOString(),
+          convergence_status: "converged"
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch FL nodes" });
+    }
+  });
+
   return httpServer;
 }

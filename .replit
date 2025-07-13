@@ -1,21 +1,22 @@
-modules = ["nodejs-20", "web", "postgresql-16"]
+modules = ["nodejs-20", "postgresql-16", "python-3.11", "web"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["python-launcher"]
 
 [deployment]
 deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+run = ["sh", "-c", "python app.py"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Start application"
+runButton = "Run Python FL-IDS"
 
 [[workflows.workflow]]
 name = "Project"
@@ -34,3 +35,12 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Run Python FL-IDS"
+author = 24442136
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py"

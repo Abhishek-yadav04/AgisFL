@@ -1,0 +1,495 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield FL-IDS - Federated Learning Intrusion Detection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a202c 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(15, 20, 25, 0.95);
+            padding: 1rem 2rem;
+            border-bottom: 2px solid #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #4299e1;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #48bb78;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid #4a5568;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-label {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .critical { color: #f56565; }
+        .high { color: #ed8936; }
+        .medium { color: #ecc94b; }
+        .low { color: #48bb78; }
+        .info { color: #4299e1; }
+        
+        .section {
+            background: rgba(45, 55, 72, 0.6);
+            border: 1px solid #4a5568;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section h2 {
+            color: #4299e1;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+        
+        .incident-item, .threat-item {
+            background: rgba(26, 32, 44, 0.8);
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .incident-item:hover, .threat-item:hover {
+            background: rgba(26, 32, 44, 1);
+            border-color: #4299e1;
+        }
+        
+        .incident-header, .threat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .incident-title, .threat-title {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        
+        .severity-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .severity-critical {
+            background: rgba(245, 101, 101, 0.2);
+            color: #f56565;
+            border: 1px solid #f56565;
+        }
+        
+        .severity-high {
+            background: rgba(237, 137, 54, 0.2);
+            color: #ed8936;
+            border: 1px solid #ed8936;
+        }
+        
+        .severity-medium {
+            background: rgba(236, 201, 75, 0.2);
+            color: #ecc94b;
+            border: 1px solid #ecc94b;
+        }
+        
+        .severity-low {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+            border: 1px solid #48bb78;
+        }
+        
+        .fl-ids-section {
+            background: linear-gradient(135deg, rgba(66, 153, 225, 0.1) 0%, rgba(159, 122, 234, 0.1) 100%);
+            border: 2px solid #4299e1;
+        }
+        
+        .fl-ids-section h2 {
+            color: #4299e1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .fl-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .fl-metric {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(26, 32, 44, 0.5);
+            border-radius: 8px;
+        }
+        
+        .fl-metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4299e1;
+        }
+        
+        .fl-metric-label {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin: 1rem 0;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #a0aec0;
+            padding: 2rem;
+        }
+        
+        .timestamp {
+            color: #718096;
+            font-size: 0.8rem;
+        }
+        
+        .description {
+            color: #a0aec0;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ CyberShield FL-IDS</h1>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>Federated Learning Active</span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Dashboard Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value critical" id="totalIncidents">--</div>
+                <div class="metric-label">Total Incidents</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value high" id="criticalIncidents">--</div>
+                <div class="metric-label">Critical Incidents</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value medium" id="activeThreats">--</div>
+                <div class="metric-label">Active Threats</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value info" id="anomaliesDetected">--</div>
+                <div class="metric-label">FL Anomalies</div>
+            </div>
+        </div>
+        
+        <!-- FL-IDS Status Section -->
+        <div class="section fl-ids-section">
+            <h2>🤖 Federated Learning IDS Status</h2>
+            <div class="fl-status">
+                <div class="fl-metric">
+                    <div class="fl-metric-value" id="flModelStatus">Training</div>
+                    <div class="fl-metric-label">Model Status</div>
+                </div>
+                <div class="fl-metric">
+                    <div class="fl-metric-value" id="processedLastHour">--</div>
+                    <div class="fl-metric-label">Processed (1h)</div>
+                </div>
+                <div class="fl-metric">
+                    <div class="fl-metric-value" id="detectionRate">--%</div>
+                    <div class="fl-metric-label">Detection Rate</div>
+                </div>
+                <div class="fl-metric">
+                    <div class="fl-metric-value" id="modelAccuracy">--%</div>
+                    <div class="fl-metric-label">Model Accuracy</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Health -->
+        <div class="section">
+            <h2>⚡ System Health</h2>
+            <div class="chart-container" id="healthChart"></div>
+        </div>
+        
+        <!-- Recent Incidents -->
+        <div class="section">
+            <h2>🚨 Recent Incidents</h2>
+            <div id="incidentsList" class="loading">Loading incidents...</div>
+        </div>
+        
+        <!-- Active Threats -->
+        <div class="section">
+            <h2>🎯 Active Threats</h2>
+            <div id="threatsList" class="loading">Loading threats...</div>
+        </div>
+        
+        <!-- AI Insights -->
+        <div class="section">
+            <h2>🧠 AI Insights</h2>
+            <div id="insightsList" class="loading">Loading insights...</div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize WebSocket connection
+        const socket = io();
+        
+        socket.on('connect', function() {
+            console.log('Connected to FL-IDS server');
+        });
+        
+        socket.on('new_incident', function(data) {
+            console.log('New incident detected:', data);
+            loadIncidents(); // Refresh incidents
+        });
+        
+        // Load dashboard data
+        async function loadDashboardMetrics() {
+            try {
+                const response = await fetch('/api/dashboard/metrics');
+                const data = await response.json();
+                
+                document.getElementById('totalIncidents').textContent = data.totalIncidents || 0;
+                document.getElementById('criticalIncidents').textContent = data.criticalIncidents || 0;
+                document.getElementById('activeThreats').textContent = data.activeThreats || 0;
+                document.getElementById('anomaliesDetected').textContent = data.anomaliesDetected || 0;
+                
+                // Update system health chart
+                updateHealthChart(data.systemHealth);
+            } catch (error) {
+                console.error('Error loading dashboard metrics:', error);
+            }
+        }
+        
+        async function loadFLIDSStatus() {
+            try {
+                const response = await fetch('/api/fl-ids/status');
+                const data = await response.json();
+                
+                document.getElementById('flModelStatus').textContent = data.model_trained ? 'Active' : 'Training';
+                document.getElementById('processedLastHour').textContent = data.total_processed_last_hour || 0;
+                document.getElementById('detectionRate').textContent = data.detection_rate.toFixed(1) + '%';
+                
+                const healthResponse = await fetch('/api/system/health');
+                const healthData = await healthResponse.json();
+                document.getElementById('modelAccuracy').textContent = healthData.modelAccuracy.toFixed(1) + '%';
+            } catch (error) {
+                console.error('Error loading FL-IDS status:', error);
+            }
+        }
+        
+        async function loadIncidents() {
+            try {
+                const response = await fetch('/api/incidents');
+                const incidents = await response.json();
+                
+                const container = document.getElementById('incidentsList');
+                if (incidents.length === 0) {
+                    container.innerHTML = '<div class="loading">No incidents found</div>';
+                    return;
+                }
+                
+                container.innerHTML = incidents.slice(0, 10).map(incident => `
+                    <div class="incident-item">
+                        <div class="incident-header">
+                            <div class="incident-title">${incident.title}</div>
+                            <div class="severity-badge severity-${incident.severity.toLowerCase()}">${incident.severity}</div>
+                        </div>
+                        <div class="description">${incident.description}</div>
+                        <div class="timestamp">ID: ${incident.incident_id} | ${new Date(incident.created_at).toLocaleString()}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading incidents:', error);
+                document.getElementById('incidentsList').innerHTML = '<div class="loading">Error loading incidents</div>';
+            }
+        }
+        
+        async function loadThreats() {
+            try {
+                const response = await fetch('/api/threats');
+                const threats = await response.json();
+                
+                const container = document.getElementById('threatsList');
+                if (threats.length === 0) {
+                    container.innerHTML = '<div class="loading">No active threats found</div>';
+                    return;
+                }
+                
+                container.innerHTML = threats.slice(0, 10).map(threat => `
+                    <div class="threat-item">
+                        <div class="threat-header">
+                            <div class="threat-title">${threat.name}</div>
+                            <div class="severity-badge severity-${threat.severity.toLowerCase()}">${threat.severity}</div>
+                        </div>
+                        <div class="description">${threat.description || 'No description available'}</div>
+                        <div class="timestamp">
+                            ID: ${threat.threat_id} | 
+                            Confidence: ${threat.confidence ? threat.confidence.toFixed(1) : 'N/A'}% | 
+                            ${new Date(threat.detected_at).toLocaleString()}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading threats:', error);
+                document.getElementById('threatsList').innerHTML = '<div class="loading">Error loading threats</div>';
+            }
+        }
+        
+        async function loadInsights() {
+            try {
+                const response = await fetch('/api/ai/insights');
+                const insights = await response.json();
+                
+                const container = document.getElementById('insightsList');
+                if (insights.length === 0) {
+                    container.innerHTML = '<div class="loading">No AI insights available</div>';
+                    return;
+                }
+                
+                container.innerHTML = insights.slice(0, 5).map(insight => `
+                    <div class="incident-item">
+                        <div class="incident-header">
+                            <div class="incident-title">${insight.title}</div>
+                            <div class="severity-badge severity-${insight.severity.toLowerCase()}">${insight.severity}</div>
+                        </div>
+                        <div class="description">${insight.description}</div>
+                        <div class="timestamp">
+                            Type: ${insight.type} | 
+                            Confidence: ${insight.confidence ? insight.confidence.toFixed(1) : 'N/A'}% | 
+                            ${new Date(insight.created_at).toLocaleString()}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading insights:', error);
+                document.getElementById('insightsList').innerHTML = '<div class="loading">Error loading insights</div>';
+            }
+        }
+        
+        function updateHealthChart(healthData) {
+            const trace = {
+                x: Object.keys(healthData),
+                y: Object.values(healthData),
+                type: 'bar',
+                marker: {
+                    color: ['#4299e1', '#48bb78', '#ed8936', '#9f7aea']
+                }
+            };
+            
+            const layout = {
+                title: 'System Component Health (%)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#e2e8f0' },
+                yaxis: { range: [0, 100] }
+            };
+            
+            Plotly.newPlot('healthChart', [trace], layout, {responsive: true});
+        }
+        
+        // Initialize dashboard
+        function initDashboard() {
+            loadDashboardMetrics();
+            loadFLIDSStatus();
+            loadIncidents();
+            loadThreats();
+            loadInsights();
+        }
+        
+        // Auto-refresh every 10 seconds
+        setInterval(() => {
+            loadDashboardMetrics();
+            loadFLIDSStatus();
+            loadIncidents();
+            loadThreats();
+            loadInsights();
+        }, 10000);
+        
+        // Initialize on page load
+        initDashboard();
+    </script>
+</body>
+</html>

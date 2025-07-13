@@ -10,6 +10,8 @@ import AnalyticsPage from "@/pages/analytics";
 import ForensicsPage from "@/pages/forensics";
 import NotFound from "@/pages/not-found";
 import { WebSocketProvider } from "./lib/websocket";
+import { ElectronProvider } from "./lib/electron";
+import { useEffect } from "react";
 
 function Router() {
   return (
@@ -28,14 +30,23 @@ function Router() {
 }
 
 function App() {
+  useEffect(() => {
+    // Request notification permission for desktop app
+    if (window.electronAPI) {
+      window.electronAPI.requestNotificationPermission();
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <WebSocketProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </WebSocketProvider>
+      <ElectronProvider>
+        <WebSocketProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </WebSocketProvider>
+      </ElectronProvider>
     </QueryClientProvider>
   );
 }

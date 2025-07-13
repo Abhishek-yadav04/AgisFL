@@ -38,3 +38,10 @@ flask-socketio
 numpy
 pandas
 scikit-learn
+eventlet
+flask-socketio
+python-socketio
+flask-socketio
+numpy
+pandas
+scikit-learn

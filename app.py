@@ -1,4 +1,3 @@
-
 import os
 import sqlite3
 import json
@@ -13,6 +12,7 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 import logging
 from fl_ids_core import FederatedLearningServer, FederatedLearningNode, NetworkDataGenerator
+from sklearn.svm import SVC as SVM
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -40,7 +40,7 @@ for node in fl_nodes:
 def init_db():
     conn = sqlite3.connect('cybershield.db')
     cursor = conn.cursor()
-    
+
     # Create tables
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS incidents (
@@ -57,7 +57,7 @@ def init_db():
             metadata TEXT
         )
     ''')
-    
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS threats (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,7 +74,7 @@ def init_db():
             metadata TEXT
         )
     ''')
-    
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS network_data (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,6 +101,7 @@ def init_db():
             num_outbound_cmds INTEGER,
             is_host_login INTEGER,
             is_guest_login INTEGER,
+            is_guest_login INTEGER,
             count INTEGER,
             srv_count INTEGER,
             serror_rate REAL,
@@ -124,7 +125,7 @@ def init_db():
             anomaly_score REAL
         )
     ''')
-    
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS ai_insights (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -138,7 +139,7 @@ def init_db():
             is_active BOOLEAN DEFAULT 1
         )
     ''')
-    
+
     conn.commit()
     conn.close()
 
@@ -161,13 +162,13 @@ class FederatedLearningIDS:
             'dst_host_rerror_rate', 'dst_host_srv_rerror_rate'
         ]
         self.is_trained = False
-        
+
     def preprocess_data(self, data):
         """Preprocess network data for anomaly detection"""
         # Select only numeric features for the model
         numeric_data = data[self.feature_columns].fillna(0)
         return self.scaler.fit_transform(numeric_data)
-    
+
     def train_model(self, training_data):
         """Train the federated learning model"""
         try:
@@ -179,18 +180,18 @@ class FederatedLearningIDS:
         except Exception as e:
             logger.error(f"Error training model: {e}")
             return False
-    
+
     def predict_anomalies(self, data):
         """Predict anomalies in network traffic"""
         if not self.is_trained:
             logger.warning("Model not trained yet")
             return []
-            
+
         try:
             processed_data = self.preprocess_data(data)
             predictions = self.model.predict(processed_data)
             anomaly_scores = self.model.decision_function(processed_data)
-            
+
             # -1 indicates anomaly, 1 indicates normal
             anomalies = []
             for i, (pred, score) in enumerate(zip(predictions, anomaly_scores)):
@@ -201,12 +202,12 @@ class FederatedLearningIDS:
                         'severity': self._calculate_severity(score),
                         'data': data.iloc[i].to_dict()
                     })
-            
+
             return anomalies
         except Exception as e:
             logger.error(f"Error predicting anomalies: {e}")
             return []
-    
+
     def _calculate_severity(self, score):
         """Calculate threat severity based on anomaly score"""
         if score < -0.5:
@@ -225,7 +226,7 @@ fl_ids = FederatedLearningIDS()
 def generate_sample_network_data():
     """Generate sample network traffic data for demonstration"""
     np.random.seed(int(time.time()) % 1000)
-    
+
     # Normal traffic patterns
     normal_data = {
         'duration': np.random.normal(10, 3),
@@ -267,12 +268,12 @@ def generate_sample_network_data():
         'dst_host_rerror_rate': 0.0,
         'dst_host_srv_rerror_rate': 0.0
     }
-    
+
     # Occasionally inject anomalous patterns
     if np.random.random() < 0.15:  # 15% chance of anomaly
         # Simulate attack patterns
         attack_type = np.random.choice(['dos', 'probe', 'u2r', 'r2l'])
-        
+
         if attack_type == 'dos':
             normal_data.update({
                 'duration': np.random.normal(0.1, 0.05),
@@ -303,22 +304,22 @@ def generate_sample_network_data():
                 'is_guest_login': 1,
                 'num_compromised': np.random.randint(1, 5)
             })
-    
+
     return normal_data
 
 def continuous_monitoring():
     """Continuous monitoring and anomaly detection using FL-IDS"""
     training_round = 0
-    
+
     while True:
         try:
             # Generate realistic network data using FL-IDS data generator
             network_data_df = NetworkDataGenerator.generate_kdd_like_data(50, 0.15)
-            
+
             # Store in database
             conn = sqlite3.connect('cybershield.db')
             cursor = conn.cursor()
-            
+
             # Insert network data
             for _, row in network_data_df.iterrows():
                 network_data = row.to_dict()
@@ -326,12 +327,12 @@ def continuous_monitoring():
                 placeholders = ', '.join(['?' for _ in network_data])
                 cursor.execute(f'INSERT INTO network_data ({columns}) VALUES ({placeholders})', 
                              list(network_data.values()))
-            
+
             # Federated Learning Training
             training_round += 1
             if training_round % 6 == 0:  # Train every 6 cycles (30 seconds)
                 logger.info("Starting federated learning training round...")
-                
+
                 # Distribute data to FL nodes
                 node_data_size = len(network_data_df) // len(fl_nodes)
                 for i, node in enumerate(fl_nodes):
@@ -339,30 +340,30 @@ def continuous_monitoring():
                     end_idx = (i + 1) * node_data_size if i < len(fl_nodes) - 1 else len(network_data_df)
                     node_data = network_data_df.iloc[start_idx:end_idx].copy()
                     node.add_training_data(node_data)
-                
+
                 # Perform federated training
                 fl_server.start_training_round()
-            
+
             # Get recent data for anomaly detection
             cursor.execute('''
                 SELECT * FROM network_data 
                 ORDER BY timestamp DESC 
                 LIMIT 100
             ''')
-            
+
             rows = cursor.fetchall()
             if len(rows) >= 10:  # Need enough data for analysis
                 columns = [description[0] for description in cursor.description]
                 df = pd.DataFrame(rows, columns=columns)
-                
+
                 # Use FL-IDS for predictions
                 recent_data = df.tail(20)  # Analyze last 20 records
                 feature_cols = [col for col in recent_data.columns 
                               if col not in ['id', 'timestamp', 'prediction', 'anomaly_score', 'label']]
-                
+
                 # Get ensemble predictions from federated learning
                 predictions = fl_server.get_global_predictions(recent_data[feature_cols])
-                
+
                 if predictions:
                     anomalies = []
                     for i, pred in enumerate(predictions):
@@ -375,11 +376,11 @@ def continuous_monitoring():
                                 'data': recent_data.iloc[i].to_dict(),
                                 'fl_prediction': pred
                             })
-                
+
                 # Process detected anomalies
                 for anomaly in anomalies:
                     threat_id = f"THR-{int(time.time())}-{anomaly['index']}"
-                    
+
                     # Create threat record
                     cursor.execute('''
                         INSERT INTO threats (threat_id, name, type, severity, description, 
@@ -395,7 +396,7 @@ def continuous_monitoring():
                         abs(anomaly['anomaly_score']) * 100,
                         json.dumps(anomaly['data'])
                     ))
-                    
+
                     # Create incident for high-severity anomalies
                     if anomaly['severity'] in ['Critical', 'High']:
                         incident_id = f"INC-{datetime.now().strftime('%Y%m%d')}-{int(time.time())}"
@@ -416,7 +417,7 @@ def continuous_monitoring():
                                 'network_features': anomaly['data']
                             })
                         ))
-                        
+
                         # Emit real-time alert
                         socketio.emit('new_incident', {
                             'incident_id': incident_id,
@@ -424,7 +425,7 @@ def continuous_monitoring():
                             'severity': anomaly['severity'],
                             'timestamp': datetime.now().isoformat()
                         })
-                
+
                 # Generate AI insights
                 if anomalies:
                     insight_data = {
@@ -433,7 +434,7 @@ def continuous_monitoring():
                         'severity_distribution': {s: len([a for a in anomalies if a['severity'] == s]) 
                                                 for s in ['Critical', 'High', 'Medium', 'Low']}
                     }
-                    
+
                     cursor.execute('''
                         INSERT INTO ai_insights (type, title, description, severity, 
                                                confidence, data)
@@ -446,13 +447,13 @@ def continuous_monitoring():
                         85.0 + np.random.uniform(-5, 10),
                         json.dumps(insight_data)
                     ))
-            
+
             conn.commit()
             conn.close()
-            
+
         except Exception as e:
             logger.error(f"Error in continuous monitoring: {e}")
-        
+
         time.sleep(5)  # Check every 5 seconds
 
 # API Routes
@@ -461,18 +462,18 @@ def get_dashboard_metrics():
     try:
         conn = sqlite3.connect('cybershield.db')
         cursor = conn.cursor()
-        
+
         # Get incident counts by severity
         cursor.execute('''
             SELECT severity, COUNT(*) FROM incidents 
             GROUP BY severity
         ''')
         incident_stats = dict(cursor.fetchall())
-        
+
         # Get threat counts
         cursor.execute('SELECT COUNT(*) FROM threats WHERE is_active = 1')
         active_threats = cursor.fetchone()[0]
-        
+
         # Get recent anomaly detection stats
         cursor.execute('''
             SELECT COUNT(*) FROM network_data 
@@ -480,9 +481,9 @@ def get_dashboard_metrics():
             AND prediction = -1
         ''')
         recent_anomalies = cursor.fetchone()[0]
-        
+
         conn.close()
-        
+
         return jsonify({
             'totalIncidents': sum(incident_stats.values()),
             'criticalIncidents': incident_stats.get('Critical', 0),
@@ -504,22 +505,22 @@ def get_incidents():
     try:
         conn = sqlite3.connect('cybershield.db')
         cursor = conn.cursor()
-        
+
         cursor.execute('''
             SELECT * FROM incidents 
             ORDER BY created_at DESC 
             LIMIT 100
         ''')
-        
+
         columns = [description[0] for description in cursor.description]
         incidents = []
-        
+
         for row in cursor.fetchall():
             incident = dict(zip(columns, row))
             if incident['metadata']:
                 incident['metadata'] = json.loads(incident['metadata'])
             incidents.append(incident)
-        
+
         conn.close()
         return jsonify(incidents)
     except Exception as e:
@@ -531,23 +532,23 @@ def get_threats():
     try:
         conn = sqlite3.connect('cybershield.db')
         cursor = conn.cursor()
-        
+
         cursor.execute('''
             SELECT * FROM threats 
             WHERE is_active = 1
             ORDER BY detected_at DESC 
             LIMIT 100
         ''')
-        
+
         columns = [description[0] for description in cursor.description]
         threats = []
-        
+
         for row in cursor.fetchall():
             threat = dict(zip(columns, row))
             if threat['metadata']:
                 threat['metadata'] = json.loads(threat['metadata'])
             threats.append(threat)
-        
+
         conn.close()
         return jsonify(threats)
     except Exception as e:
@@ -559,23 +560,23 @@ def get_ai_insights():
     try:
         conn = sqlite3.connect('cybershield.db')
         cursor = conn.cursor()
-        
+
         cursor.execute('''
             SELECT * FROM ai_insights 
             WHERE is_active = 1
             ORDER BY created_at DESC 
             LIMIT 50
         ''')
-        
+
         columns = [description[0] for description in cursor.description]
         insights = []
-        
+
         for row in cursor.fetchall():
             insight = dict(zip(columns, row))
             if insight['data']:
                 insight['data'] = json.loads(insight['data'])
             insights.append(insight)
-        
+
         conn.close()
         return jsonify(insights)
     except Exception as e:
@@ -597,26 +598,26 @@ def get_system_health():
 def get_fl_ids_status():
     conn = sqlite3.connect('cybershield.db')
     cursor = conn.cursor()
-    
+
     # Get recent detection stats
     cursor.execute('''
         SELECT COUNT(*) FROM network_data 
         WHERE timestamp > datetime('now', '-1 hour')
     ''')
     total_processed = cursor.fetchone()[0]
-    
+
     cursor.execute('''
         SELECT COUNT(*) FROM network_data 
         WHERE timestamp > datetime('now', '-1 hour')
         AND label = 1
     ''')
     anomalies_detected = cursor.fetchone()[0]
-    
+
     conn.close()
-    
+
     # Check if FL nodes are trained
     trained_nodes = sum(1 for node in fl_nodes if node.is_trained)
-    
+
     return jsonify({
         'model_trained': trained_nodes > 0,
         'total_processed_last_hour': total_processed,
@@ -642,7 +643,7 @@ def get_fl_ids_status():
 def get_fl_nodes():
     """Get detailed information about FL nodes"""
     nodes_info = []
-    
+
     for node in fl_nodes:
         node_info = {
             'node_id': node.node_id,
@@ -652,7 +653,7 @@ def get_fl_nodes():
             'training_history': node.training_history[-5:],  # Last 5 training sessions
         }
         nodes_info.append(node_info)
-    
+
     return jsonify({
         'nodes': nodes_info,
         'total_nodes': len(fl_nodes),
@@ -667,10 +668,10 @@ def get_fl_performance():
     test_data = NetworkDataGenerator.generate_kdd_like_data(100, 0.2)
     test_labels = test_data['label'].values
     feature_cols = [col for col in test_data.columns if col not in ['label', 'timestamp']]
-    
+
     # Get predictions from federated model
     predictions = fl_server.get_global_predictions(test_data[feature_cols])
-    
+
     performance_metrics = {}
     if predictions and len(predictions) == len(test_labels):
         metrics = fl_server.evaluate_global_model(test_data[feature_cols], test_labels)
@@ -683,7 +684,7 @@ def get_fl_performance():
             'f1_score': 0.0,
             'note': 'Insufficient data for evaluation'
         }
-    
+
     return jsonify(performance_metrics)
 
 @app.route('/')
@@ -697,14 +698,14 @@ def handle_connect():
 
 if __name__ == '__main__':
     init_db()
-    
+
     # Start monitoring thread
     monitoring_thread = threading.Thread(target=continuous_monitoring, daemon=True)
     monitoring_thread.start()
-    
+
     # Seed some initial data
     seed_initial_data()
-    
+
     logger.info("CyberShield FL-IDS starting on port 5000...")
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
 
@@ -712,13 +713,13 @@ def seed_initial_data():
     """Seed initial sample data"""
     conn = sqlite3.connect('cybershield.db')
     cursor = conn.cursor()
-    
+
     # Check if data already exists
     cursor.execute('SELECT COUNT(*) FROM incidents')
     if cursor.fetchone()[0] > 0:
         conn.close()
         return
-    
+
     # Seed sample incidents
     sample_incidents = [
         {
@@ -747,7 +748,7 @@ def seed_initial_data():
             })
         }
     ]
-    
+
     for incident in sample_incidents:
         cursor.execute('''
             INSERT INTO incidents (incident_id, title, description, severity, type, risk_score, metadata)
@@ -756,6 +757,6 @@ def seed_initial_data():
             incident['incident_id'], incident['title'], incident['description'],
             incident['severity'], incident['type'], incident['risk_score'], incident['metadata']
         ))
-    
+
     conn.commit()
     conn.close()

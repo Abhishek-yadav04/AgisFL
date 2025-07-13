@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
+import { Brain } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3, active: true },
@@ -12,11 +13,12 @@ const navigation = [
   { name: "Investigation", href: "/investigation", icon: Search },
   { name: "Forensics", href: "/forensics", icon: History },
   { name: "Reports", href: "/reports", icon: FileText },
+  { name: "Federated Learning", href: "/federated-learning", icon: Brain },
 ];
 
 export function Sidebar() {
   const [location] = useLocation();
-  
+
   const { data: user } = useQuery({
     queryKey: ['/api/user/profile'],
     enabled: false, // Enable when user auth is implemented
@@ -42,7 +44,7 @@ export function Sidebar() {
         {navigation.map((item) => {
           const isActive = location === item.href || (item.href === "/" && location === "/dashboard");
           const Icon = item.icon;
-          
+
           return (
             <Link key={item.name} href={item.href}>
               <Button

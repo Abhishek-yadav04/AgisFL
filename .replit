@@ -70,3 +70,16 @@ args = "npm run build"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python app.py"
+
+[[workflows.workflow]]
+name = "FL-IDS Enterprise System"
+author = 24442136
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python scripts/fl_data_simulator.py --mode test"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py"

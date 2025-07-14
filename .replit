@@ -6,7 +6,7 @@ channel = "stable-24_05"
 packages = ["cairo", "cargo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "gmp", "gobject-introspection", "gtk3", "iana-etc", "libiconv", "libxcrypt", "openssl", "pkg-config", "qhull", "rustc", "tcl", "tk"]
 
 [workflows]
-runButton = "AgiesFL Development Server"
+runButton = "Production Setup"
 
 [[workflows.workflow]]
 name = "Start AgiesFL"
@@ -50,6 +50,19 @@ args = "npm run db:push || echo \"Database not ready, continuing...\""
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Production Setup"
+author = 45018365
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node setup-production.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm start"
 
 [deployment]
 run = ["sh", "-c", "npm run dev"]

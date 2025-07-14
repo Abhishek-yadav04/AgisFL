@@ -1,4 +1,3 @@
-
 import express from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
@@ -69,11 +68,11 @@ app.get('/api/db-status', async (req, res) => {
 async function initializeServer() {
   try {
     console.log('🚀 Starting AgiesFL Security Platform Server...');
-    
+
     // Initialize database
     console.log('\n📊 Database Setup:');
     await initializeDatabase();
-    
+
     // Test connection and seed if needed
     const dbConnected = await testDatabaseConnection();
     if (dbConnected) {
@@ -81,17 +80,17 @@ async function initializeServer() {
       await seedDatabase();
       console.log('✅ Database seeded successfully');
     }
-    
+
     // Setup WebSocket for real-time communication
     console.log('\n🔗 WebSocket Setup:');
     setupWebSocket(server);
     console.log('✅ WebSocket server initialized');
-    
+
     // Register API routes
     console.log('\n🛣️ API Routes Setup:');
     registerRoutes(app);
     console.log('✅ API routes registered');
-    
+
     // Setup Vite for development or serve static files for production
     if (process.env.NODE_ENV === "development") {
       await setupVite(app, server);
@@ -100,7 +99,7 @@ async function initializeServer() {
       serveStatic(app);
       console.log('✅ Static file serving configured');
     }
-    
+
     // Health check endpoint
     app.get('/health', (req, res) => {
       res.json({ 
@@ -110,7 +109,7 @@ async function initializeServer() {
         version: '1.0.0'
       });
     });
-    
+
     // Default credentials endpoint for development
     app.get('/api/credentials', (req, res) => {
       res.json({
@@ -126,19 +125,22 @@ async function initializeServer() {
         }
       });
     });
-    
+
+    // Start server
     const port = process.env.PORT || 5000;
-    server.listen(port, '0.0.0.0', () => {
-      console.log(`\n🎉 AgiesFL Server running on port ${port}`);
-      console.log(`📱 Web Interface: http://localhost:${port}`);
-      console.log(`🔌 WebSocket: ws://localhost:${port}/ws`);
-      console.log(`🩺 Health Check: http://localhost:${port}/health`);
-      console.log(`🔑 Default Credentials: http://localhost:${port}/api/credentials`);
-      console.log('\n✅ Server initialization complete!\n');
+    const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+
+    server.listen(port, HOST, () => {
+      console.log(`✅ Server running on ${HOST}:${port}`);
+      console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`📊 Database: Connected`);
+      console.log(`🔗 WebSocket: Enabled`);
+      console.log('\n🎯 AgiesFL Security Platform is ready!');
+      console.log(`🔗 Access URL: http://${HOST}:${port}`);
     });
-    
+
   } catch (error) {
-    console.error('🚨 Server initialization failed:', error);
+    console.error('🚨 Failed to start server:', error);
     process.exit(1);
   }
 }

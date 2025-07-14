@@ -90,4 +90,5 @@ export const apiRequest = async (method: string, url: string, data?: any) => {
   }
 };
 
-// authenticatedFetch is already exported above, removing duplicate export
+// Export the authenticated fetch for manual use
+export { authenticatedFetch };

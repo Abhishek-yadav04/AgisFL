@@ -101,23 +101,27 @@ export function TopBar() {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt={user?.name || "User"} />
-                  <AvatarFallback className="bg-blue-600 text-white">
-                    {user?.name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
+                  <AvatarFallback className="bg-gradient-to-r from-blue-500 to-green-500 text-white">
+                    {user?.username ? user.username.substring(0, 2).toUpperCase() : 'SU'}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal text-white">
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name || 'Unknown User'}</p>
-                  <p className="text-xs leading-none text-gray-400">{user?.email || 'No email'}</p>
-                  <Badge variant="outline" className="w-fit text-xs">
-                    {user?.role || 'No role'}
-                  </Badge>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.username ? `${user.username.charAt(0).toUpperCase()}${user.username.slice(1)}` : 'System User'}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.role ? `${user.role.charAt(0).toUpperCase()}${user.role.slice(1)} - NexusGuard AI` : 'Security Professional'}
+                  </p>
+                  <p className="text-xs text-blue-400">
+                    {user?.email || 'security@nexusguard.ai'}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-gray-700" />

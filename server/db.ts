@@ -5,11 +5,11 @@ import * as schema from '../shared/schema';
 
 // Database configuration with proper error handling
 const dbConfig = {
-  host: process.env.DATABASE_HOST || '0.0.0.0',
+  host: process.env.DATABASE_HOST || 'localhost',
   port: parseInt(process.env.DATABASE_PORT || '5432'),
-  user: process.env.DATABASE_USER || 'db_user',
-  password: process.env.DATABASE_PASSWORD || 'your_password_here',
-  database: process.env.DATABASE_NAME || 'mydatabase',
+  user: process.env.DATABASE_USER || 'postgres',
+  password: process.env.DATABASE_PASSWORD || 'postgres',
+  database: process.env.DATABASE_NAME || 'agiesfl_security',
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -33,14 +33,6 @@ pool.on('error', (err) => {
 
 pool.on('connect', () => {
   console.log('✅ Database client connected');
-});
-
-pool.on('acquire', () => {
-  console.log('📊 Database client acquired from pool');
-});
-
-pool.on('remove', () => {
-  console.log('🔄 Database client removed from pool');
 });
 
 // Initialize Drizzle ORM

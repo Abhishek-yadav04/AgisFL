@@ -65,14 +65,29 @@ export const queryClient = new QueryClient({
   },
 });
 
-// API request helper function
+// API request helper function with comprehensive error handling
 export const apiRequest = async (method: string, url: string, data?: any) => {
-  const response = await authenticatedFetch(url, {
-    method,
-    body: data ? JSON.stringify(data) : undefined,
-  });
-  return response.json();
+  try {
+    console.log(`[API Request] ${method} ${url}`, data ? { payload: data } : '');
+    
+    const response = await authenticatedFetch(url, {
+      method,
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error(`[API Error] ${method} ${url} failed:`, result);
+      throw new Error(result.error || `HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    console.log(`[API Success] ${method} ${url}`, result);
+    return result;
+  } catch (error) {
+    console.error(`[API Exception] ${method} ${url}:`, error);
+    throw error;
+  }
 };
 
-// Export the authenticated fetch for manual use
-export { authenticatedFetch };
+// authenticatedFetch is already exported above, removing duplicate export

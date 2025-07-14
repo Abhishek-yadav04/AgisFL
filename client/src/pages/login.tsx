@@ -82,9 +82,9 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-green-500 bg-clip-text text-transparent">
-              AgiesFL
+              NexusGuard AI
             </h1>
-            <p className="text-gray-400 text-sm">Advanced Federated Learning Security Platform</p>
+            <p className="text-gray-400 text-sm">Next-Generation AI-Powered Cybersecurity Defense</p>
           </div>
         </div>
 

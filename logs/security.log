@@ -51,3 +51,4 @@
 {"error":{},"level":"error","message":"Failed to fetch system metrics","service":"fl-ids-enterprise","timestamp":"2025-07-14 09:35:59"}
 {"error":{},"level":"error","message":"Failed to fetch incidents from database","service":"fl-ids-enterprise","timestamp":"2025-07-14 09:37:52"}
 {"error":{},"level":"error","message":"Failed to fetch system metrics","service":"fl-ids-enterprise","timestamp":"2025-07-14 09:38:05"}
+{"level":"warn","message":"No DATABASE_URL provided, using in-memory storage","service":"fl-ids-enterprise","timestamp":"2025-07-14 13:28:39"}

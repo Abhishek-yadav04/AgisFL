@@ -1,5 +1,5 @@
-run = "npm run electron-dev"
-modules = ["nodejs-20", "python-3.11"]
+run = "npm run dev"
+modules = ["nodejs-20", "python-3.12", "web"]
 
 [nix]
 channel = "stable-24_05"
@@ -35,7 +35,7 @@ task = "shell.exec"
 args = "npm run dev"
 
 [deployment]
-run = ["npm", "run", "start"]
+run = ["sh", "-c", "npm run dev"]
 deploymentTarget = "cloudrun"
 ignorePorts = false
 

@@ -1,120 +1,105 @@
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { users, incidents, threats, forensicEvidence, flMetrics } from "../shared/schema";
 
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-import * as schema from '../shared/schema';
-
-// Database configuration with proper error handling
-const dbConfig = {
-  host: process.env.DATABASE_HOST || 'localhost',
+/**
+ * Database connection configuration for AgiesFL Security Platform
+ */
+const connectionConfig = {
+  host: process.env.DATABASE_HOST || '0.0.0.0',
   port: parseInt(process.env.DATABASE_PORT || '5432'),
-  user: process.env.DATABASE_USER || 'postgres',
+  username: process.env.DATABASE_USER || 'postgres',
   password: process.env.DATABASE_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || 'agiesfl_security',
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  ssl: false,
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 10,
+  prepare: false
 };
 
-console.log('🔌 Database Configuration:', {
-  host: dbConfig.host,
-  port: dbConfig.port,
-  user: dbConfig.user,
-  database: dbConfig.database,
-  password: '***hidden***'
-});
+let db: ReturnType<typeof drizzle> | null = null;
+let sql: ReturnType<typeof postgres> | null = null;
 
-// Create connection pool
-const pool = new Pool(dbConfig);
+/**
+ * Initialize database connection with proper error handling
+ */
+export async function initializeDatabase() {
+  try {
+    console.log('🗄️ Initializing database connection...');
+    console.log(`📡 Connecting to: ${connectionConfig.host}:${connectionConfig.port}/${connectionConfig.database}`);
 
-// Handle pool errors
-pool.on('error', (err) => {
-  console.error('🚨 Unexpected database pool error:', err);
-});
+    // Create PostgreSQL connection
+    sql = postgres({
+      host: connectionConfig.host,
+      port: connectionConfig.port,
+      username: connectionConfig.username,
+      password: connectionConfig.password,
+      database: connectionConfig.database,
+      ssl: connectionConfig.ssl,
+      max: connectionConfig.max,
+      idle_timeout: connectionConfig.idle_timeout,
+      connect_timeout: connectionConfig.connect_timeout,
+      prepare: connectionConfig.prepare
+    });
 
-pool.on('connect', () => {
-  console.log('✅ Database client connected');
-});
+    // Create Drizzle ORM instance
+    db = drizzle(sql);
 
-// Initialize Drizzle ORM
-export const db = drizzle(pool, { schema });
+    // Test connection
+    await sql`SELECT 1 as test`;
+    console.log('✅ Database connection established successfully');
+
+    return db;
+  } catch (error) {
+    console.log('⚠️ Database connection failed - continuing in mock mode');
+    console.log('💡 Error details:', error instanceof Error ? error.message : 'Unknown error');
+
+    // Return null to indicate database is not available
+    return null;
+  }
+}
+
+/**
+ * Get database instance (returns null if not connected)
+ */
+export function getDatabase() {
+  return db;
+}
 
 /**
  * Test database connection
  */
 export async function testDatabaseConnection(): Promise<boolean> {
   try {
-    console.log('🔍 Testing database connection...');
-    
-    // Try to connect and run a simple query
-    const client = await pool.connect();
-    const result = await client.query('SELECT NOW() as current_time, version() as pg_version');
-    client.release();
-    
-    console.log('✅ Database connection successful!');
-    console.log('📅 Current time:', result.rows[0].current_time);
-    console.log('🐘 PostgreSQL version:', result.rows[0].pg_version.split(' ')[0]);
-    
+    if (!sql) {
+      return false;
+    }
+
+    await sql`SELECT 1 as test`;
     return true;
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
-    
-    if (error instanceof Error) {
-      if (error.message.includes('ECONNREFUSED')) {
-        console.error('🚨 Database server is not running or not accessible');
-        console.error('💡 Make sure PostgreSQL is running on:', `${dbConfig.host}:${dbConfig.port}`);
-      } else if (error.message.includes('authentication failed')) {
-        console.error('🔐 Authentication failed - check username and password');
-      } else if (error.message.includes('database') && error.message.includes('does not exist')) {
-        console.error('🗄️ Database does not exist - check database name');
-      }
-    }
-    
+    console.log('🔍 Database connection test failed:', error instanceof Error ? error.message : 'Unknown error');
     return false;
   }
 }
 
 /**
- * Initialize database connection and test it
+ * Close database connection
  */
-export async function initializeDatabase(): Promise<void> {
+export async function closeDatabaseConnection() {
   try {
-    console.log('🚀 Initializing database connection...');
-    
-    const isConnected = await testDatabaseConnection();
-    
-    if (!isConnected) {
-      console.warn('⚠️ Database connection failed, but server will continue with limited functionality');
-      return;
+    if (sql) {
+      await sql.end();
+      console.log('✅ Database connection closed');
     }
-    
-    // Test basic table access
-    try {
-      await db.select().from(schema.users).limit(1);
-      console.log('✅ Database schema validation successful');
-    } catch (schemaError) {
-      console.warn('⚠️ Database schema not ready, you may need to run migrations');
-      console.log('💡 Run: npm run db:push');
-    }
-    
   } catch (error) {
-    console.error('🚨 Database initialization error:', error);
+    console.log('⚠️ Error closing database connection:', error instanceof Error ? error.message : 'Unknown error');
   }
 }
 
-/**
- * Graceful shutdown
- */
-export async function closeDatabase(): Promise<void> {
-  try {
-    await pool.end();
-    console.log('✅ Database pool closed gracefully');
-  } catch (error) {
-    console.error('❌ Error closing database pool:', error);
-  }
-}
+// Export schema for use in other files
+export { users, incidents, threats, forensicEvidence, flMetrics };
 
-// Handle process termination
-process.on('SIGINT', closeDatabase);
-process.on('SIGTERM', closeDatabase);
-
-export default db;
+// Export types
+export type Database = NonNullable<typeof db>;

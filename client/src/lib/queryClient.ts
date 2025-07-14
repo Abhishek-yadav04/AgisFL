@@ -59,5 +59,14 @@ export const queryClient = new QueryClient({
   },
 });
 
+// API request helper function
+export const apiRequest = async (method: string, url: string, data?: any) => {
+  const response = await authenticatedFetch(url, {
+    method,
+    body: data ? JSON.stringify(data) : undefined,
+  });
+  return response.json();
+};
+
 // Export the authenticated fetch for manual use
 export { authenticatedFetch };

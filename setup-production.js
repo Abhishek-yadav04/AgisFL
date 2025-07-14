@@ -1,6 +1,4 @@
 
-#!/usr/bin/env node
-
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -114,7 +112,7 @@ PORT=5000`;
     console.log(isPostgreSQLRunning ? '  ✅ Database connected' : '  ⚠️ Database offline (using mock data)');
     
     console.log('\n🚀 Starting production server...');
-    console.log('🌐 Application will be available at: http://localhost:5000');
+    console.log('🌐 Application will be available at: http://0.0.0.0:5000');
     console.log('👤 Default login: admin / SecureAdmin123!');
     
   } catch (error) {

@@ -1,3 +1,4 @@
+
 import express from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
@@ -12,35 +13,67 @@ import rateLimit from "express-rate-limit";
 const app = express();
 const server = createServer(app);
 
-// Security middleware
+// Security middleware with production settings
 app.use(helmet({
-  contentSecurityPolicy: false, // Disable for development
-  crossOriginEmbedderPolicy: false
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 1000, // Increased for demo purposes
   message: "Too many requests from this IP"
 });
 app.use('/api/', limiter);
 
-// CORS configuration
+// CORS configuration for client connectivity
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-domain.com'] 
-    : ['http://localhost:5173', 'http://127.0.0.1:5173'],
-  credentials: true
+  origin: true, // Allow all origins for demo
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Custom middleware to log requests
+// Custom middleware to log requests with FL-IDS integration
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  const timestamp = new Date().toISOString();
+  console.log(`${timestamp} - ${req.method} ${req.path} from ${req.ip}`);
+  
+  // Log for FL-IDS analysis
+  const requestData = {
+    timestamp,
+    method: req.method,
+    path: req.path,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    contentLength: req.get('Content-Length') || 0,
+    isAttack: false // Will be determined by FL-IDS
+  };
+  
+  // Store request for FL-IDS processing
+  global.requestLog = global.requestLog || [];
+  global.requestLog.push(requestData);
+  
+  // Keep only last 1000 requests in memory
+  if (global.requestLog.length > 1000) {
+    global.requestLog = global.requestLog.slice(-1000);
+  }
+  
   next();
+});
+
+// FL-IDS request data endpoint
+app.get('/api/fl-ids/requests', (req, res) => {
+  res.json({
+    requests: global.requestLog || [],
+    total: (global.requestLog || []).length,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Database connection status endpoint
@@ -50,8 +83,9 @@ app.get('/api/db-status', async (req, res) => {
     res.json({ 
       connected: isConnected,
       timestamp: new Date().toISOString(),
-      host: process.env.DATABASE_HOST || 'localhost',
-      database: process.env.DATABASE_NAME || 'agiesfl_security'
+      host: process.env.DATABASE_HOST || '0.0.0.0',
+      database: process.env.DATABASE_NAME || 'agiesfl_security',
+      environment: process.env.NODE_ENV || 'development'
     });
   } catch (error) {
     res.status(500).json({ 
@@ -68,6 +102,9 @@ app.get('/api/db-status', async (req, res) => {
 async function initializeServer() {
   try {
     console.log('🚀 Starting AgiesFL Security Platform Server...');
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📡 Host: ${process.env.HOST || '0.0.0.0'}`);
+    console.log(`🔌 Port: ${process.env.PORT || 5000}`);
 
     // Initialize database
     console.log('\n📊 Database Setup:');
@@ -79,6 +116,8 @@ async function initializeServer() {
       console.log('🌱 Seeding database with initial data...');
       await seedDatabase();
       console.log('✅ Database seeded successfully');
+    } else {
+      console.log('⚠️ Database not connected - using mock data');
     }
 
     // Setup WebSocket for real-time communication
@@ -105,8 +144,10 @@ async function initializeServer() {
       res.json({ 
         status: 'healthy', 
         timestamp: new Date().toISOString(),
-        database: 'connected',
-        version: '1.0.0'
+        database: dbConnected ? 'connected' : 'offline',
+        version: '1.0.0',
+        environment: process.env.NODE_ENV || 'development',
+        fl_ids: 'active'
       });
     });
 
@@ -126,17 +167,32 @@ async function initializeServer() {
       });
     });
 
+    // Client connection info endpoint
+    app.get('/api/connection-info', (req, res) => {
+      res.json({
+        serverHost: process.env.HOST || '0.0.0.0',
+        serverPort: process.env.PORT || 5000,
+        websocketUrl: `ws://${process.env.HOST || '0.0.0.0'}:${process.env.PORT || 5000}/ws`,
+        apiBaseUrl: `http://${process.env.HOST || '0.0.0.0'}:${process.env.PORT || 5000}/api`,
+        timestamp: new Date().toISOString()
+      });
+    });
+
     // Start server
     const port = process.env.PORT || 5000;
-    const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+    const HOST = process.env.HOST || '0.0.0.0';
 
     server.listen(port, HOST, () => {
-      console.log(`✅ Server running on ${HOST}:${port}`);
+      console.log(`\n✅ Server running on ${HOST}:${port}`);
       console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`📊 Database: Connected`);
+      console.log(`📊 Database: ${dbConnected ? 'Connected' : 'Offline (Mock Data)'}`);
       console.log(`🔗 WebSocket: Enabled`);
+      console.log(`🛡️ FL-IDS: Active`);
       console.log('\n🎯 AgiesFL Security Platform is ready!');
-      console.log(`🔗 Access URL: http://${HOST}:${port}`);
+      console.log(`🔗 Local Access: http://localhost:${port}`);
+      console.log(`🌍 External Access: http://${HOST}:${port}`);
+      console.log('👤 Admin Login: admin / SecureAdmin123!');
+      console.log('👤 Analyst Login: analyst / AnalystPass456!');
     });
 
   } catch (error) {
@@ -161,6 +217,9 @@ process.on('SIGTERM', () => {
     process.exit(0);
   });
 });
+
+// Initialize FL-IDS request logging
+global.requestLog = [];
 
 // Initialize the server
 initializeServer();

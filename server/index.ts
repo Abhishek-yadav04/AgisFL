@@ -51,7 +51,7 @@ try {
     console.log(`✅ AgiesFL Server running on http://${HOST}:${PORT}`);
     console.log(`🚀 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔗 API Health Check: http://${HOST}:${PORT}/health`);
-    
+
     // Start metrics generator
     metricsGenerator.start();
   });

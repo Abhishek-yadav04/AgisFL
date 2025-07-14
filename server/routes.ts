@@ -85,11 +85,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint (no auth required)
   app.get("/health", (req, res) => {
     res.json({ 
-      status: "healthy", 
+      status: 'ok', 
       timestamp: new Date().toISOString(),
-      version: "2.0.0",
-      environment: process.env.NODE_ENV || 'development',
-      service: "AgiesFL Backend"
+      database: 'connected',
+      services: {
+        auth: 'active',
+        websocket: 'active',
+        monitoring: 'active'
+      }
     });
   });
 
@@ -139,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  
+
 
   // Authentication endpoints
   app.post("/api/auth/login", authLimit, validateInput(loginSchema), async (req, res, next) => {

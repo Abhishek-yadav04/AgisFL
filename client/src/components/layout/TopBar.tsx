@@ -1,4 +1,3 @@
-
 import { Bell, Search, Settings, LogOut, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,7 +83,7 @@ export function TopBar() {
   const handleLogout = async (): Promise<void> => {
     try {
       console.log('🚪 User logging out from AgiesFL...');
-      
+
       // Call logout function which handles token cleanup and redirect
       logout();
     } catch (error) {
@@ -250,10 +249,7 @@ export function TopBar() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none text-white">
-                    {user?.username 
-                      ? `${user.username.charAt(0).toUpperCase()}${user.username.slice(1)}` 
-                      : 'Security Administrator'
-                    }
+                    {user?.username || user?.name || 'Admin User'}
                   </p>
                   <p className="text-xs leading-none text-gray-400">
                     {user?.role 

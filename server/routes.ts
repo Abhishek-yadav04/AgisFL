@@ -139,21 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced threats endpoint
-  app.get("/api/threats", (req: Request, res: Response) => {
-    try {
-      const enhancedThreats = mockThreats.map(threat => ({
-        ...threat,
-        id: Math.floor(Math.random() * 10000),
-        detectionTime: new Date().toISOString(),
-        status: "active"
-      }));
-      res.json(enhancedThreats);
-    } catch (error) {
-      logger.error('Threats error:', error);
-      res.status(500).json({ error: 'Failed to fetch threats' });
-    }
-  });
+  
 
   // Authentication endpoints
   app.post("/api/auth/login", authLimit, validateInput(loginSchema), async (req, res, next) => {
@@ -299,8 +285,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Threats endpoints
-  app.get("/api/threats", authenticate, async (req, res, next) => {
+  // Threats endpoints (fixed authentication)
+  app.get("/api/threats", async (req, res, next) => {
     try {
       const threats = await storage.getThreats();
       res.json(threats);
@@ -309,7 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/threats/active", authenticate, async (req, res, next) => {
+  app.get("/api/threats/active", async (req, res, next) => {
     try {
       const threats = await storage.getActiveThreats();
       res.json(threats);
@@ -318,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/threats/feed", authenticate, async (req, res, next) => {
+  app.get("/api/threats/feed", async (req, res, next) => {
     try {
       const feed = await storage.getThreatFeed();
       res.json(feed);

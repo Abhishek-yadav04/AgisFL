@@ -1,17 +1,116 @@
 import { db } from "./db";
-import { users, incidents, threats, aiInsights, attackPaths } from "@shared/schema";
+import { users, incidents, threats, aiInsights, attackPaths, systemMetrics } from "@shared/schema";
 
 async function seedData() {
   console.log('Adding sample enterprise security data...');
 
   try {
-    // Add sample user
-    await db.insert(users).values({
-      username: 'admin',
-      password: 'hashed_password',
-      email: 'admin@cybershield.com',
-      role: 'administrator'
-    }).onConflictDoNothing();
+    // Add sample users
+    await db.insert(users).values([
+      {
+        username: 'admin',
+        password: 'admin',
+        email: 'admin@agiesfl.com',
+        role: 'administrator'
+      },
+      {
+        username: 'analyst',
+        password: 'admin',
+        email: 'analyst@agiesfl.com',
+        role: 'analyst'
+      }
+    ]).onConflictDoNothing();
+
+    // Add sample threats
+    await db.insert(threats).values([
+      {
+        threatId: 'THR-001',
+        name: 'Suspicious Network Activity',
+        type: 'network_intrusion',
+        severity: 'high',
+        description: 'Unusual traffic patterns detected from external IP',
+        sourceIp: '192.168.1.100',
+        targetIp: '10.0.0.50',
+        isActive: true,
+        confidence: '0.95'
+      },
+      {
+        threatId: 'THR-002',
+        name: 'Malware Detection',
+        type: 'malware',
+        severity: 'critical',
+        description: 'Trojan detected in user workstation',
+        sourceIp: '10.0.0.25',
+        targetIp: '10.0.0.1',
+        isActive: true,
+        confidence: '0.98'
+      }
+    ]).onConflictDoNothing();
+
+    // Add sample incidents
+    await db.insert(incidents).values([
+      {
+        incidentId: 'INC-001',
+        title: 'Security Breach Investigation',
+        description: 'Potential data exfiltration detected',
+        severity: 'high',
+        type: 'Data Breach',
+        status: 'investigating',
+        assigneeId: 1,
+        riskScore: '8.5'
+      },
+      {
+        incidentId: 'INC-002',
+        title: 'Failed Login Attempts',
+        description: 'Multiple failed authentication attempts from same IP',
+        severity: 'medium',
+        type: 'Authentication Failure',
+        status: 'open',
+        assigneeId: 2,
+        riskScore: '6.2'
+      }
+    ]).onConflictDoNothing();
+
+    // Add sample AI insights
+    await db.insert(aiInsights).values([
+      {
+        type: 'threat_intelligence',
+        title: 'Anomalous Network Pattern',
+        description: 'ML model detected unusual communication patterns',
+        severity: 'medium',
+        confidence: '0.87',
+        data: { pattern_type: 'lateral_movement', affected_nodes: 3 }
+      },
+      {
+        type: 'prediction',
+        title: 'Potential Attack Vector',
+        description: 'System predicts high probability of attack on web servers',
+        severity: 'high',
+        confidence: '0.92',
+        data: { target_systems: ['web-01', 'web-02'], probability: 0.92 }
+      }
+    ]).onConflictDoNothing();
+
+    // Add sample attack paths
+    await db.insert(attackPaths).values([
+      {
+        name: 'Lateral Movement Path',
+        sourceNode: 'workstation-01',
+        targetNode: 'server-db-01',
+        pathData: { 
+          steps: ['initial_access', 'privilege_escalation', 'lateral_movement'],
+          techniques: ['T1078', 'T1068', 'T1021']
+        },
+        riskLevel: 'high',
+        compromisedAssets: 3,
+        attackVectors: 2
+      }
+    ]).onConflictDoNothing();
+
+    console.log('✅ Sample data added successfully');
+  } catch (error) {
+    console.error('❌ Error seeding database:', error);
+  }
 
     // Add sample incidents with realistic enterprise data
     const sampleIncidents = [

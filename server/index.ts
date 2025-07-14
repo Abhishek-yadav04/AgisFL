@@ -2,6 +2,7 @@ import express, { type Request, Response } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import { logger } from "./logger";
+import { metricsGenerator } from "./metrics-generator";
 import path from "path";
 
 const app = express();
@@ -42,7 +43,7 @@ try {
     serveStatic(app);
   }
 
-  const PORT = process.env.PORT || 5000;
+  const PORT = parseInt(process.env.PORT || '5000', 10);
   const HOST = '0.0.0.0';
 
   server.listen(PORT, HOST, () => {
@@ -50,11 +51,15 @@ try {
     console.log(`✅ AgiesFL Server running on http://${HOST}:${PORT}`);
     console.log(`🚀 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔗 API Health Check: http://${HOST}:${PORT}/health`);
+    
+    // Start metrics generator
+    metricsGenerator.start();
   });
 
   // Graceful shutdown
   process.on('SIGTERM', () => {
     logger.info('SIGTERM received, shutting down gracefully');
+    metricsGenerator.stop();
     server.close(() => {
       process.exit(0);
     });

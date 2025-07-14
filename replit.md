@@ -1,8 +1,8 @@
-# CyberShield IR - Enterprise Security Platform
+# AgiesFL - Advanced Federated Learning Security Platform
 
 ## Overview
 
-CyberShield IR is a comprehensive cybersecurity incident response platform designed for enterprise environments. It provides real-time threat detection, incident management, and security analytics through a modern web interface. The system is built using a full-stack TypeScript architecture with React frontend, Express.js backend, and PostgreSQL database with real-time WebSocket communication.
+AgiesFL is a cutting-edge cybersecurity platform that leverages federated learning and AI technologies for distributed threat detection and incident response in enterprise environments. It provides real-time threat detection, incident management, and security analytics through a modern web interface. The system is built using a full-stack TypeScript architecture with React frontend, Express.js backend, and PostgreSQL database with real-time WebSocket communication.
 
 ## System Architecture
 

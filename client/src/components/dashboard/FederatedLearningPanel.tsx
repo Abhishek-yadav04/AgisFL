@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +73,7 @@ export function FederatedLearningPanel() {
   const [selectedMetric, setSelectedMetric] = useState('accuracy');
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'connecting'>('connecting');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [error, setError] = useState<any>(null);
 
   const fetchFLStatus = useCallback(async () => {
     try {
@@ -83,10 +83,12 @@ export function FederatedLearningPanel() {
         setFlStatus(data);
         setConnectionStatus('connected');
       } else {
-        throw new Error(`HTTP ${response.status}`);
+        setError(`Failed to fetch FL status: HTTP ${response.status}`);
+        setConnectionStatus('disconnected');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch FL status:', error);
+      setError(error.message || 'Failed to fetch FL status');
       setConnectionStatus('disconnected');
     }
   }, []);
@@ -97,9 +99,12 @@ export function FederatedLearningPanel() {
       if (response.ok) {
         const data = await response.json();
         setNodes(data.nodes || []);
+      } else {
+        setError(`Failed to fetch nodes: HTTP ${response.status}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch nodes:', error);
+      setError(error.message || 'Failed to fetch nodes');
     }
   }, []);
 
@@ -111,9 +116,12 @@ export function FederatedLearningPanel() {
         if (data.performance_history) {
           setPerformance(data.performance_history);
         }
+      } else {
+        setError(`Failed to fetch performance: HTTP ${response.status}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch performance:', error);
+      setError(error.message || 'Failed to fetch performance');
     }
   }, []);
 
@@ -123,9 +131,12 @@ export function FederatedLearningPanel() {
       if (response.ok) {
         const data = await response.json();
         setThreats(Array.isArray(data) ? data.slice(0, 10) : []);
+      } else {
+        setError(`Failed to fetch threats: HTTP ${response.status}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch threats:', error);
+      setError(error.message || 'Failed to fetch threats');
     }
   }, []);
 
@@ -135,23 +146,34 @@ export function FederatedLearningPanel() {
       if (response.ok) {
         const data = await response.json();
         setSystemHealth(data);
+      } else {
+        setError(`Failed to fetch system health: HTTP ${response.status}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch system health:', error);
+      setError(error.message || 'Failed to fetch system health');
     }
   }, []);
 
   const fetchAllData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     setConnectionStatus('connecting');
-    await Promise.all([
-      fetchFLStatus(),
-      fetchNodes(),
-      fetchPerformance(),
-      fetchThreats(),
-      fetchSystemHealth()
-    ]);
-    setIsLoading(false);
-    setLastUpdate(new Date());
+    try {
+      await Promise.all([
+        fetchFLStatus(),
+        fetchNodes(),
+        fetchPerformance(),
+        fetchThreats(),
+        fetchSystemHealth()
+      ]);
+      setLastUpdate(new Date());
+    } catch (error: any) {
+      console.error('Failed to fetch all data:', error);
+      setError(error.message || 'Failed to fetch all data');
+    } finally {
+      setIsLoading(false);
+    }
   }, [fetchFLStatus, fetchNodes, fetchPerformance, fetchThreats, fetchSystemHealth]);
 
   const triggerTraining = async () => {
@@ -163,9 +185,12 @@ export function FederatedLearningPanel() {
         setTimeout(() => {
           fetchAllData();
         }, 1000);
+      } else {
+        setError(`Failed to trigger training: HTTP ${response.status}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to trigger training:', error);
+      setError(error.message || 'Failed to trigger training');
     }
   };
 
@@ -202,7 +227,7 @@ export function FederatedLearningPanel() {
     }
   };
 
-  if (isLoading) {
+    if (isLoading) {
     return (
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
@@ -225,6 +250,54 @@ export function FederatedLearningPanel() {
     );
   }
 
+  if (error) {
+    return (
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Federated Learning Control Panel
+          </CardTitle>
+          <CardDescription>
+            Advanced AI-powered distributed learning system
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert variant="destructive" className="border-red-700 bg-red-900/20">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>System Connectivity Issue</AlertTitle>
+            <AlertDescription>
+              Unable to establish connection with federated learning nodes. 
+              This may be due to network connectivity or server maintenance.
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex flex-col space-y-3">
+            <Button 
+              onClick={() => fetchAllData()} 
+              variant="outline" 
+              className="w-full border-blue-600 text-blue-400 hover:bg-blue-900/20"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry Connection
+            </Button>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="text-center p-3 bg-gray-700/50 rounded">
+                <p className="text-xs text-gray-400">Last Status</p>
+                <p className="text-sm font-mono text-yellow-400">Disconnected</p>
+              </div>
+              <div className="text-center p-3 bg-gray-700/50 rounded">
+                <p className="text-xs text-gray-400">Nodes Available</p>
+                <p className="text-sm font-mono text-red-400">0/5</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header with Status and Controls */}
@@ -235,7 +308,7 @@ export function FederatedLearningPanel() {
               <Brain className="h-8 w-8 text-blue-400" />
               <div>
                 <CardTitle className="text-2xl text-white">
-                  Enterprise Federated Learning IDS
+                  AegisFL - Enterprise Federated Learning IDS
                 </CardTitle>
                 <CardDescription className="text-blue-200">
                   Advanced Distributed Intrusion Detection with Privacy Preservation
@@ -455,7 +528,7 @@ export function FederatedLearningPanel() {
                     </div>
                     <Progress value={node.local_accuracy * 100} className="h-2" />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="text-gray-400">Samples:</span>
@@ -474,7 +547,7 @@ export function FederatedLearningPanel() {
                       <div className="font-mono">{node.latency?.toFixed(0) || 'N/A'}ms</div>
                     </div>
                   </div>
-                  
+
                   <div className="text-xs text-gray-500">
                     Last Update: {new Date(node.last_update).toLocaleTimeString()}
                   </div>
@@ -673,7 +746,7 @@ export function FederatedLearningPanel() {
                   </div>
                   <Progress value={89} className="h-2" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Feature Importance:</span>
@@ -709,7 +782,7 @@ export function FederatedLearningPanel() {
                   </div>
                   <Progress value={98.7} className="h-2" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Label Quality:</span>

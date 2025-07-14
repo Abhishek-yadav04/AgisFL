@@ -6,61 +6,16 @@ channel = "stable-24_05"
 packages = ["cairo", "cargo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "gmp", "gobject-introspection", "gtk3", "iana-etc", "libiconv", "libxcrypt", "openssl", "pkg-config", "qhull", "rustc", "tcl", "tk"]
 
 [workflows]
+runButton = "Start AgiesFL"
 
-[workflows.FL-IDS-Enterprise-System]
-name = "FL-IDS Enterprise System"
-author = "agent"
+[[workflows.workflow]]
+name = "Start AgiesFL"
+author = 24442136
+mode = "sequential"
 
-[workflows.FL-IDS-Enterprise-System.metadata]
-agentRequireRestartOnSave = false
-
-[workflows.FL-IDS-Enterprise-System.tasks]
-
-[workflows.FL-IDS-Enterprise-System.tasks.setup-and-test]
-name = "setup-and-test"
-command = "python scripts/fl_data_simulator.py --mode test"
-
-[workflows.FL-IDS-Enterprise-System.tasks.run-backend]
-name = "run-backend"
-command = "python app.py"
-
-[workflows.AgiesFL-Development]
-name = "AgiesFL Development"
-author = "agent"
-
-[workflows.AgiesFL-Development.metadata]
-agentRequireRestartOnSave = false
-
-[workflows.AgiesFL-Development.tasks]
-
-[workflows.AgiesFL-Development.tasks.frontend]
-name = "frontend"
-command = "npm run dev"
-
-[workflows.AgiesFL-Development.tasks.backend]
-name = "backend"
-command = "npm run electron-dev"
-
-[workflows.AgiesFL-Production]
-name = "AgiesFL Production"
-author = "agent"
-
-[workflows.AgiesFL-Production.metadata]
-agentRequireRestartOnSave = false
-
-[workflows.AgiesFL-Production.tasks]
-
-[workflows.AgiesFL-Production.tasks.test-fl]
-name = "test-fl"
-command = "python scripts/fl_data_simulator.py --mode test"
-
-[workflows.AgiesFL-Production.tasks.build]
-name = "build"
-command = "npm run build"
-
-[workflows.AgiesFL-Production.tasks.backend]
-name = "backend"
-command = "python app.py"
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
 
 [deployment]
 run = ["npm", "run", "start"]

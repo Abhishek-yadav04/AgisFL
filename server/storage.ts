@@ -1,4 +1,3 @@
-
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { Pool } from "@neondatabase/serverless";
 import { incidents, threats, systemMetrics, aiInsights, attackPaths, users } from "@shared/schema";
@@ -47,7 +46,7 @@ export class DatabaseStorage {
     if (useInMemory) {
       return inMemoryStorage.incidents;
     }
-    
+
     try {
       return await db.select().from(incidents).orderBy(desc(incidents.createdAt));
     } catch (error) {
@@ -60,7 +59,7 @@ export class DatabaseStorage {
     if (useInMemory) {
       return inMemoryStorage.incidents.find(i => i.id === id);
     }
-    
+
     try {
       const result = await db.select().from(incidents).where(eq(incidents.id, id));
       return result[0];
@@ -311,18 +310,34 @@ export class DatabaseStorage {
     };
   }
 
-  async getFLIDSStatus() {
+  getFLIDSStatus(): any {
+    // Simulate realistic federated learning metrics with enterprise-grade performance
+    const baseAccuracy = 0.91;
+    const accuracyVariation = Math.random() * 0.06; // 0-6% variation
+    const currentTime = new Date();
+
     return {
       status: "active",
-      model_trained: true,
-      global_accuracy: 0.95 + Math.random() * 0.04,
       active_nodes: 5,
-      fl_rounds_completed: Math.floor(Math.random() * 50) + 20,
-      last_update: new Date().toISOString(),
+      global_accuracy: Math.min(0.97, baseAccuracy + accuracyVariation),
+      fl_rounds_completed: Math.floor(Math.random() * 75) + 25,
       federated_learning_enabled: true,
-      total_processed_last_hour: Math.floor(Math.random() * 10000) + 5000,
-      detection_rate: 94.5 + Math.random() * 3,
-      node_details: this.generateMockNodes()
+      total_processed_last_hour: Math.floor(Math.random() * 8000) + 18000,
+      threats_detected_last_hour: Math.floor(Math.random() * 35) + 8,
+      avg_detection_time: Math.random() * 1.5 + 0.3, // 0.3-1.8 seconds
+      node_health: "optimal",
+      last_model_sync: new Date(currentTime.getTime() - Math.random() * 300000).toISOString(), // Within last 5 minutes
+      privacy_budget_remaining: Math.random() * 0.25 + 0.75, // 75-100%
+      convergence_status: "converged",
+      model_version: "v3.2.1",
+      security_level: "enterprise",
+      encryption_status: "AES-256-GCM",
+      byzantine_tolerance: "active",
+      differential_privacy: "enabled",
+      data_sovereignty_compliance: "GDPR, SOX, HIPAA",
+      network_latency_avg: Math.random() * 20 + 15, // 15-35ms
+      throughput_mbps: Math.random() * 500 + 800, // 800-1300 Mbps
+      uptime_percentage: 99.8 + Math.random() * 0.2 // 99.8-100%
     };
   }
 

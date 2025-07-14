@@ -36,7 +36,14 @@ export async function setupVite(app: Express, server: Server) {
         process.exit(1);
       },
     },
-    server: serverOptions,
+    server: {
+      ...serverOptions,
+      hmr: {
+        port: 5174,
+        host: '0.0.0.0'
+      },
+      host: '0.0.0.0',
+    },
     appType: "custom",
   });
 

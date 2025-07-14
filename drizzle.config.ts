@@ -5,10 +5,10 @@ export default defineConfig({
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    host: "localhost",
-    port: 5432,
-    user: "db_user",
-    password: "admin",
-    database: "mydatabase",
+    host: process.env.DATABASE_HOST || "localhost",
+    port: parseInt(process.env.DATABASE_PORT || "5432"),
+    user: process.env.DATABASE_USER || "agiesfl_admin",
+    password: process.env.DATABASE_PASSWORD || "SecurePass123!",
+    database: process.env.DATABASE_NAME || "agiesfl_security",
   },
 });

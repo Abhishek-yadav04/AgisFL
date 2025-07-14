@@ -44,6 +44,25 @@ app.use((req, res, next) => {
   next();
 });
 
+// Database connection status endpoint
+app.get('/api/db-status', async (req, res) => {
+  try {
+    const isConnected = await testDatabaseConnection();
+    res.json({ 
+      connected: isConnected,
+      timestamp: new Date().toISOString(),
+      host: process.env.DATABASE_HOST || 'localhost',
+      database: process.env.DATABASE_NAME || 'agiesfl_security'
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      connected: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 /**
  * Initialize server with comprehensive setup
  */

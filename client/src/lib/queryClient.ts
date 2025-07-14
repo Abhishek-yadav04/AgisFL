@@ -48,40 +48,37 @@ const queryClient = new QueryClient({
   },
 });
 
-// Check if user is authenticated with better error handling
+// Authentication helper
 export const isAuthenticated = (): boolean => {
-  if (typeof window === 'undefined') return false;
-
   try {
     const token = localStorage.getItem('auth_token');
-    if (!token) {
-      // For development, allow access without token
-      if (import.meta.env?.DEV || process.env.NODE_ENV === 'development') {
-        return true;
+    if (!token) return false;
+
+    // Check if token has three parts (header.payload.signature)
+    const tokenParts = token.split('.');
+    if (tokenParts.length !== 3) return false;
+
+    // Basic token validation (check if it's not expired)
+    try {
+      const payload = JSON.parse(atob(tokenParts[1]));
+      const isValid = payload.exp && payload.exp > Date.now() / 1000;
+
+      if (!isValid) {
+        // Token expired, clean up
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
       }
+
+      return isValid;
+    } catch (decodeError) {
+      console.error('Token decode error:', decodeError);
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_data');
       return false;
     }
-
-    // Validate token structure
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      localStorage.removeItem('auth_token');
-      return import.meta.env?.DEV || process.env.NODE_ENV === 'development';
-    }
-
-    const payload = JSON.parse(atob(parts[1]));
-    const isValid = payload.exp > Date.now() / 1000;
-
-    if (!isValid) {
-      localStorage.removeItem('auth_token');
-      return import.meta.env?.DEV || process.env.NODE_ENV === 'development';
-    }
-
-    return true;
   } catch (error) {
-    console.warn('Authentication check failed:', error);
-    localStorage.removeItem('auth_token');
-    return import.meta.env?.DEV || process.env.NODE_ENV === 'development';
+    console.error('Authentication check error:', error);
+    return false;
   }
 };
 

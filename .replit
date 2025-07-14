@@ -6,7 +6,7 @@ channel = "stable-24_05"
 packages = ["cairo", "cargo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "gmp", "gobject-introspection", "gtk3", "iana-etc", "libiconv", "libxcrypt", "openssl", "pkg-config", "qhull", "rustc", "tcl", "tk"]
 
 [workflows]
-runButton = "Start AgiesFL Dev"
+runButton = "Start AgiesFL"
 
 [[workflows.workflow]]
 name = "Start AgiesFL"

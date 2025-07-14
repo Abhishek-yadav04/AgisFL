@@ -1,0 +1,105 @@
+2025-07-02 10:53:52,612 - semgrep.notifications - WARNING - METRICS: Using configs from the Registry (like --config=p/ci) reports pseudonymous rule metrics to semgrep.dev.
+To disable Registry rule metrics, use "--metrics=off".
+Using configs only from local files (like --config=xyz.yml) does not enable metrics.
+
+More information: https://semgrep.dev/docs/metrics
+
+2025-07-02 10:53:52,613 - semgrep.run_scan - DEBUG - semgrep version 1.4.0
+2025-07-02 10:53:52,627 - semgrep.git - DEBUG - Failed to get project url from 'git ls-remote': Command failed with exit code: 128
+-----
+Command failed with output:
+fatal: No remote configured to list refs from.
+
+
+Failed to run 'git ls-remote --get-url'. Possible reasons:
+
+- the git binary is not available
+- the current working directory is not a git repository
+- the baseline commit is not a parent of the current commit
+    (if you are running through semgrep-app, check if you are setting `SEMGREP_BRANCH` or `SEMGREP_BASELINE_COMMIT` properly)
+- the current working directory is not marked as safe
+    (fix with `git config --global --add safe.directory $(pwd)`)
+
+Try running the command yourself to debug the issue.
+2025-07-02 10:53:52,628 - semgrep.config_resolver - DEBUG - Loading local config from /home/runner/workspace/.config/.semgrep/semgrep_rules.json
+2025-07-02 10:53:52,631 - semgrep.config_resolver - DEBUG - Done loading local config from /home/runner/workspace/.config/.semgrep/semgrep_rules.json
+2025-07-02 10:53:52,643 - semgrep.config_resolver - DEBUG - Saving rules to /tmp/semgrep-ey36e1bx.rules
+2025-07-02 10:53:54,529 - semgrep.rule_lang - DEBUG - semgrep-core validation response: valid=True
+2025-07-02 10:53:54,529 - semgrep.rule_lang - DEBUG - semgrep-core validation succeeded
+2025-07-02 10:53:54,530 - semgrep.rule_lang - DEBUG - RPC validation succeeded
+2025-07-02 10:53:54,530 - semgrep.config_resolver - DEBUG - loaded 1 configs in 1.902470588684082
+2025-07-02 10:53:54,805 - semgrep.run_scan - VERBOSE - running 715 rules from 1 config /home/runner/workspace/.config/.semgrep/semgrep_rules.json_0
+2025-07-02 10:53:54,806 - semgrep.run_scan - VERBOSE - No .semgrepignore found. Using default .semgrepignore rules. See the docs for the list of default ignores: https://semgrep.dev/docs/cli-usage/#ignore-files
+2025-07-02 10:53:54,807 - semgrep.run_scan - VERBOSE - Rules:
+2025-07-02 10:53:54,808 - semgrep.run_scan - VERBOSE - <SKIPPED DATA (too many entries; use --max-log-list-entries)>
+2025-07-02 10:53:55,941 - semgrep.core_runner - DEBUG - Passing whole rules directly to semgrep_core
+2025-07-02 10:53:56,112 - semgrep.core_runner - DEBUG - Running Semgrep engine with command:
+2025-07-02 10:53:56,112 - semgrep.core_runner - DEBUG - /tmp/_MEIi9Qhnk/semgrep/bin/opengrep-core -json -rules /tmp/tmp_tizyc0m.json -j 8 -targets /tmp/tmp4vhcmk_8 -timeout 5 -timeout_threshold 3 -max_memory 0 -fast
+2025-07-02 10:54:09,176 - semgrep.core_runner - DEBUG - --- semgrep-core stderr ---
+[00.13][[34mINFO[0m]: Executed as: /tmp/_MEIi9Qhnk/semgrep/bin/opengrep-core -json -rules /tmp/tmp_tizyc0m.json -j 8 -targets /tmp/tmp4vhcmk_8 -timeout 5 -timeout_threshold 3 -max_memory 0 -fast
+[00.13][[34mINFO[0m]: Version: 1.4.0
+[00.13][[34mINFO[0m]: Parsing rules in /tmp/tmp_tizyc0m.json
+[00.77][[34mINFO[0m]: scan: processing 266 files (skipping 0), with 457 rules (skipping 0 )
+[06.85][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.lang.security.audit.detect-non-literal-require file: client/src/components/ui/sidebar.tsx func: ???]
+[0m[07.36][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.lang.security.audit.detect-non-literal-require file: client/src/pages/analytics.tsx func: AnalyticsPage:13053]
+[0m[08.06][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.injection.tainted-sql-string file: client/src/pages/analytics.tsx func: AnalyticsPage:13053]
+[0m[09.26][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.audit.remote-property-injection file: client/src/pages/analytics.tsx func: AnalyticsPage:13053]
+[0m[09.76][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.express-wkhtmltoimage-injection file: client/src/pages/analytics.tsx func: AnalyticsPage:13053]
+[0m[10.05][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.lang.security.audit.detect-non-literal-require file: client/src/pages/threats.tsx func: ThreatsPage:21500]
+[0m[10.48][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.injection.tainted-sql-string file: client/src/pages/threats.tsx func: ThreatsPage:21500]
+[0m[10.75][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.express-data-exfiltration file: client/src/pages/analytics.tsx func: AnalyticsPage:13053]
+[0m[11.26][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.injection.raw-html-format file: client/src/pages/threats.tsx func: ThreatsPage:21500]
+[0m[11.97][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.x-frame-options-misconfiguration file: client/src/pages/threats.tsx func: ThreatsPage:21500]
+[0m--- end semgrep-core stderr ---
+2025-07-02 10:54:09,183 - semgrep.core_runner - DEBUG - semgrep ran in 0:00:13.241776 on 90 files
+2025-07-02 10:54:09,184 - semgrep.core_runner - DEBUG - findings summary: 0 warning, 0 error, 0 info
+2025-07-02 10:54:09,187 - semgrep.app.auth - DEBUG - Getting API token from settings file
+2025-07-02 10:54:09,187 - semgrep.app.auth - DEBUG - No API token found in settings file
+2025-07-02 10:54:09,307 - semgrep.output - VERBOSE - 
+========================================
+Files skipped:
+========================================
+
+  Always skipped by Opengrep:
+
+   • <none>
+
+  Skipped by .gitignore:
+  (Disable by passing --no-git-ignore)
+
+   • <all files not listed by `git ls-files` were skipped>
+
+  Skipped by .semgrepignore:
+  - https://semgrep.dev/docs/ignoring-files-folders-code/#understand-semgrep-defaults
+
+   • <none>
+
+  Skipped by --include patterns:
+
+   • <none>
+
+  Skipped by --exclude patterns:
+
+   • <none>
+
+  Files skipped due to insufficient read permissions:
+
+   • <none>
+
+  Skipped by limiting to files smaller than 1000000 bytes:
+  (Adjust with the --max-target-bytes flag)
+
+   • <none>
+
+  Partially analyzed due to parsing or internal Opengrep errors
+
+   • tailwind.config.ts (1 lines skipped)
+
+2025-07-02 10:54:09,308 - semgrep.output - INFO - Some files were skipped or only partially analyzed.
+  Scan was limited to files tracked by git.
+  Partially scanned: 1 files only partially analyzed due to parsing or internal Opengrep errors
+
+Ran 438 rules on 90 files: 0 findings.
+2025-07-02 10:54:09,308 - semgrep.app.version - DEBUG - Version cache does not exist
+2025-07-02 10:54:09,308 - semgrep.app.version - DEBUG - Version cache does not exist
+2025-07-02 10:54:09,324 - semgrep.metrics - VERBOSE - Not sending pseudonymous metrics since metrics are configured to OFF and registry usage is False

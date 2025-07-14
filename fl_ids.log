@@ -1,0 +1,670 @@
+2025-07-14 06:57:22,582 - fl_ids_core - INFO - Node enterprise_node_001: Added 2000 training samples
+2025-07-14 06:57:22,582 - fl_ids_core - INFO - Registered node enterprise_node_001 with model type random_forest
+2025-07-14 06:57:22,589 - fl_ids_core - INFO - Node enterprise_node_002: Added 2000 training samples
+2025-07-14 06:57:22,589 - fl_ids_core - INFO - Registered node enterprise_node_002 with model type neural_network
+2025-07-14 06:57:22,597 - fl_ids_core - INFO - Node enterprise_node_003: Added 2000 training samples
+2025-07-14 06:57:22,597 - fl_ids_core - INFO - Registered node enterprise_node_003 with model type isolation_forest
+2025-07-14 06:57:22,610 - fl_ids_core - INFO - Node enterprise_node_004: Added 2000 training samples
+2025-07-14 06:57:22,610 - fl_ids_core - INFO - Registered node enterprise_node_004 with model type svm
+2025-07-14 06:57:22,617 - fl_ids_core - INFO - Node enterprise_node_005: Added 2000 training samples
+2025-07-14 06:57:22,618 - fl_ids_core - INFO - Registered node enterprise_node_005 with model type gradient_boosting
+2025-07-14 06:57:22,618 - __main__ - INFO - FL-IDS system initialized successfully
+2025-07-14 06:57:22,618 - fl_ids_core - INFO - Starting federated training round 1
+2025-07-14 06:57:22,620 - __main__ - INFO - Starting FL-IDS Enterprise Backend on 0.0.0.0:5001
+2025-07-14 06:57:22,858 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 06:57:25,615 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 06:57:25,831 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 06:57:26,031 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 06:57:26,134 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 06:57:26,139 - fl_ids_core - INFO - Round 1 completed with 5 nodes
+2025-07-14 06:57:26,140 - __main__ - INFO - FL Round 1 completed - Accuracy: 0.9280
+2025-07-14 06:57:56,140 - fl_ids_core - INFO - Starting federated training round 2
+2025-07-14 06:57:56,328 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 06:57:59,406 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 06:57:59,620 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 06:57:59,774 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 06:57:59,876 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 06:57:59,882 - fl_ids_core - INFO - Round 2 completed with 5 nodes
+2025-07-14 06:57:59,883 - __main__ - INFO - FL Round 2 completed - Accuracy: 0.9416
+2025-07-14 06:58:29,904 - fl_ids_core - INFO - Starting federated training round 3
+2025-07-14 06:58:30,805 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 06:58:36,610 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 06:58:37,111 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 06:58:37,720 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 06:58:38,226 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 06:58:38,310 - fl_ids_core - INFO - Round 3 completed with 5 nodes
+2025-07-14 06:58:38,314 - __main__ - INFO - FL Round 3 completed - Accuracy: 0.9589
+2025-07-14 06:59:08,315 - fl_ids_core - INFO - Starting federated training round 4
+2025-07-14 06:59:08,516 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 06:59:10,716 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 06:59:10,956 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 06:59:11,098 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 06:59:11,207 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 06:59:11,213 - fl_ids_core - INFO - Round 4 completed with 5 nodes
+2025-07-14 06:59:11,213 - __main__ - INFO - FL Round 4 completed - Accuracy: 0.8847
+2025-07-14 06:59:43,071 - fl_ids_core - INFO - Node enterprise_node_001: Added 2000 training samples
+2025-07-14 06:59:43,073 - fl_ids_core - INFO - Registered node enterprise_node_001 with model type random_forest
+2025-07-14 06:59:43,081 - fl_ids_core - INFO - Node enterprise_node_002: Added 2000 training samples
+2025-07-14 06:59:43,081 - fl_ids_core - INFO - Registered node enterprise_node_002 with model type neural_network
+2025-07-14 06:59:43,104 - fl_ids_core - INFO - Node enterprise_node_003: Added 2000 training samples
+2025-07-14 06:59:43,105 - fl_ids_core - INFO - Registered node enterprise_node_003 with model type isolation_forest
+2025-07-14 06:59:43,113 - fl_ids_core - INFO - Node enterprise_node_004: Added 2000 training samples
+2025-07-14 06:59:43,113 - fl_ids_core - INFO - Registered node enterprise_node_004 with model type svm
+2025-07-14 06:59:43,120 - fl_ids_core - INFO - Node enterprise_node_005: Added 2000 training samples
+2025-07-14 06:59:43,120 - fl_ids_core - INFO - Registered node enterprise_node_005 with model type gradient_boosting
+2025-07-14 06:59:43,120 - __main__ - INFO - FL-IDS system initialized successfully
+2025-07-14 06:59:43,121 - fl_ids_core - INFO - Starting federated training round 1
+2025-07-14 06:59:43,123 - __main__ - INFO - Starting FL-IDS Enterprise Backend on 0.0.0.0:5001
+2025-07-14 06:59:43,379 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 06:59:45,225 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 06:59:45,458 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 06:59:45,582 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 06:59:45,692 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 06:59:45,697 - fl_ids_core - INFO - Round 1 completed with 5 nodes
+2025-07-14 06:59:45,697 - __main__ - INFO - FL Round 1 completed - Accuracy: 0.9304
+2025-07-14 07:00:15,697 - fl_ids_core - INFO - Starting federated training round 2
+2025-07-14 07:00:16,415 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:00:22,008 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:00:22,225 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:00:22,351 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:00:22,467 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:00:22,474 - fl_ids_core - INFO - Round 2 completed with 5 nodes
+2025-07-14 07:00:22,475 - __main__ - INFO - FL Round 2 completed - Accuracy: 0.9180
+2025-07-14 07:00:52,475 - fl_ids_core - INFO - Starting federated training round 3
+2025-07-14 07:00:52,668 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:00:55,113 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:00:55,720 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:00:56,305 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:00:56,615 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:00:56,621 - fl_ids_core - INFO - Round 3 completed with 5 nodes
+2025-07-14 07:00:56,621 - __main__ - INFO - FL Round 3 completed - Accuracy: 0.8846
+2025-07-14 07:01:26,622 - fl_ids_core - INFO - Starting federated training round 4
+2025-07-14 07:01:27,347 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:01:34,526 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:01:35,004 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:01:35,410 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:01:35,739 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:01:35,811 - fl_ids_core - INFO - Round 4 completed with 5 nodes
+2025-07-14 07:01:35,812 - __main__ - INFO - FL Round 4 completed - Accuracy: 0.9570
+2025-07-14 07:02:05,815 - fl_ids_core - INFO - Starting federated training round 5
+2025-07-14 07:02:06,428 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:02:08,808 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:02:09,011 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:02:09,135 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:02:09,241 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:02:09,246 - fl_ids_core - INFO - Round 5 completed with 5 nodes
+2025-07-14 07:02:09,247 - __main__ - INFO - FL Round 5 completed - Accuracy: 0.9281
+2025-07-14 07:02:39,247 - fl_ids_core - INFO - Starting federated training round 6
+2025-07-14 07:02:39,750 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:02:43,917 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:02:44,128 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:02:44,255 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:02:44,374 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:02:44,379 - fl_ids_core - INFO - Round 6 completed with 5 nodes
+2025-07-14 07:02:44,380 - __main__ - INFO - FL Round 6 completed - Accuracy: 0.9341
+2025-07-14 07:03:14,404 - fl_ids_core - INFO - Starting federated training round 7
+2025-07-14 07:03:15,043 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:03:19,604 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:03:19,817 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:03:19,960 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:03:20,078 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:03:20,084 - fl_ids_core - INFO - Round 7 completed with 5 nodes
+2025-07-14 07:03:20,084 - __main__ - INFO - FL Round 7 completed - Accuracy: 0.8983
+2025-07-14 07:03:50,085 - fl_ids_core - INFO - Starting federated training round 8
+2025-07-14 07:03:50,276 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:03:52,608 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:03:52,913 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:03:53,230 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:03:53,417 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:03:53,422 - fl_ids_core - INFO - Round 8 completed with 5 nodes
+2025-07-14 07:03:53,422 - __main__ - INFO - FL Round 8 completed - Accuracy: 0.9585
+2025-07-14 07:03:59,815 - fl_ids_core - INFO - Node enterprise_node_001: Added 2000 training samples
+2025-07-14 07:03:59,815 - fl_ids_core - INFO - Registered node enterprise_node_001 with model type random_forest
+2025-07-14 07:03:59,822 - fl_ids_core - INFO - Node enterprise_node_002: Added 2000 training samples
+2025-07-14 07:03:59,823 - fl_ids_core - INFO - Registered node enterprise_node_002 with model type neural_network
+2025-07-14 07:03:59,829 - fl_ids_core - INFO - Node enterprise_node_003: Added 2000 training samples
+2025-07-14 07:03:59,829 - fl_ids_core - INFO - Registered node enterprise_node_003 with model type isolation_forest
+2025-07-14 07:03:59,837 - fl_ids_core - INFO - Node enterprise_node_004: Added 2000 training samples
+2025-07-14 07:03:59,837 - fl_ids_core - INFO - Registered node enterprise_node_004 with model type svm
+2025-07-14 07:03:59,846 - fl_ids_core - INFO - Node enterprise_node_005: Added 2000 training samples
+2025-07-14 07:03:59,846 - fl_ids_core - INFO - Registered node enterprise_node_005 with model type gradient_boosting
+2025-07-14 07:03:59,846 - __main__ - INFO - FL-IDS system initialized successfully
+2025-07-14 07:03:59,846 - fl_ids_core - INFO - Starting federated training round 1
+2025-07-14 07:03:59,851 - __main__ - INFO - Starting FL-IDS Enterprise Backend on 0.0.0.0:5001
+2025-07-14 07:04:00,107 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:04:01,717 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:04:01,919 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:04:02,045 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:04:02,148 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:04:02,153 - fl_ids_core - INFO - Round 1 completed with 5 nodes
+2025-07-14 07:04:02,154 - __main__ - INFO - FL Round 1 completed - Accuracy: 0.9031
+2025-07-14 07:04:23,422 - fl_ids_core - INFO - Starting federated training round 9
+2025-07-14 07:04:23,601 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:04:26,104 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:04:26,297 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:04:26,429 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:04:26,543 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:04:26,548 - fl_ids_core - INFO - Round 9 completed with 5 nodes
+2025-07-14 07:04:26,548 - __main__ - INFO - FL Round 9 completed - Accuracy: 0.9424
+2025-07-14 07:04:32,154 - fl_ids_core - INFO - Starting federated training round 2
+2025-07-14 07:04:32,376 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:04:34,412 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:04:34,618 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:04:34,746 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:04:34,858 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:04:34,862 - fl_ids_core - INFO - Round 2 completed with 5 nodes
+2025-07-14 07:04:34,863 - __main__ - INFO - FL Round 2 completed - Accuracy: 0.9531
+2025-07-14 07:04:56,548 - fl_ids_core - INFO - Starting federated training round 10
+2025-07-14 07:04:56,754 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:05:00,109 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:05:00,298 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:05:00,461 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:05:00,576 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:05:00,582 - fl_ids_core - INFO - Round 10 completed with 5 nodes
+2025-07-14 07:05:00,582 - __main__ - INFO - FL Round 10 completed - Accuracy: 0.9339
+2025-07-14 07:05:04,863 - fl_ids_core - INFO - Starting federated training round 3
+2025-07-14 07:05:05,068 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:05:10,619 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:05:10,841 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:05:10,968 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:05:11,080 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:05:11,085 - fl_ids_core - INFO - Round 3 completed with 5 nodes
+2025-07-14 07:05:11,085 - __main__ - INFO - FL Round 3 completed - Accuracy: 0.9502
+2025-07-14 07:05:30,582 - fl_ids_core - INFO - Starting federated training round 11
+2025-07-14 07:05:30,777 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:05:33,222 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:05:33,456 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:05:33,588 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:05:33,701 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:05:33,706 - fl_ids_core - INFO - Round 11 completed with 5 nodes
+2025-07-14 07:05:33,707 - __main__ - INFO - FL Round 11 completed - Accuracy: 0.9066
+2025-07-14 07:05:41,086 - fl_ids_core - INFO - Starting federated training round 4
+2025-07-14 07:05:41,287 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:05:42,705 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:05:42,965 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:05:43,096 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:05:43,195 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:05:43,207 - fl_ids_core - INFO - Round 4 completed with 5 nodes
+2025-07-14 07:05:43,207 - __main__ - INFO - FL Round 4 completed - Accuracy: 0.8925
+2025-07-14 07:06:03,707 - fl_ids_core - INFO - Starting federated training round 12
+2025-07-14 07:06:03,903 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:06:05,904 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:06:06,111 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:06:06,244 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:06:06,362 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:06:06,369 - fl_ids_core - INFO - Round 12 completed with 5 nodes
+2025-07-14 07:06:06,369 - __main__ - INFO - FL Round 12 completed - Accuracy: 0.9091
+2025-07-14 07:06:13,208 - fl_ids_core - INFO - Starting federated training round 5
+2025-07-14 07:06:13,423 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:06:17,231 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:06:17,460 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:06:17,627 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:06:17,759 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:06:17,765 - fl_ids_core - INFO - Round 5 completed with 5 nodes
+2025-07-14 07:06:17,767 - __main__ - INFO - FL Round 5 completed - Accuracy: 0.8914
+2025-07-14 07:06:36,369 - fl_ids_core - INFO - Starting federated training round 13
+2025-07-14 07:06:36,551 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:06:38,911 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:06:39,113 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:06:39,241 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:06:39,353 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:06:39,360 - fl_ids_core - INFO - Round 13 completed with 5 nodes
+2025-07-14 07:06:39,360 - __main__ - INFO - FL Round 13 completed - Accuracy: 0.8857
+2025-07-14 07:06:47,767 - fl_ids_core - INFO - Starting federated training round 6
+2025-07-14 07:06:47,989 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:06:51,523 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:06:51,758 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:06:51,892 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:06:52,006 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:06:52,013 - fl_ids_core - INFO - Round 6 completed with 5 nodes
+2025-07-14 07:06:52,013 - __main__ - INFO - FL Round 6 completed - Accuracy: 0.9018
+2025-07-14 07:07:09,360 - fl_ids_core - INFO - Starting federated training round 14
+2025-07-14 07:07:09,571 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:07:13,326 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:07:13,581 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:07:13,742 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:07:13,871 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:07:13,878 - fl_ids_core - INFO - Round 14 completed with 5 nodes
+2025-07-14 07:07:13,878 - __main__ - INFO - FL Round 14 completed - Accuracy: 0.8823
+2025-07-14 07:07:22,014 - fl_ids_core - INFO - Starting federated training round 7
+2025-07-14 07:07:22,214 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:07:24,420 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:07:24,638 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:07:24,777 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:07:24,882 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:07:24,889 - fl_ids_core - INFO - Round 7 completed with 5 nodes
+2025-07-14 07:07:24,889 - __main__ - INFO - FL Round 7 completed - Accuracy: 0.9247
+2025-07-14 07:07:43,878 - fl_ids_core - INFO - Starting federated training round 15
+2025-07-14 07:07:44,068 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:07:46,827 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:07:47,042 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:07:47,194 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:07:47,316 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:07:47,322 - fl_ids_core - INFO - Round 15 completed with 5 nodes
+2025-07-14 07:07:47,322 - __main__ - INFO - FL Round 15 completed - Accuracy: 0.9131
+2025-07-14 07:07:54,889 - fl_ids_core - INFO - Starting federated training round 8
+2025-07-14 07:07:55,093 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:07:58,223 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:07:58,458 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:07:58,609 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:07:58,728 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:07:58,734 - fl_ids_core - INFO - Round 8 completed with 5 nodes
+2025-07-14 07:07:58,734 - __main__ - INFO - FL Round 8 completed - Accuracy: 0.8891
+2025-07-14 07:08:17,323 - fl_ids_core - INFO - Starting federated training round 16
+2025-07-14 07:08:17,522 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:08:20,509 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:08:20,748 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:08:20,893 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:08:21,010 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:08:21,021 - fl_ids_core - INFO - Round 16 completed with 5 nodes
+2025-07-14 07:08:21,022 - __main__ - INFO - FL Round 16 completed - Accuracy: 0.9240
+2025-07-14 07:08:28,734 - fl_ids_core - INFO - Starting federated training round 9
+2025-07-14 07:08:28,920 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:08:31,016 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:08:31,219 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:08:31,360 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:08:31,470 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:08:31,476 - fl_ids_core - INFO - Round 9 completed with 5 nodes
+2025-07-14 07:08:31,476 - __main__ - INFO - FL Round 9 completed - Accuracy: 0.9220
+2025-07-14 07:08:51,024 - fl_ids_core - INFO - Starting federated training round 17
+2025-07-14 07:08:51,220 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:08:53,611 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:08:53,834 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:08:53,977 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:08:54,094 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:08:54,108 - fl_ids_core - INFO - Round 17 completed with 5 nodes
+2025-07-14 07:08:54,109 - __main__ - INFO - FL Round 17 completed - Accuracy: 0.9554
+2025-07-14 07:09:01,477 - fl_ids_core - INFO - Starting federated training round 10
+2025-07-14 07:09:01,665 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:09:03,914 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:09:04,129 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:09:04,263 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:09:04,370 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:09:04,376 - fl_ids_core - INFO - Round 10 completed with 5 nodes
+2025-07-14 07:09:04,376 - __main__ - INFO - FL Round 10 completed - Accuracy: 0.9047
+2025-07-14 07:09:24,109 - fl_ids_core - INFO - Starting federated training round 18
+2025-07-14 07:09:24,337 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:09:25,927 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:09:26,159 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:09:26,296 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:09:26,404 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:09:26,409 - fl_ids_core - INFO - Round 18 completed with 5 nodes
+2025-07-14 07:09:26,410 - __main__ - INFO - FL Round 18 completed - Accuracy: 0.8901
+2025-07-14 07:09:34,376 - fl_ids_core - INFO - Starting federated training round 11
+2025-07-14 07:09:34,574 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:09:36,212 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:09:36,419 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:09:36,717 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:09:36,956 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:09:37,008 - fl_ids_core - INFO - Round 11 completed with 5 nodes
+2025-07-14 07:09:37,008 - __main__ - INFO - FL Round 11 completed - Accuracy: 0.9565
+2025-07-14 07:09:56,410 - fl_ids_core - INFO - Starting federated training round 19
+2025-07-14 07:09:56,786 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:10:05,354 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:10:05,617 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:10:05,796 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:10:05,940 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:10:05,947 - fl_ids_core - INFO - Round 19 completed with 5 nodes
+2025-07-14 07:10:05,948 - __main__ - INFO - FL Round 19 completed - Accuracy: 0.9332
+2025-07-14 07:10:07,008 - fl_ids_core - INFO - Starting federated training round 12
+2025-07-14 07:10:07,715 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:10:14,608 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:10:14,820 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:10:14,977 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:10:15,088 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:10:15,094 - fl_ids_core - INFO - Round 12 completed with 5 nodes
+2025-07-14 07:10:15,094 - __main__ - INFO - FL Round 12 completed - Accuracy: 0.9171
+2025-07-14 07:10:35,948 - fl_ids_core - INFO - Starting federated training round 20
+2025-07-14 07:10:36,140 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:10:39,109 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:10:39,344 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:10:39,539 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:10:39,669 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:10:39,680 - fl_ids_core - INFO - Round 20 completed with 5 nodes
+2025-07-14 07:10:39,684 - __main__ - INFO - FL Round 20 completed - Accuracy: 0.8960
+2025-07-14 07:10:45,095 - fl_ids_core - INFO - Starting federated training round 13
+2025-07-14 07:10:45,281 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:10:48,023 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:10:48,261 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:10:48,389 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:10:48,494 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:10:48,498 - fl_ids_core - INFO - Round 13 completed with 5 nodes
+2025-07-14 07:10:48,499 - __main__ - INFO - FL Round 13 completed - Accuracy: 0.9571
+2025-07-14 07:11:09,684 - fl_ids_core - INFO - Starting federated training round 21
+2025-07-14 07:11:09,925 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:11:12,615 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:11:12,864 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:11:13,046 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:11:13,176 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:11:13,186 - fl_ids_core - INFO - Round 21 completed with 5 nodes
+2025-07-14 07:11:13,186 - __main__ - INFO - FL Round 21 completed - Accuracy: 0.9172
+2025-07-14 07:11:18,499 - fl_ids_core - INFO - Starting federated training round 14
+2025-07-14 07:11:18,702 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:11:21,826 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:11:22,063 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:11:22,196 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:11:22,316 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:11:22,321 - fl_ids_core - INFO - Round 14 completed with 5 nodes
+2025-07-14 07:11:22,322 - __main__ - INFO - FL Round 14 completed - Accuracy: 0.9130
+2025-07-14 07:11:43,186 - fl_ids_core - INFO - Starting federated training round 22
+2025-07-14 07:11:43,388 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:11:45,108 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:11:45,309 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:11:45,441 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:11:45,543 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:11:45,547 - fl_ids_core - INFO - Round 22 completed with 5 nodes
+2025-07-14 07:11:45,547 - __main__ - INFO - FL Round 22 completed - Accuracy: 0.9051
+2025-07-14 07:11:52,322 - fl_ids_core - INFO - Starting federated training round 15
+2025-07-14 07:11:52,519 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:11:54,410 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:11:54,620 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:11:54,747 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:11:54,854 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:11:54,859 - fl_ids_core - INFO - Round 15 completed with 5 nodes
+2025-07-14 07:11:54,859 - __main__ - INFO - FL Round 15 completed - Accuracy: 0.8804
+2025-07-14 07:12:15,548 - fl_ids_core - INFO - Starting federated training round 23
+2025-07-14 07:12:15,738 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:12:18,017 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:12:18,231 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:12:18,366 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:12:18,474 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:12:18,479 - fl_ids_core - INFO - Round 23 completed with 5 nodes
+2025-07-14 07:12:18,479 - __main__ - INFO - FL Round 23 completed - Accuracy: 0.9447
+2025-07-14 07:12:24,859 - fl_ids_core - INFO - Starting federated training round 16
+2025-07-14 07:12:25,039 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:12:26,820 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:12:27,049 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:12:27,189 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:12:27,292 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:12:27,298 - fl_ids_core - INFO - Round 16 completed with 5 nodes
+2025-07-14 07:12:27,298 - __main__ - INFO - FL Round 16 completed - Accuracy: 0.9525
+2025-07-14 07:12:48,480 - fl_ids_core - INFO - Starting federated training round 24
+2025-07-14 07:12:48,704 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:12:51,609 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:12:51,816 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:12:51,944 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:12:52,048 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:12:52,053 - fl_ids_core - INFO - Round 24 completed with 5 nodes
+2025-07-14 07:12:52,053 - __main__ - INFO - FL Round 24 completed - Accuracy: 0.9260
+2025-07-14 07:12:57,299 - fl_ids_core - INFO - Starting federated training round 17
+2025-07-14 07:12:57,496 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:12:59,813 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:13:00,046 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:13:00,184 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:13:00,284 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:13:00,289 - fl_ids_core - INFO - Round 17 completed with 5 nodes
+2025-07-14 07:13:00,289 - __main__ - INFO - FL Round 17 completed - Accuracy: 0.8876
+2025-07-14 07:13:22,053 - fl_ids_core - INFO - Starting federated training round 25
+2025-07-14 07:13:22,238 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:13:24,623 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:13:24,866 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:13:25,017 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:13:25,136 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:13:25,143 - fl_ids_core - INFO - Round 25 completed with 5 nodes
+2025-07-14 07:13:25,144 - __main__ - INFO - FL Round 25 completed - Accuracy: 0.9498
+2025-07-14 07:13:30,289 - fl_ids_core - INFO - Starting federated training round 18
+2025-07-14 07:13:30,482 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:13:31,725 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:13:31,963 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:13:32,089 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:13:32,204 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:13:32,210 - fl_ids_core - INFO - Round 18 completed with 5 nodes
+2025-07-14 07:13:32,210 - __main__ - INFO - FL Round 18 completed - Accuracy: 0.9009
+2025-07-14 07:13:55,144 - fl_ids_core - INFO - Starting federated training round 26
+2025-07-14 07:13:55,334 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:13:58,605 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:13:58,901 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:13:59,108 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:13:59,285 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:13:59,300 - fl_ids_core - INFO - Round 26 completed with 5 nodes
+2025-07-14 07:13:59,301 - __main__ - INFO - FL Round 26 completed - Accuracy: 0.9477
+2025-07-14 07:14:02,211 - fl_ids_core - INFO - Starting federated training round 19
+2025-07-14 07:14:02,427 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:14:05,910 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:14:06,131 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:14:06,278 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:14:06,390 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:14:06,395 - fl_ids_core - INFO - Round 19 completed with 5 nodes
+2025-07-14 07:14:06,395 - __main__ - INFO - FL Round 19 completed - Accuracy: 0.8870
+2025-07-14 07:14:29,302 - fl_ids_core - INFO - Starting federated training round 27
+2025-07-14 07:14:29,495 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:14:32,023 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:14:32,260 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:14:32,400 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:14:32,515 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:14:32,520 - fl_ids_core - INFO - Round 27 completed with 5 nodes
+2025-07-14 07:14:32,520 - __main__ - INFO - FL Round 27 completed - Accuracy: 0.9530
+2025-07-14 07:14:36,396 - fl_ids_core - INFO - Starting federated training round 20
+2025-07-14 07:14:36,580 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:14:39,114 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:14:39,339 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:14:39,478 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:14:39,582 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:14:39,588 - fl_ids_core - INFO - Round 20 completed with 5 nodes
+2025-07-14 07:14:39,588 - __main__ - INFO - FL Round 20 completed - Accuracy: 0.9010
+2025-07-14 07:15:02,520 - fl_ids_core - INFO - Starting federated training round 28
+2025-07-14 07:15:02,707 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:15:04,947 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:15:05,181 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:15:05,320 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:15:05,434 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:15:05,440 - fl_ids_core - INFO - Round 28 completed with 5 nodes
+2025-07-14 07:15:05,440 - __main__ - INFO - FL Round 28 completed - Accuracy: 0.8873
+2025-07-14 07:15:20,085 - fl_ids_core - INFO - Node enterprise_node_001: Added 2000 training samples
+2025-07-14 07:15:20,086 - fl_ids_core - INFO - Registered node enterprise_node_001 with model type random_forest
+2025-07-14 07:15:20,093 - fl_ids_core - INFO - Node enterprise_node_002: Added 2000 training samples
+2025-07-14 07:15:20,094 - fl_ids_core - INFO - Registered node enterprise_node_002 with model type neural_network
+2025-07-14 07:15:20,100 - fl_ids_core - INFO - Node enterprise_node_003: Added 2000 training samples
+2025-07-14 07:15:20,100 - fl_ids_core - INFO - Registered node enterprise_node_003 with model type isolation_forest
+2025-07-14 07:15:20,107 - fl_ids_core - INFO - Node enterprise_node_004: Added 2000 training samples
+2025-07-14 07:15:20,107 - fl_ids_core - INFO - Registered node enterprise_node_004 with model type svm
+2025-07-14 07:15:20,113 - fl_ids_core - INFO - Node enterprise_node_005: Added 2000 training samples
+2025-07-14 07:15:20,113 - fl_ids_core - INFO - Registered node enterprise_node_005 with model type gradient_boosting
+2025-07-14 07:15:20,113 - __main__ - INFO - FL-IDS system initialized successfully
+2025-07-14 07:15:20,114 - fl_ids_core - INFO - Starting federated training round 1
+2025-07-14 07:15:20,115 - __main__ - INFO - Starting FL-IDS Enterprise Backend on 0.0.0.0:5001
+2025-07-14 07:15:20,344 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:15:23,827 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:15:24,067 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:15:24,206 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:15:24,315 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:15:24,321 - fl_ids_core - INFO - Round 1 completed with 5 nodes
+2025-07-14 07:15:24,322 - __main__ - INFO - FL Round 1 completed - Accuracy: 0.9113
+2025-07-14 07:15:54,322 - fl_ids_core - INFO - Starting federated training round 2
+2025-07-14 07:15:54,527 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:15:56,609 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:15:56,814 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:15:56,956 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:15:57,070 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:15:57,077 - fl_ids_core - INFO - Round 2 completed with 5 nodes
+2025-07-14 07:15:57,077 - __main__ - INFO - FL Round 2 completed - Accuracy: 0.9243
+2025-07-14 07:16:27,077 - fl_ids_core - INFO - Starting federated training round 3
+2025-07-14 07:16:27,309 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:17:33,816 - fl_ids_core - INFO - Node enterprise_node_001: Added 2000 training samples
+2025-07-14 07:17:33,817 - fl_ids_core - INFO - Registered node enterprise_node_001 with model type random_forest
+2025-07-14 07:17:33,824 - fl_ids_core - INFO - Node enterprise_node_002: Added 2000 training samples
+2025-07-14 07:17:33,824 - fl_ids_core - INFO - Registered node enterprise_node_002 with model type neural_network
+2025-07-14 07:17:33,832 - fl_ids_core - INFO - Node enterprise_node_003: Added 2000 training samples
+2025-07-14 07:17:33,832 - fl_ids_core - INFO - Registered node enterprise_node_003 with model type isolation_forest
+2025-07-14 07:17:33,839 - fl_ids_core - INFO - Node enterprise_node_004: Added 2000 training samples
+2025-07-14 07:17:33,840 - fl_ids_core - INFO - Registered node enterprise_node_004 with model type svm
+2025-07-14 07:17:33,847 - fl_ids_core - INFO - Node enterprise_node_005: Added 2000 training samples
+2025-07-14 07:17:33,847 - fl_ids_core - INFO - Registered node enterprise_node_005 with model type gradient_boosting
+2025-07-14 07:17:33,847 - __main__ - INFO - FL-IDS system initialized successfully
+2025-07-14 07:17:33,848 - fl_ids_core - INFO - Starting federated training round 1
+2025-07-14 07:17:33,904 - __main__ - INFO - Starting FL-IDS Enterprise Backend on 0.0.0.0:5001
+2025-07-14 07:17:34,129 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:17:36,510 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:17:36,728 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:17:36,902 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:17:37,059 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:17:37,067 - fl_ids_core - INFO - Round 1 completed with 5 nodes
+2025-07-14 07:17:37,067 - __main__ - INFO - FL Round 1 completed - Accuracy: 0.9309
+2025-07-14 07:18:07,068 - fl_ids_core - INFO - Starting federated training round 2
+2025-07-14 07:18:07,249 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:18:09,531 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:18:09,774 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:18:09,919 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:18:10,021 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:18:10,025 - fl_ids_core - INFO - Round 2 completed with 5 nodes
+2025-07-14 07:18:10,025 - __main__ - INFO - FL Round 2 completed - Accuracy: 0.9480
+2025-07-14 07:18:40,025 - fl_ids_core - INFO - Starting federated training round 3
+2025-07-14 07:18:40,239 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:18:43,326 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:18:43,571 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:18:43,725 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:18:43,835 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:18:43,842 - fl_ids_core - INFO - Round 3 completed with 5 nodes
+2025-07-14 07:18:43,843 - __main__ - INFO - FL Round 3 completed - Accuracy: 0.9465
+2025-07-14 07:19:13,843 - fl_ids_core - INFO - Starting federated training round 4
+2025-07-14 07:19:14,033 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:19:15,823 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:19:16,055 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:19:16,195 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:19:16,291 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:19:16,296 - fl_ids_core - INFO - Round 4 completed with 5 nodes
+2025-07-14 07:19:16,296 - __main__ - INFO - FL Round 4 completed - Accuracy: 0.8995
+2025-07-14 07:19:46,296 - fl_ids_core - INFO - Starting federated training round 5
+2025-07-14 07:19:46,489 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:19:48,626 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:19:48,895 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:19:49,031 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:19:49,150 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:19:49,157 - fl_ids_core - INFO - Round 5 completed with 5 nodes
+2025-07-14 07:19:49,157 - __main__ - INFO - FL Round 5 completed - Accuracy: 0.9442
+2025-07-14 07:20:19,158 - fl_ids_core - INFO - Starting federated training round 6
+2025-07-14 07:20:19,351 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:20:21,423 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:20:21,659 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:20:21,813 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:20:21,922 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:20:21,927 - fl_ids_core - INFO - Round 6 completed with 5 nodes
+2025-07-14 07:20:21,927 - __main__ - INFO - FL Round 6 completed - Accuracy: 0.8814
+2025-07-14 07:20:51,927 - fl_ids_core - INFO - Starting federated training round 7
+2025-07-14 07:20:52,130 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:20:55,819 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:20:56,037 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:20:56,183 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:20:56,295 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:20:56,300 - fl_ids_core - INFO - Round 7 completed with 5 nodes
+2025-07-14 07:20:56,300 - __main__ - INFO - FL Round 7 completed - Accuracy: 0.8980
+2025-07-14 07:21:26,300 - fl_ids_core - INFO - Starting federated training round 8
+2025-07-14 07:21:26,483 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:21:28,519 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:21:28,754 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:21:28,890 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:21:29,005 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:21:29,011 - fl_ids_core - INFO - Round 8 completed with 5 nodes
+2025-07-14 07:21:29,012 - __main__ - INFO - FL Round 8 completed - Accuracy: 0.9450
+2025-07-14 07:21:59,012 - fl_ids_core - INFO - Starting federated training round 9
+2025-07-14 07:21:59,318 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:22:03,428 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:22:03,651 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:22:03,808 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:22:03,917 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:22:03,925 - fl_ids_core - INFO - Round 9 completed with 5 nodes
+2025-07-14 07:22:03,925 - __main__ - INFO - FL Round 9 completed - Accuracy: 0.9421
+2025-07-14 07:22:33,925 - fl_ids_core - INFO - Starting federated training round 10
+2025-07-14 07:22:34,120 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:22:36,229 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:22:36,463 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:22:36,592 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:22:36,685 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:22:36,690 - fl_ids_core - INFO - Round 10 completed with 5 nodes
+2025-07-14 07:22:36,690 - __main__ - INFO - FL Round 10 completed - Accuracy: 0.9359
+2025-07-14 07:23:06,691 - fl_ids_core - INFO - Starting federated training round 11
+2025-07-14 07:23:06,937 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:23:08,618 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:23:08,837 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:23:08,978 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:23:09,087 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:23:09,093 - fl_ids_core - INFO - Round 11 completed with 5 nodes
+2025-07-14 07:23:09,104 - __main__ - INFO - FL Round 11 completed - Accuracy: 0.9086
+2025-07-14 07:23:39,104 - fl_ids_core - INFO - Starting federated training round 12
+2025-07-14 07:23:39,292 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:23:41,819 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:23:42,051 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:23:42,190 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:23:42,291 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:23:42,304 - fl_ids_core - INFO - Round 12 completed with 5 nodes
+2025-07-14 07:23:42,305 - __main__ - INFO - FL Round 12 completed - Accuracy: 0.9153
+2025-07-14 07:24:12,305 - fl_ids_core - INFO - Starting federated training round 13
+2025-07-14 07:24:12,502 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:24:14,625 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:24:14,856 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:24:15,021 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:24:15,139 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:24:15,144 - fl_ids_core - INFO - Round 13 completed with 5 nodes
+2025-07-14 07:24:15,144 - __main__ - INFO - FL Round 13 completed - Accuracy: 0.9390
+2025-07-14 07:24:45,145 - fl_ids_core - INFO - Starting federated training round 14
+2025-07-14 07:24:45,341 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:24:48,414 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:24:48,624 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:24:48,784 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:24:48,897 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:24:48,907 - fl_ids_core - INFO - Round 14 completed with 5 nodes
+2025-07-14 07:24:48,907 - __main__ - INFO - FL Round 14 completed - Accuracy: 0.8898
+2025-07-14 07:25:18,907 - fl_ids_core - INFO - Starting federated training round 15
+2025-07-14 07:25:19,107 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:25:21,515 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:25:21,773 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:25:21,928 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:25:22,044 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:25:22,052 - fl_ids_core - INFO - Round 15 completed with 5 nodes
+2025-07-14 07:25:22,052 - __main__ - INFO - FL Round 15 completed - Accuracy: 0.8804
+2025-07-14 07:25:52,052 - fl_ids_core - INFO - Starting federated training round 16
+2025-07-14 07:25:52,239 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:25:54,113 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:25:54,331 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:25:54,480 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:25:54,587 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:25:54,592 - fl_ids_core - INFO - Round 16 completed with 5 nodes
+2025-07-14 07:25:54,592 - __main__ - INFO - FL Round 16 completed - Accuracy: 0.9362
+2025-07-14 07:26:24,592 - fl_ids_core - INFO - Starting federated training round 17
+2025-07-14 07:26:24,806 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:26:28,232 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:26:28,491 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:26:28,641 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:26:28,758 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:26:28,764 - fl_ids_core - INFO - Round 17 completed with 5 nodes
+2025-07-14 07:26:28,764 - __main__ - INFO - FL Round 17 completed - Accuracy: 0.8928
+2025-07-14 07:26:58,764 - fl_ids_core - INFO - Starting federated training round 18
+2025-07-14 07:26:58,955 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:27:02,030 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:27:02,284 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:27:02,422 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:27:02,521 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:27:02,527 - fl_ids_core - INFO - Round 18 completed with 5 nodes
+2025-07-14 07:27:02,528 - __main__ - INFO - FL Round 18 completed - Accuracy: 0.8942
+2025-07-14 07:27:32,528 - fl_ids_core - INFO - Starting federated training round 19
+2025-07-14 07:27:32,718 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:27:35,225 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:27:35,466 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:27:35,611 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:27:35,736 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:27:35,745 - fl_ids_core - INFO - Round 19 completed with 5 nodes
+2025-07-14 07:27:35,745 - __main__ - INFO - FL Round 19 completed - Accuracy: 0.9453
+2025-07-14 07:28:05,746 - fl_ids_core - INFO - Starting federated training round 20
+2025-07-14 07:28:05,933 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:28:08,929 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:28:09,189 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:28:09,345 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:28:09,451 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:28:09,456 - fl_ids_core - INFO - Round 20 completed with 5 nodes
+2025-07-14 07:28:09,456 - __main__ - INFO - FL Round 20 completed - Accuracy: 0.8986
+2025-07-14 07:28:39,457 - fl_ids_core - INFO - Starting federated training round 21
+2025-07-14 07:28:39,641 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:28:41,420 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:28:41,641 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:28:41,780 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:28:41,885 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:28:41,890 - fl_ids_core - INFO - Round 21 completed with 5 nodes
+2025-07-14 07:28:41,891 - __main__ - INFO - FL Round 21 completed - Accuracy: 0.9349
+2025-07-14 07:29:11,891 - fl_ids_core - INFO - Starting federated training round 22
+2025-07-14 07:29:12,145 - fl_ids_core - INFO - Node enterprise_node_001: Local training completed
+2025-07-14 07:29:16,423 - fl_ids_core - INFO - Node enterprise_node_002: Local training completed
+2025-07-14 07:29:16,684 - fl_ids_core - INFO - Node enterprise_node_003: Local training completed
+2025-07-14 07:29:16,833 - fl_ids_core - INFO - Node enterprise_node_004: Local training completed
+2025-07-14 07:29:16,938 - fl_ids_core - INFO - Node enterprise_node_005: Local training completed
+2025-07-14 07:29:16,942 - fl_ids_core - INFO - Round 22 completed with 5 nodes
+2025-07-14 07:29:16,943 - __main__ - INFO - FL Round 22 completed - Accuracy: 0.9342

@@ -25,14 +25,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    this.setState({ error, errorInfo });
 
-    // Log error to monitoring service in production
+    // Log to monitoring service in production
     if (process.env.NODE_ENV === 'production') {
-      // TODO: Send error to monitoring service
-    } else {
-      // In development, provide more detailed error information
-      console.error('Component stack:', errorInfo.componentStack);
+      // Add your error reporting service here
     }
   }
 

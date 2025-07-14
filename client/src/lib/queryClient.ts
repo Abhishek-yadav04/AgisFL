@@ -6,7 +6,7 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors or in development mode
-        if (import.meta.env?.DEV || process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development') {
           return false;
         }
         if (error?.status >= 400 && error?.status < 500) {
@@ -31,7 +31,7 @@ const queryClient = new QueryClient({
           return await response.json();
         } catch (error) {
           // Return mock data for development
-          if (import.meta.env?.DEV || process.env.NODE_ENV === 'development') {
+          if (process.env.NODE_ENV === 'development') {
             return getMockData(url, 'GET');
           }
           throw error;
@@ -56,7 +56,7 @@ export const isAuthenticated = (): boolean => {
     const token = localStorage.getItem('auth_token');
     if (!token) {
       // For development, allow access without token
-      if (import.meta.env?.DEV || process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === 'development') {
         return true;
       }
       return false;
@@ -66,7 +66,7 @@ export const isAuthenticated = (): boolean => {
     const parts = token.split('.');
     if (parts.length !== 3) {
       localStorage.removeItem('auth_token');
-      return import.meta.env?.DEV || process.env.NODE_ENV === 'development';
+      return process.env.NODE_ENV === 'development';
     }
 
     const payload = JSON.parse(atob(parts[1]));
@@ -74,14 +74,14 @@ export const isAuthenticated = (): boolean => {
 
     if (!isValid) {
       localStorage.removeItem('auth_token');
-      return import.meta.env?.DEV || process.env.NODE_ENV === 'development';
+      return process.env.NODE_ENV === 'development';
     }
 
     return true;
   } catch (error) {
     console.warn('Authentication check failed:', error);
     localStorage.removeItem('auth_token');
-    return import.meta.env?.DEV || process.env.NODE_ENV === 'development';
+    return process.env.NODE_ENV === 'development';
   }
 };
 
@@ -124,7 +124,7 @@ export const apiRequest = async (
     console.error(`API request failed: ${method} ${endpoint}`, error);
 
     // Return mock data for development to prevent crashes
-    if (import.meta.env?.DEV || process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
       return getMockData(endpoint, method);
     }
 
@@ -199,7 +199,7 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
       },
     });
 
-    if (!response.ok && (import.meta.env?.DEV || process.env.NODE_ENV === 'development')) {
+    if (!response.ok && process.env.NODE_ENV === 'development') {
       // Return mock response for development
       return {
         ok: true,
@@ -213,7 +213,7 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
     console.error('Fetch error:', error);
 
     // Return mock response for development
-    if (import.meta.env?.DEV || process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
       return {
         ok: true,
         status: 200,

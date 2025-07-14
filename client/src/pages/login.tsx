@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +39,7 @@ export function Login() {
     username?: string;
     password?: string;
   }>({});
-
+  
   const navigate = useNavigate();
 
   /**
@@ -48,19 +49,19 @@ export function Login() {
    */
   const validateForm = (): boolean => {
     const errors: { username?: string; password?: string } = {};
-
+    
     if (!credentials.username.trim()) {
       errors.username = 'Username is required';
     } else if (credentials.username.length < 3) {
       errors.username = 'Username must be at least 3 characters';
     }
-
+    
     if (!credentials.password) {
       errors.password = 'Password is required';
     } else if (credentials.password.length < 6) {
       errors.password = 'Password must be at least 6 characters';
     }
-
+    
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -73,35 +74,35 @@ export function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
+    
     // Validate form before submission
     if (!validateForm()) {
       return;
     }
-
+    
     setIsLoading(true);
-
+    
     try {
       console.log('🔐 Attempting authentication for AgiesFL...');
-
+      
       // Attempt authentication
       const response = await apiRequest('POST', '/auth/login', credentials);
-
+      
       if (response.token) {
         // Store authentication token
         localStorage.setItem('agiesfl_token', response.token);
-
+        
         // Store refresh token if provided
         if (response.refreshToken) {
           localStorage.setItem('agiesfl_refresh_token', response.refreshToken);
         }
-
+        
         // Create session ID for tracking
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         sessionStorage.setItem('agiesfl_session_id', sessionId);
-
+        
         console.log('✅ Authentication successful, redirecting to dashboard...');
-
+        
         // Redirect to dashboard
         navigate('/dashboard');
       } else {
@@ -109,7 +110,7 @@ export function Login() {
       }
     } catch (error: any) {
       console.error('❌ Authentication failed:', error);
-
+      
       // Handle different types of errors
       if (error.status === 401) {
         setError('Invalid username or password. Please try again.');
@@ -136,7 +137,7 @@ export function Login() {
       ...prev,
       [field]: value
     }));
-
+    
     // Clear validation error when user starts typing
     if (validationErrors[field]) {
       setValidationErrors(prev => ({
@@ -144,7 +145,7 @@ export function Login() {
         [field]: undefined
       }));
     }
-
+    
     // Clear general error when user modifies input
     if (error) {
       setError(null);
@@ -170,7 +171,7 @@ export function Login() {
             Sign in to access your security dashboard
           </CardDescription>
         </CardHeader>
-
+        
         <CardContent className="space-y-4">
           {/* Error Alert */}
           {error && (
@@ -180,7 +181,7 @@ export function Login() {
               </AlertDescription>
             </Alert>
           )}
-
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username Field */}
             <div className="space-y-2">
@@ -205,7 +206,7 @@ export function Login() {
                 </p>
               )}
             </div>
-
+            
             {/* Password Field */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-300">
@@ -245,7 +246,7 @@ export function Login() {
                 </p>
               )}
             </div>
-
+            
             {/* Submit Button */}
             <Button 
               type="submit" 
@@ -262,7 +263,7 @@ export function Login() {
               )}
             </Button>
           </form>
-
+          
           {/* Additional Information */}
           <div className="text-center text-sm text-gray-500 space-y-2">
             <p>
@@ -274,7 +275,7 @@ export function Login() {
           </div>
         </CardContent>
       </Card>
-
+      
       {/* Footer */}
       <div className="absolute bottom-4 left-4 right-4 text-center text-xs text-gray-600">
         <p>AgiesFL v1.0.0 - Federated Learning Security Platform</p>

@@ -6,23 +6,10 @@ channel = "stable-24_05"
 packages = ["cairo", "cargo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "gmp", "gobject-introspection", "gtk3", "iana-etc", "libiconv", "libxcrypt", "openssl", "pkg-config", "qhull", "rustc", "tcl", "tk"]
 
 [workflows]
-runButton = "Start AgiesFL Dev"
+runButton = "Start AgiesFL"
 
 [[workflows.workflow]]
 name = "Start AgiesFL"
-author = 24442136
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm install"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow]]
-name = "Start AgiesFL Dev"
 author = 24442136
 mode = "sequential"
 

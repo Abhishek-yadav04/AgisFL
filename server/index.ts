@@ -43,13 +43,12 @@ try {
   }
 
   const PORT = process.env.PORT || 5000;
-  const HOST = '0.0.0.0';
 
-  server.listen(PORT, HOST, () => {
+  server.listen(PORT, "0.0.0.0", () => {
     logger.info(`Server successfully started on port ${PORT}`);
-    console.log(`✅ AgiesFL Server running on http://${HOST}:${PORT}`);
+    console.log(`✅ AgiesFL Server running on http://0.0.0.0:${PORT}`);
     console.log(`🚀 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔗 API Health Check: http://${HOST}:${PORT}/health`);
+    console.log(`🔗 API Health Check: http://0.0.0.0:${PORT}/health`);
   });
 
   // Graceful shutdown

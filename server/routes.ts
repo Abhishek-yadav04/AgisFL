@@ -1,4 +1,3 @@
-
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -19,15 +18,57 @@ import {
 } from "./middleware/auth";
 import { logger, securityLogger, performanceLogger } from "./logger";
 import cors from 'cors';
+import express, { type Request, Response } from "express";
 
 // Rate limits for different endpoint types
 const generalLimit = createRateLimit(15 * 60 * 1000, 100, 'Too many requests');
 const authLimit = createRateLimit(15 * 60 * 1000, 5, 'Too many authentication attempts');
 const apiLimit = createRateLimit(60 * 1000, 60, 'API rate limit exceeded');
 
+// Mock data for immediate functionality
+const mockFLStatus = {
+  status: "active",
+  round: 15,
+  participants: 12,
+  accuracy: 94.7,
+  lastUpdate: new Date().toISOString()
+};
+
+const mockNodes = [
+  { id: 1, name: "Node-Finance", status: "active", accuracy: 95.2, lastSeen: new Date() },
+  { id: 2, name: "Node-HR", status: "active", accuracy: 93.8, lastSeen: new Date() },
+  { id: 3, name: "Node-IT", status: "training", accuracy: 96.1, lastSeen: new Date() }
+];
+
+const mockPerformance = {
+  accuracy: 94.7,
+  precision: 92.3,
+  recall: 96.1,
+  f1Score: 94.2,
+  trainingTime: 45.2
+};
+
+const mockThreats = [
+  {
+    id: 1,
+    title: "Suspicious Network Activity",
+    severity: "High",
+    description: "Unusual traffic patterns detected",
+    timestamp: new Date().toISOString()
+  },
+  {
+    id: 2,
+    title: "Failed Login Attempts",
+    severity: "Medium", 
+    description: "Multiple failed authentication attempts",
+    timestamp: new Date().toISOString()
+  }
+];
+
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
-  
+
   // Apply security middleware
   app.use(securityHeaders);
   app.use(cors({
@@ -37,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     credentials: true
   }));
   app.use(requestLogger);
-  
+
   // Setup WebSocket for real-time updates
   setupWebSocket(httpServer);
 
@@ -52,16 +93,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+    // Federated Learning endpoints
+  app.get("/api/fl/status", (req: Request, res: Response) => {
+    res.json(mockFLStatus);
+  });
+
+  app.get("/api/fl/nodes", (req: Request, res: Response) => {
+    res.json(mockNodes);
+  });
+
+  app.get("/api/fl/performance", (req: Request, res: Response) => {
+    res.json(mockPerformance);
+  });
+
+  // Threats endpoint
+  app.get("/api/threats", (req: Request, res: Response) => {
+    res.json(mockThreats);
+  });
+
   // Authentication endpoints
   app.post("/api/auth/login", authLimit, validateInput(loginSchema), async (req, res, next) => {
     try {
       const { email, password } = req.body;
-      
+
       const user = await authenticateUser(email, password);
-      
+
       if (user) {
         const token = generateToken(user);
-        
+
         securityLogger.info('User login successful', {
           userId: user.id,
           email: user.email,
@@ -69,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ip: req.ip,
           userAgent: req.get('user-agent')
         });
-        
+
         res.json({
           token,
           user: {
@@ -109,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startTime = Date.now();
       const metrics = await storage.getDashboardMetrics();
       const duration = Date.now() - startTime;
-      
+
       performanceLogger.info('Dashboard metrics fetched', { 
         duration,
         userId: (req as AuthenticatedRequest).user?.id 
@@ -145,13 +204,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/incidents", authenticate, authorize(['administrator', 'analyst']), validateInput(insertIncidentSchema), async (req, res, next) => {
     try {
       const incident = await storage.createIncident(req.body);
-      
+
       securityLogger.info('Incident created', {
         incidentId: incident.id,
         severity: incident.severity,
         userId: (req as AuthenticatedRequest).user?.id
       });
-      
+
       res.status(201).json(incident);
     } catch (error) {
       next(error);
@@ -165,12 +224,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!incident) {
         return res.status(404).json({ error: "Incident not found" });
       }
-      
+
       securityLogger.info('Incident updated', {
         incidentId: id,
         userId: (req as AuthenticatedRequest).user?.id
       });
-      
+
       res.json(incident);
     } catch (error) {
       next(error);
@@ -208,14 +267,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/threats", authenticate, authorize(['administrator', 'analyst']), validateInput(insertThreatSchema), async (req, res, next) => {
     try {
       const threat = await storage.createThreat(req.body);
-      
+
       securityLogger.warn('New threat created', {
         threatId: threat.id,
         type: threat.type,
         severity: threat.severity,
         userId: (req as AuthenticatedRequest).user?.id
       });
-      
+
       res.status(201).json(threat);
     } catch (error) {
       next(error);
@@ -304,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startTime = Date.now();
       const status = await storage.getFLIDSStatus();
       const duration = Date.now() - startTime;
-      
+
       performanceLogger.info('FL-IDS status fetched', { 
         duration,
         userId: (req as AuthenticatedRequest).user?.id 
@@ -362,7 +421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: (req as AuthenticatedRequest).user?.id,
         timestamp: new Date().toISOString()
       });
-      
+
       res.json({ 
         message: "Training round initiated successfully",
         round: Math.floor(Math.random() * 100) + 1,
@@ -379,7 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: (req as AuthenticatedRequest).user?.id,
         timestamp: new Date().toISOString()
       });
-      
+
       res.json({ message: "FL system stop initiated" });
     } catch (error) {
       next(error);

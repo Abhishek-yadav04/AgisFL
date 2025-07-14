@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
@@ -49,7 +48,7 @@ export default function FederatedLearning() {
     fetchFLStatus();
     fetchPerformance();
     fetchNodes();
-    
+
     const interval = setInterval(() => {
       fetchFLStatus();
       fetchPerformance();
@@ -246,7 +245,7 @@ export default function FederatedLearning() {
                         }
                       </AlertDescription>
                     </Alert>
-                    
+
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Training Progress</span>
@@ -398,7 +397,7 @@ export default function FederatedLearning() {
                       {isTraining ? "Training in Progress..." : "Start Training Round"}
                     </Button>
                   </div>
-                  
+
                   <Alert className="border-l-4 border-blue-500">
                     <Brain className="h-4 w-4" />
                     <AlertTitle>Federated Learning Process</AlertTitle>

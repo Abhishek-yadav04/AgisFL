@@ -4,14 +4,24 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { TopBar } from "@/components/layout/TopBar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import Dashboard from "@/pages/dashboard";
-import Login from "@/pages/login";
-import Incidents from "@/pages/incidents";
-import Threats from "@/pages/threats";
-import Analytics from "@/pages/analytics";
-import FederatedLearning from "@/pages/federated-learning";
-import Forensics from "@/pages/forensics";
-import NotFound from "@/pages/not-found";
+import { lazy, Suspense } from "react";
+
+// Lazy load pages for better performance
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Login = lazy(() => import("@/pages/login"));
+const Incidents = lazy(() => import("@/pages/incidents"));
+const Threats = lazy(() => import("@/pages/threats"));
+const Analytics = lazy(() => import("@/pages/analytics"));
+const FederatedLearning = lazy(() => import("@/pages/federated-learning"));
+const Forensics = lazy(() => import("@/pages/forensics"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+
+// Loading component
+const PageLoader = () => (
+  <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="text-white text-lg">Loading...</div>
+  </div>
+);
 import { ElectronProvider } from "@/lib/electron";
 import { ErrorBoundary } from "@/lib/errorBoundary";
 import queryClient, { isAuthenticated } from "@/lib/queryClient";
@@ -105,14 +115,20 @@ function App() {
           <BrowserRouter>
             <div className="min-h-screen bg-gray-900">
               <Routes>
-                <Route path="/login" element={<Login />} />
+                <Route path="/login" element={
+                  <Suspense fallback={<PageLoader />}>
+                    <Login />
+                  </Suspense>
+                } />
                 <Route path="/" element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <Dashboard />
+                      <Suspense fallback={<PageLoader />}>
+                        <Dashboard />
+                      </Suspense>
                     </DashboardLayout>
                   </ProtectedRoute>
-                } />
+                } /></Route>
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <DashboardLayout>

@@ -86,10 +86,7 @@ export function Login() {
       console.log('🔐 Attempting authentication for AgiesFL...');
       
       // Attempt authentication
-      const response = await apiRequest('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(credentials),
-      });
+      const response = await apiRequest('POST', '/auth/login', credentials);
       
       if (response.token) {
         // Store authentication token

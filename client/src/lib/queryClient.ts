@@ -122,12 +122,12 @@ export const apiRequest = async (
     return await response.json();
   } catch (error) {
     console.error(`API request failed: ${method} ${endpoint}`, error);
-    
+
     // Return mock data for development to prevent crashes
     if (process.env.NODE_ENV === 'development') {
       return getMockData(endpoint, method);
     }
-    
+
     throw error;
   }
 };
@@ -211,7 +211,7 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
     return response;
   } catch (error) {
     console.error('Fetch error:', error);
-    
+
     // Return mock response for development
     if (process.env.NODE_ENV === 'development') {
       return {
@@ -220,7 +220,7 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
         json: () => Promise.resolve(getMockData(url, options.method || 'GET')),
       };
     }
-    
+
     throw error;
   }
 };

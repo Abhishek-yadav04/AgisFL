@@ -1,57 +1,63 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-async function throwIfResNotOk(res: Response) {
-  if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
-  }
-}
+import { QueryClient } from "@tanstack/react-query";
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+// Custom fetch wrapper that includes authentication
+const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('agiesfl_token');
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+    ...options.headers,
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
   });
 
-  await throwIfResNotOk(res);
-  return res;
-}
+  // Handle authentication errors
+  if (response.status === 401) {
+    localStorage.removeItem('agiesfl_token');
+    localStorage.removeItem('agiesfl_user');
+    window.location.href = '/login';
+    throw new Error('Authentication failed');
+  }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
-    });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
-
-    await throwIfResNotOk(res);
-    return await res.json();
-  };
+  return response;
+};
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      staleTime: 1000 * 60, // 1 minute
+      retry: (failureCount, error: any) => {
+        if (error?.message?.includes('401') || error?.message?.includes('Authentication failed')) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      queryFn: async ({ queryKey }) => {
+        const [url] = queryKey as [string];
+        const response = await authenticatedFetch(url);
+        return response.json();
+      },
     },
     mutations: {
-      retry: false,
+      mutationFn: async ({ url, method = 'POST', data }: any) => {
+        const response = await authenticatedFetch(url, {
+          method,
+          body: data ? JSON.stringify(data) : undefined,
+        });
+        return response.json();
+      },
     },
   },
 });
+
+// Export the authenticated fetch for manual use
+export { authenticatedFetch };

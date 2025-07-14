@@ -1,89 +1,67 @@
-modules = ["nodejs-20", "postgresql-16", "python-3.11", "web"]
-run = "npm run dev"
-hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
+run = "npm run electron-dev"
+modules = ["nodejs-20", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "gobject-introspection", "gtk3", "iana-etc", "pkg-config", "python-launcher", "qhull", "tcl", "tk"]
-
-[deployment]
-deploymentTarget = "autoscale"
-build = ["sh", "-c", "npm run build"]
-run = ["sh", "-c", "npm start"]
-
-[[ports]]
-localPort = 5000
-externalPort = 80
-
-[[ports]]
-localPort = 5001
-externalPort = 3000
 
 [workflows]
-runButton = "FL-IDS Enterprise System"
 
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow]]
-name = "Start application"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Run Python FL-IDS"
-author = 24442136
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app.py"
-
-[[workflows.workflow]]
-name = "Run Desktop App"
-author = 24442136
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run electron-dev"
-
-[[workflows.workflow]]
-name = "FL-IDS Production"
-author = 24442136
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python scripts/fl_data_simulator.py"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run build"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app.py"
-
-[[workflows.workflow]]
+[workflows.FL-IDS-Enterprise-System]
 name = "FL-IDS Enterprise System"
-author = 24442136
-mode = "sequential"
+author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python scripts/fl_data_simulator.py --mode test"
+[workflows.FL-IDS-Enterprise-System.metadata]
+agentRequireRestartOnSave = false
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app.py"
+[workflows.FL-IDS-Enterprise-System.tasks]
+
+[workflows.FL-IDS-Enterprise-System.tasks.setup-and-test]
+name = "setup-and-test"
+command = "python scripts/fl_data_simulator.py --mode test"
+
+[workflows.FL-IDS-Enterprise-System.tasks.run-backend]
+name = "run-backend"
+command = "python app.py"
+
+[workflows.AgiesFL-Development]
+name = "AgiesFL Development"
+author = "agent"
+
+[workflows.AgiesFL-Development.metadata]
+agentRequireRestartOnSave = false
+
+[workflows.AgiesFL-Development.tasks]
+
+[workflows.AgiesFL-Development.tasks.frontend]
+name = "frontend"
+command = "npm run dev"
+
+[workflows.AgiesFL-Development.tasks.backend]
+name = "backend"
+command = "npm run electron-dev"
+
+[workflows.AgiesFL-Production]
+name = "AgiesFL Production"
+author = "agent"
+
+[workflows.AgiesFL-Production.metadata]
+agentRequireRestartOnSave = false
+
+[workflows.AgiesFL-Production.tasks]
+
+[workflows.AgiesFL-Production.tasks.test-fl]
+name = "test-fl"
+command = "python scripts/fl_data_simulator.py --mode test"
+
+[workflows.AgiesFL-Production.tasks.build]
+name = "build"
+command = "npm run build"
+
+[workflows.AgiesFL-Production.tasks.backend]
+name = "backend"
+command = "python app.py"
+
+[deployment]
+run = ["npm", "run", "start"]
+deploymentTarget = "cloudrun"
+ignorePorts = false

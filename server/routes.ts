@@ -12,15 +12,18 @@ import {
   securityHeaders,
   requestLogger,
   errorHandler,
-  AuthenticatedRequest
+  AuthenticatedRequest,
+  authenticateUser,
+  generateToken,
+  loginSchema
 } from "./middleware/auth";
 import { logger, securityLogger, performanceLogger } from "./logger";
 import cors from 'cors';
 
 // Rate limits for different endpoint types
-const generalLimit = createRateLimit(15 * 60 * 1000, 100, 'Too many requests'); // 100 requests per 15 minutes
-const authLimit = createRateLimit(15 * 60 * 1000, 5, 'Too many authentication attempts'); // 5 attempts per 15 minutes
-const apiLimit = createRateLimit(60 * 1000, 30, 'API rate limit exceeded'); // 30 requests per minute
+const generalLimit = createRateLimit(15 * 60 * 1000, 100, 'Too many requests');
+const authLimit = createRateLimit(15 * 60 * 1000, 5, 'Too many authentication attempts');
+const apiLimit = createRateLimit(60 * 1000, 60, 'API rate limit exceeded');
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -44,21 +47,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       status: "healthy", 
       timestamp: new Date().toISOString(),
       version: "2.0.0",
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
+      service: "AgiesFL Backend"
     });
   });
 
   // Authentication endpoints
-  app.post("/api/auth/login", authLimit, async (req, res, next) => {
+  app.post("/api/auth/login", authLimit, validateInput(loginSchema), async (req, res, next) => {
     try {
-      // Mock authentication for development
       const { email, password } = req.body;
       
-      if (email === 'admin@company.com' && password === 'admin123') {
-        const token = 'mock-jwt-token'; // In production, generate real JWT
+      const user = await authenticateUser(email, password);
+      
+      if (user) {
+        const token = generateToken(user);
         
         securityLogger.info('User login successful', {
-          email,
+          userId: user.id,
+          email: user.email,
+          role: user.role,
           ip: req.ip,
           userAgent: req.get('user-agent')
         });
@@ -66,36 +73,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           token,
           user: {
-            id: 1,
-            email: 'admin@company.com',
-            role: 'administrator',
-            name: 'System Administrator'
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            name: user.name
           }
         });
       } else {
-        securityLogger.warn('Login attempt failed', {
+        securityLogger.warn('Login attempt failed - Invalid credentials', {
           email,
           ip: req.ip,
           userAgent: req.get('user-agent')
         });
-        res.status(401).json({ error: 'Invalid credentials' });
+        res.status(401).json({ error: 'Invalid email or password' });
       }
     } catch (error) {
       next(error);
     }
   });
 
+  app.post("/api/auth/logout", authenticate, async (req, res) => {
+    securityLogger.info('User logout', {
+      userId: (req as AuthenticatedRequest).user?.id,
+      ip: req.ip
+    });
+    res.json({ message: 'Logged out successfully' });
+  });
+
   // Apply rate limiting to API routes
   app.use('/api', apiLimit);
 
   // Dashboard metrics endpoint
-  app.get("/api/dashboard/metrics", async (req, res, next) => {
+  app.get("/api/dashboard/metrics", authenticate, async (req, res, next) => {
     try {
       const startTime = Date.now();
       const metrics = await storage.getDashboardMetrics();
       const duration = Date.now() - startTime;
       
-      performanceLogger.info('Dashboard metrics fetched', { duration });
+      performanceLogger.info('Dashboard metrics fetched', { 
+        duration,
+        userId: (req as AuthenticatedRequest).user?.id 
+      });
       res.json(metrics);
     } catch (error) {
       next(error);
@@ -103,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Incidents endpoints
-  app.get("/api/incidents", async (req, res, next) => {
+  app.get("/api/incidents", authenticate, async (req, res, next) => {
     try {
       const incidents = await storage.getIncidents();
       res.json(incidents);
@@ -112,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/incidents/:id", async (req, res, next) => {
+  app.get("/api/incidents/:id", authenticate, async (req, res, next) => {
     try {
       const incident = await storage.getIncident(parseInt(req.params.id));
       if (!incident) {
@@ -124,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/incidents", validateInput(insertIncidentSchema), async (req, res, next) => {
+  app.post("/api/incidents", authenticate, authorize(['administrator', 'analyst']), validateInput(insertIncidentSchema), async (req, res, next) => {
     try {
       const incident = await storage.createIncident(req.body);
       
@@ -140,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/incidents/:id", validateInput(insertIncidentSchema.partial()), async (req, res, next) => {
+  app.patch("/api/incidents/:id", authenticate, authorize(['administrator', 'analyst']), validateInput(insertIncidentSchema.partial()), async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       const incident = await storage.updateIncident(id, req.body);
@@ -160,7 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Threats endpoints
-  app.get("/api/threats", async (req, res, next) => {
+  app.get("/api/threats", authenticate, async (req, res, next) => {
     try {
       const threats = await storage.getThreats();
       res.json(threats);
@@ -169,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/threats/active", async (req, res, next) => {
+  app.get("/api/threats/active", authenticate, async (req, res, next) => {
     try {
       const threats = await storage.getActiveThreats();
       res.json(threats);
@@ -178,7 +196,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/threats", validateInput(insertThreatSchema), async (req, res, next) => {
+  app.get("/api/threats/feed", authenticate, async (req, res, next) => {
+    try {
+      const feed = await storage.getThreatFeed();
+      res.json(feed);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/threats", authenticate, authorize(['administrator', 'analyst']), validateInput(insertThreatSchema), async (req, res, next) => {
     try {
       const threat = await storage.createThreat(req.body);
       
@@ -196,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // System metrics endpoints
-  app.get("/api/system/health", async (req, res, next) => {
+  app.get("/api/system/health", authenticate, async (req, res, next) => {
     try {
       const health = await storage.getSystemHealth();
       res.json(health);
@@ -205,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/system/metrics", async (req, res, next) => {
+  app.get("/api/system/metrics", authenticate, async (req, res, next) => {
     try {
       const metrics = await storage.getSystemMetrics();
       res.json(metrics);
@@ -214,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/system/metrics", validateInput(insertSystemMetricSchema), async (req, res, next) => {
+  app.post("/api/system/metrics", authenticate, authorize(['administrator']), validateInput(insertSystemMetricSchema), async (req, res, next) => {
     try {
       const metric = await storage.createSystemMetric(req.body);
       res.status(201).json(metric);
@@ -224,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Insights endpoints
-  app.get("/api/ai/insights", async (req, res, next) => {
+  app.get("/api/ai/insights", authenticate, async (req, res, next) => {
     try {
       const insights = await storage.getAiInsights();
       res.json(insights);
@@ -233,7 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ai/insights", validateInput(insertAiInsightSchema), async (req, res, next) => {
+  app.post("/api/ai/insights", authenticate, authorize(['administrator']), validateInput(insertAiInsightSchema), async (req, res, next) => {
     try {
       const insight = await storage.createAiInsight(req.body);
       res.status(201).json(insight);
@@ -243,7 +270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Attack path endpoints
-  app.get("/api/attack-paths", async (req, res, next) => {
+  app.get("/api/attack-paths", authenticate, async (req, res, next) => {
     try {
       const paths = await storage.getAttackPaths();
       res.json(paths);
@@ -252,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/attack-paths", validateInput(insertAttackPathSchema), async (req, res, next) => {
+  app.post("/api/attack-paths", authenticate, authorize(['administrator', 'analyst']), validateInput(insertAttackPathSchema), async (req, res, next) => {
     try {
       const path = await storage.createAttackPath(req.body);
       res.status(201).json(path);
@@ -261,18 +288,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Real-time threat feed endpoint
-  app.get("/api/threats/feed", async (req, res, next) => {
-    try {
-      const feed = await storage.getThreatFeed();
-      res.json(feed);
-    } catch (error) {
-      next(error);
-    }
-  });
-
   // User endpoints
-  app.get("/api/users", async (req, res, next) => {
+  app.get("/api/users", authenticate, authorize(['administrator']), async (req, res, next) => {
     try {
       const users = await storage.getUsers();
       res.json(users);
@@ -282,31 +299,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // FL-IDS specific endpoints with enhanced error handling
-  app.get("/api/fl-ids/status", async (req, res, next) => {
+  app.get("/api/fl-ids/status", authenticate, async (req, res, next) => {
     try {
       const startTime = Date.now();
       const status = await storage.getFLIDSStatus();
       const duration = Date.now() - startTime;
       
-      performanceLogger.info('FL-IDS status fetched', { duration });
+      performanceLogger.info('FL-IDS status fetched', { 
+        duration,
+        userId: (req as AuthenticatedRequest).user?.id 
+      });
       res.json(status);
     } catch (error) {
-      logger.error('Failed to fetch FL-IDS status', { error: error instanceof Error ? error.message : 'Unknown error' });
+      logger.error('Failed to fetch FL-IDS status', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId: (req as AuthenticatedRequest).user?.id
+      });
       next(error);
     }
   });
 
-  app.get("/api/fl-ids/performance", async (req, res, next) => {
+  app.get("/api/fl-ids/performance", authenticate, async (req, res, next) => {
     try {
       const performance = await storage.getFLPerformanceMetrics();
       res.json(performance);
     } catch (error) {
-      logger.error('Failed to fetch FL performance metrics', { error: error instanceof Error ? error.message : 'Unknown error' });
+      logger.error('Failed to fetch FL performance metrics', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId: (req as AuthenticatedRequest).user?.id
+      });
       next(error);
     }
   });
 
-  app.get("/api/fl-ids/nodes", async (req, res, next) => {
+  app.get("/api/fl-ids/nodes", authenticate, async (req, res, next) => {
     try {
       const status = await storage.getFLIDSStatus();
       res.json({
@@ -321,15 +347,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      logger.error('Failed to fetch FL nodes', { error: error instanceof Error ? error.message : 'Unknown error' });
+      logger.error('Failed to fetch FL nodes', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId: (req as AuthenticatedRequest).user?.id
+      });
       next(error);
     }
   });
 
   // FL-IDS training control endpoints
-  app.post("/api/fl-ids/train", async (req, res, next) => {
+  app.post("/api/fl-ids/train", authenticate, authorize(['administrator', 'operator']), async (req, res, next) => {
     try {
-      // Mock training trigger
       securityLogger.info('FL training round initiated', {
         userId: (req as AuthenticatedRequest).user?.id,
         timestamp: new Date().toISOString()
@@ -345,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/fl-ids/stop", async (req, res, next) => {
+  app.post("/api/fl-ids/stop", authenticate, authorize(['administrator']), async (req, res, next) => {
     try {
       securityLogger.warn('FL system stop requested', {
         userId: (req as AuthenticatedRequest).user?.id,
@@ -359,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Advanced analytics endpoints
-  app.get("/api/analytics/threat-trends", async (req, res, next) => {
+  app.get("/api/analytics/threat-trends", authenticate, async (req, res, next) => {
     try {
       const trends = {
         daily_threats: Array.from({ length: 30 }, (_, i) => ({
@@ -386,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/analytics/performance-metrics", async (req, res, next) => {
+  app.get("/api/analytics/performance-metrics", authenticate, async (req, res, next) => {
     try {
       const metrics = {
         detection_accuracy: Array.from({ length: 24 }, (_, i) => ({

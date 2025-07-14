@@ -1,112 +1,156 @@
-import { useQuery } from "@tanstack/react-query";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GitBranch } from "lucide-react";
-import { AttackPath } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { GitBranch, Target, Shield, AlertTriangle } from "lucide-react";
 
-export function AttackPathVisualization() {
-  const { data: attackPaths, isLoading } = useQuery<AttackPath[]>({
-    queryKey: ['/api/attack-paths'],
-    refetchInterval: 120000, // Refresh every 2 minutes
-  });
+/**
+ * AttackPathVisualization Component for AgiesFL Dashboard
+ * 
+ * This component provides visualization of potential attack paths and security
+ * vulnerabilities across the federated learning network. It helps security
+ * analysts understand threat vectors and prioritize security measures.
+ * 
+ * @author AgiesFL Development Team
+ * @version 1.0.0
+ * @since 2025-01-14
+ */
+export default function AttackPathVisualization() {
+  const attackPaths = [
+    {
+      id: 1,
+      name: "External Phishing → Credential Theft → Lateral Movement",
+      severity: "Critical",
+      probability: 78,
+      steps: [
+        { step: 1, description: "Phishing email sent to user", risk: "High" },
+        { step: 2, description: "Credential harvesting successful", risk: "Critical" },
+        { step: 3, description: "Lateral movement to Node-247", risk: "High" },
+        { step: 4, description: "Data exfiltration attempt", risk: "Critical" }
+      ],
+      mitigations: [
+        "Implement multi-factor authentication",
+        "Enhanced email security filtering",
+        "Network segmentation improvements"
+      ]
+    },
+    {
+      id: 2,
+      name: "Insider Threat → Privilege Escalation → Data Access",
+      severity: "High",
+      probability: 45,
+      steps: [
+        { step: 1, description: "Malicious insider with valid access", risk: "Medium" },
+        { step: 2, description: "Privilege escalation exploiting vulnerability", risk: "High" },
+        { step: 3, description: "Access to sensitive federated data", risk: "Critical" }
+      ],
+      mitigations: [
+        "Implement zero-trust architecture",
+        "Regular access reviews",
+        "Behavioral analytics monitoring"
+      ]
+    }
+  ];
 
-  if (isLoading) {
-    return (
-      <Card className="surface card-elevation animate-pulse">
-        <CardContent className="p-6">
-          <div className="h-80 bg-gray-700 rounded"></div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case "Critical":
+        return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "High":
+        return "bg-orange-500/20 text-orange-400 border-orange-500/30";
+      case "Medium":
+        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+      default:
+        return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    }
+  };
 
-  // Calculate aggregated metrics
-  const totalNodes = attackPaths?.reduce((sum, path) => sum + (path.compromisedAssets || 0), 0) || 24;
-  const totalPaths = attackPaths?.length || 7;
-  const highestRiskLevel = attackPaths?.find(path => path.riskLevel === 'Critical')?.riskLevel || 'High';
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case "Critical":
+        return "text-red-400";
+      case "High":
+        return "text-orange-400";
+      case "Medium":
+        return "text-yellow-400";
+      default:
+        return "text-green-400";
+    }
+  };
+
+  const getProbabilityColor = (probability: number) => {
+    if (probability >= 70) return "text-red-400";
+    if (probability >= 50) return "text-orange-400";
+    if (probability >= 30) return "text-yellow-400";
+    return "text-green-400";
+  };
 
   return (
-    <Card className="surface card-elevation">
-      <CardHeader className="border-b border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
-            <GitBranch className="h-4 w-4 text-orange-400" />
-          </div>
-          <div>
-            <CardTitle className="text-lg font-medium text-white">Attack Path Visualization</CardTitle>
-            <p className="text-sm text-gray-400">Network analysis insights</p>
-          </div>
-        </div>
+    <Card className="bg-gray-800 border-gray-700">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <GitBranch className="h-5 w-5 text-red-400" />
+          <span className="text-white">Attack Path Analysis</span>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
-        {/* Attack path visualization placeholder */}
-        <div className="h-64 bg-gradient-to-br from-orange-500/20 to-blue-500/20 rounded-lg flex items-center justify-center relative overflow-hidden">
-          <div className="absolute inset-0">
-            {/* Animated network nodes */}
-            <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
-            <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-red-400 rounded-full animate-pulse delay-300"></div>
-            <div className="absolute bottom-1/3 left-1/2 w-4 h-4 bg-yellow-400 rounded-full animate-pulse delay-700"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-1000"></div>
-            
-            {/* Connection lines */}
-            <svg className="absolute inset-0 w-full h-full">
-              <line x1="25%" y1="25%" x2="66%" y2="33%" stroke="rgba(251, 146, 60, 0.5)" strokeWidth="1" strokeDasharray="4,4">
-                <animate attributeName="stroke-dashoffset" values="0;8" dur="2s" repeatCount="indefinite"/>
-              </line>
-              <line x1="66%" y1="33%" x2="50%" y2="66%" stroke="rgba(251, 146, 60, 0.5)" strokeWidth="1" strokeDasharray="4,4">
-                <animate attributeName="stroke-dashoffset" values="0;8" dur="2s" repeatCount="indefinite" begin="0.5s"/>
-              </line>
-              <line x1="50%" y1="66%" x2="75%" y2="75%" stroke="rgba(251, 146, 60, 0.5)" strokeWidth="1" strokeDasharray="4,4">
-                <animate attributeName="stroke-dashoffset" values="0;8" dur="2s" repeatCount="indefinite" begin="1s"/>
-              </line>
-            </svg>
-          </div>
-          
-          <div className="relative z-10 text-center text-white">
-            <GitBranch className="h-12 w-12 opacity-50 mb-4 mx-auto" />
-            <p className="text-lg font-medium mb-2">Interactive Attack Graph</p>
-            <p className="text-sm opacity-75">Graph neural network analysis</p>
-          </div>
-        </div>
-        
-        <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-lg font-bold text-white">{totalNodes}</p>
-            <p className="text-xs text-gray-400">Compromised Assets</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-white">{totalPaths}</p>
-            <p className="text-xs text-gray-400">Attack Vectors</p>
-          </div>
-          <div>
-            <p className={`text-lg font-bold ${
-              highestRiskLevel === 'Critical' ? 'text-red-400' :
-              highestRiskLevel === 'High' ? 'text-orange-400' :
-              'text-yellow-400'
-            }`}>
-              {highestRiskLevel}
-            </p>
-            <p className="text-xs text-gray-400">Risk Level</p>
-          </div>
-        </div>
-
-        {/* Attack path summary */}
-        {attackPaths && attackPaths.length > 0 && (
-          <div className="mt-6 space-y-2">
-            <h4 className="text-sm font-medium text-white">Active Attack Paths</h4>
-            {attackPaths.slice(0, 3).map((path) => (
-              <div key={path.id} className="flex items-center justify-between p-2 bg-gray-800/30 rounded">
-                <span className="text-xs text-gray-300">{path.name}</span>
-                <span className={`text-xs px-2 py-1 rounded ${
-                  path.riskLevel === 'Critical' ? 'bg-red-500/20 text-red-400' :
-                  path.riskLevel === 'High' ? 'bg-orange-500/20 text-orange-400' :
-                  'bg-yellow-500/20 text-yellow-400'
-                }`}>
-                  {path.riskLevel}
-                </span>
+      <CardContent>
+        <div className="space-y-6">
+          {attackPaths.map((path) => (
+            <div key={path.id} className="p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Target className="h-4 w-4 text-red-400" />
+                  <span className="font-medium text-white">{path.name}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge className={`${getSeverityColor(path.severity)} border`}>
+                    {path.severity}
+                  </Badge>
+                  <Badge variant="outline" className="border-gray-600">
+                    <span className={getProbabilityColor(path.probability)}>
+                      {path.probability}% probability
+                    </span>
+                  </Badge>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+
+              <div className="space-y-3 mb-4">
+                <h4 className="text-sm font-medium text-gray-300">Attack Steps:</h4>
+                {path.steps.map((step, index) => (
+                  <div key={index} className="flex items-center space-x-3 pl-4">
+                    <div className="w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center text-xs text-white">
+                      {step.step}
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-sm text-gray-300">{step.description}</span>
+                    </div>
+                    <Badge variant="outline" className={`border-gray-600 ${getRiskColor(step.risk)}`}>
+                      {step.risk}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-300">Recommended Mitigations:</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {path.mitigations.map((mitigation, index) => (
+                    <div key={index} className="flex items-center space-x-2 text-sm">
+                      <Shield className="h-3 w-3 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-300">{mitigation}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-4">
+                <Button variant="outline" size="sm" className="border-blue-600 text-blue-400 hover:bg-blue-900/20">
+                  View Detailed Analysis
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

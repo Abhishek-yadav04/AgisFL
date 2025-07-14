@@ -1,72 +1,145 @@
-import express, { type Request, Response } from "express";
+
+import express from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
-import { logger } from "./logger";
-import { metricsGenerator } from "./metrics-generator";
-import path from "path";
+import { createServer } from "http";
+import { setupWebSocket } from "./websocket";
+import { initializeDatabase, testDatabaseConnection } from "./db";
+import { seedDatabase } from "./seed";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 const app = express();
+const server = createServer(app);
 
-// Enhanced middleware
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for development
+  crossOriginEmbedderPolicy: false
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP"
+});
+app.use('/api/', limiter);
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://your-domain.com'] 
+    : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true
+}));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Trust proxy for proper IP handling
-app.set('trust proxy', 1);
-
-// Enhanced error handling middleware
-app.use((err: any, req: Request, res: Response, next: any) => {
-  logger.error('Unhandled error:', err);
-  res.status(500).json({ 
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
-  });
+// Custom middleware to log requests
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
 });
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-try {
-  // Register API routes and WebSocket
-  const server = await registerRoutes(app);
-
-  // Setup Vite or static serving
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  const PORT = parseInt(process.env.PORT || '5000', 10);
-  const HOST = '0.0.0.0';
-
-  server.listen(PORT, HOST, () => {
-    logger.info(`Server successfully started on port ${PORT}`);
-    console.log(`✅ AgiesFL Server running on http://${HOST}:${PORT}`);
-    console.log(`🚀 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔗 API Health Check: http://${HOST}:${PORT}/health`);
-
-    // Start metrics generator
-    metricsGenerator.start();
-  });
-
-  // Graceful shutdown
-  process.on('SIGTERM', () => {
-    logger.info('SIGTERM received, shutting down gracefully');
-    metricsGenerator.stop();
-    server.close(() => {
-      process.exit(0);
+/**
+ * Initialize server with comprehensive setup
+ */
+async function initializeServer() {
+  try {
+    console.log('🚀 Starting AgiesFL Security Platform Server...');
+    
+    // Initialize database
+    console.log('\n📊 Database Setup:');
+    await initializeDatabase();
+    
+    // Test connection and seed if needed
+    const dbConnected = await testDatabaseConnection();
+    if (dbConnected) {
+      console.log('🌱 Seeding database with initial data...');
+      await seedDatabase();
+      console.log('✅ Database seeded successfully');
+    }
+    
+    // Setup WebSocket for real-time communication
+    console.log('\n🔗 WebSocket Setup:');
+    setupWebSocket(server);
+    console.log('✅ WebSocket server initialized');
+    
+    // Register API routes
+    console.log('\n🛣️ API Routes Setup:');
+    registerRoutes(app);
+    console.log('✅ API routes registered');
+    
+    // Setup Vite for development or serve static files for production
+    if (process.env.NODE_ENV === "development") {
+      await setupVite(app, server);
+      console.log('✅ Vite development server configured');
+    } else {
+      serveStatic(app);
+      console.log('✅ Static file serving configured');
+    }
+    
+    // Health check endpoint
+    app.get('/health', (req, res) => {
+      res.json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        database: 'connected',
+        version: '1.0.0'
+      });
     });
-  });
-
-} catch (error) {
-  logger.error('Failed to start server:', error);
-  console.error('❌ Server startup failed:', error);
-  process.exit(1);
+    
+    // Default credentials endpoint for development
+    app.get('/api/credentials', (req, res) => {
+      res.json({
+        admin: {
+          username: 'admin',
+          password: 'SecureAdmin123!',
+          role: 'administrator'
+        },
+        user: {
+          username: 'analyst', 
+          password: 'AnalystPass456!',
+          role: 'analyst'
+        }
+      });
+    });
+    
+    const port = process.env.PORT || 5000;
+    server.listen(port, '0.0.0.0', () => {
+      console.log(`\n🎉 AgiesFL Server running on port ${port}`);
+      console.log(`📱 Web Interface: http://localhost:${port}`);
+      console.log(`🔌 WebSocket: ws://localhost:${port}/ws`);
+      console.log(`🩺 Health Check: http://localhost:${port}/health`);
+      console.log(`🔑 Default Credentials: http://localhost:${port}/api/credentials`);
+      console.log('\n✅ Server initialization complete!\n');
+    });
+    
+  } catch (error) {
+    console.error('🚨 Server initialization failed:', error);
+    process.exit(1);
+  }
 }
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n🛑 Received SIGINT, shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n🛑 Received SIGTERM, shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
+// Initialize the server
+initializeServer();

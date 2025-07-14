@@ -1,9 +1,11 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { TopBar } from "@/components/layout/TopBar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Toaster } from "@/components/ui/toaster";
+import { WebSocketProvider } from "@/lib/websocket";
 import { lazy, Suspense } from "react";
 
 // Lazy load pages for better performance
@@ -14,6 +16,8 @@ const Threats = lazy(() => import("@/pages/threats"));
 const Analytics = lazy(() => import("@/pages/analytics"));
 const FederatedLearning = lazy(() => import("@/pages/federated-learning"));
 const Forensics = lazy(() => import("@/pages/forensics"));
+const Investigation = lazy(() => import("@/pages/investigation"));
+const Reports = lazy(() => import("@/pages/reports"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 // Loading component
@@ -22,6 +26,7 @@ const PageLoader = () => (
     <div className="text-white text-lg">Loading...</div>
   </div>
 );
+
 import { ElectronProvider } from "@/lib/electron";
 import { ErrorBoundary } from "@/lib/errorBoundary";
 import queryClient, { isAuthenticated } from "@/lib/queryClient";
@@ -112,82 +117,102 @@ function App() {
     <ErrorBoundary>
       <ElectronProvider>
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <div className="min-h-screen bg-gray-900">
-              <Routes>
-                <Route path="/login" element={
-                  <Suspense fallback={<PageLoader />}>
-                    <Login />
-                  </Suspense>
-                } />
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Suspense fallback={<PageLoader />}>
-                        <Dashboard />
-                      </Suspense>
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Suspense fallback={<PageLoader />}>
-                        <Dashboard />
-                      </Suspense>
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/incidents" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Suspense fallback={<PageLoader />}>
-                        <Incidents />
-                      </Suspense>
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/threats" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Suspense fallback={<PageLoader />}>
-                        <Threats />
-                      </Suspense>
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/analytics" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Suspense fallback={<PageLoader />}>
-                        <Analytics />
-                      </Suspense>
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/federated-learning" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Suspense fallback={<PageLoader />}>
-                        <FederatedLearning />
-                      </Suspense>
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/forensics" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Suspense fallback={<PageLoader />}>
-                        <Forensics />
-                      </Suspense>
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-            <Toaster />
-          </BrowserRouter>
+          <WebSocketProvider>
+            <BrowserRouter>
+              <div className="min-h-screen bg-gray-900">
+                <Routes>
+                  <Route path="/login" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Login />
+                    </Suspense>
+                  } />
+                  <Route path="/" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <Dashboard />
+                        </Suspense>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <Dashboard />
+                        </Suspense>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/incidents" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <Incidents />
+                        </Suspense>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/threats" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <Threats />
+                        </Suspense>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/analytics" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <Analytics />
+                        </Suspense>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/federated-learning" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <FederatedLearning />
+                        </Suspense>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/forensics" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <Forensics />
+                        </Suspense>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/investigation" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <Investigation />
+                        </Suspense>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/reports" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Suspense fallback={<PageLoader />}>
+                          <Reports />
+                        </Suspense>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="*" element={<Navigate to="/login" replace />} />
+                </Routes>
+              </div>
+              <Toaster />
+            </BrowserRouter>
+          </WebSocketProvider>
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
       </ElectronProvider>

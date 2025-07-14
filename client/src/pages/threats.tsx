@@ -140,11 +140,11 @@ export default function ThreatsPage() {
             </div>
 
             <Tabs defaultValue="threats" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4 bg-gray-800">
-                <TabsTrigger value="threats">Threat Database</TabsTrigger>
-                <TabsTrigger value="feed">Live Feed</TabsTrigger>
-                <TabsTrigger value="iocs">IOCs & Artifacts</TabsTrigger>
-                <TabsTrigger value="intelligence">Threat Intel</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4 bg-gray-800 border-gray-700">
+                <TabsTrigger value="threats" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Threat Database</TabsTrigger>
+                <TabsTrigger value="feed" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Live Feed</TabsTrigger>
+                <TabsTrigger value="iocs" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">IOCs & Artifacts</TabsTrigger>
+                <TabsTrigger value="intelligence" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Threat Intel</TabsTrigger>
               </TabsList>
 
               <TabsContent value="threats" className="space-y-6">

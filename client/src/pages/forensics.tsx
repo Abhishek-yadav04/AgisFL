@@ -218,12 +218,12 @@ export default function ForensicsPage() {
             </div>
 
             <Tabs defaultValue="evidence" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-5 bg-gray-800">
-                <TabsTrigger value="evidence">Evidence Management</TabsTrigger>
-                <TabsTrigger value="artifacts">Artifact Analysis</TabsTrigger>
-                <TabsTrigger value="timeline">Timeline Reconstruction</TabsTrigger>
-                <TabsTrigger value="memory">Memory Analysis</TabsTrigger>
-                <TabsTrigger value="network">Network Forensics</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-5 bg-gray-800 border-gray-700">
+                <TabsTrigger value="evidence" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Evidence Management</TabsTrigger>
+                <TabsTrigger value="artifacts" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Artifact Analysis</TabsTrigger>
+                <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Timeline Reconstruction</TabsTrigger>
+                <TabsTrigger value="memory" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Memory Analysis</TabsTrigger>
+                <TabsTrigger value="network" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Network Forensics</TabsTrigger>
               </TabsList>
 
               <TabsContent value="evidence" className="space-y-6">

@@ -211,7 +211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const startTime = Date.now();
       let metrics;
-      
+
       try {
         metrics = await storage.getDashboardMetrics();
       } catch (dbError) {
@@ -232,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         };
       }
-      
+
       const duration = Date.now() - startTime;
       performanceLogger.info('Dashboard metrics fetched', { duration });
       res.json(metrics);
@@ -565,3 +565,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   return httpServer;
 }
+import { Router } from 'express';
+import { db } from './db';
+import { threats, incidents, aiInsights } from '@shared/schema';
+import { eq, desc } from 'drizzle-orm';
+
+const router = Router();
+
+// Add user profile endpoint
+router.get('/api/user/profile', async (req, res) => {
+  try {
+    res.json({
+      id: 1,
+      name: "Security Admin",
+      email: "admin@agiesfl.com",
+      role: "Administrator",
+      department: "Security Operations",
+      lastLogin: new Date().toISOString(),
+      avatar: "/api/placeholder/32/32"
+    });
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ error: 'Failed to fetch user profile' });
+  }
+});
+
+// Add dashboard summary endpoint
+router.get('/api/dashboard/summary', async (req, res) => {
+  try {
+    const recentThreats = await db.select().from(threats).orderBy(desc(threats.timestamp)).limit(10);
+    const recentIncidents = await db.select().from(incidents).orderBy(desc(incidents.createdAt)).limit(10);
+
+    res.json({
+      threats: recentThreats,
+      incidents: recentIncidents,
+      health: 'good',
+      metrics: {
+        totalThreats: recentThreats.length,
+        totalIncidents: recentIncidents.length,
+        systemHealth: 98.7
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard summary:', error);
+    res.status(500).json({ error: 'Failed to fetch dashboard summary' });
+  }
+});
+
+// Add FL status endpoint
+router.get('/api/fl/status', async (req, res) => {
+  try {
+    res.json({
+      status: "active",
+      round: 15,
+      participants: 3,
+      accuracy: 94.7,
+      lastUpdate: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error fetching FL status:', error);
+    res.status(500).json({ error: 'Failed to fetch FL status' });
+  }
+});
+
+// Add FL nodes endpoint
+router.get('/api/fl/nodes', async (req, res) => {
+  try {
+    res.json([
+      { id: 1, name: "Node-Finance", status: "active", accuracy: 95.2, lastSeen: new Date() },
+      { id: 2, name: "Node-HR", status: "active", accuracy: 93.8, lastSeen: new Date() },
+      { id: 3, name: "Node-IT", status: "training", accuracy: 96.1, lastSeen: new Date() }
+    ]);
+  } catch (error) {
+    console.error('Error fetching FL nodes:', error);
+    res.status(500).json({ error: 'Failed to fetch FL nodes' });
+  }
+});
+
+// Add FL performance endpoint
+router.get('/api/fl/performance', async (req, res) => {
+  try {
+    res.json({
+      accuracy: 94.7,
+      precision: 92.3,
+      recall: 96.1,
+      f1Score: 94.2,
+      trainingTime: 45.2
+    });
+  } catch (error) {
+    console.error('Error fetching FL performance:', error);
+    res.status(500).json({ error: 'Failed to fetch FL performance' });
+  }
+});

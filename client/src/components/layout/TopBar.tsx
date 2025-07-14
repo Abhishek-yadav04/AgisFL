@@ -152,7 +152,3 @@ export function TopBar() {
     </header>
   );
 }
-```
-
-```
-</replit_final_file>

@@ -1,104 +1,169 @@
-
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Router, Route, Switch, Redirect } from "wouter";
-import { Toaster } from "@/components/ui/toaster";
-import { queryClient } from "@/lib/queryClient";
-
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { TopBar } from "@/components/layout/TopBar";
 import { Sidebar } from "@/components/layout/Sidebar";
-
+import { Toaster } from "@/components/ui/toaster";
 import Dashboard from "@/pages/dashboard";
+import Login from "@/pages/login";
 import Incidents from "@/pages/incidents";
 import Threats from "@/pages/threats";
 import Analytics from "@/pages/analytics";
-import Forensics from "@/pages/forensics";
 import FederatedLearning from "@/pages/federated-learning";
-import LoginPage from "@/pages/login";
+import Forensics from "@/pages/forensics";
 import NotFound from "@/pages/not-found";
-
+import { ElectronProvider } from "@/lib/electron";
+import { ErrorBoundary } from "@/lib/errorBoundary";
+import queryClient, { isAuthenticated } from "@/lib/queryClient";
 import { useEffect, useState } from "react";
 
-function PrivateRoute({ component: Component, ...props }: any) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+// Protected route wrapper with enhanced error handling
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('agiesfl_token');
-    if (token) {
-      try {
-        const decoded = JSON.parse(atob(token.split('.')[1]));
-        const currentTime = Date.now() / 1000;
-        if (decoded.exp > currentTime) {
-          setIsAuthenticated(true);
-        } else {
-          // For development, allow expired tokens to continue as demo mode
-          console.warn('Token expired, continuing in demo mode');
-          setIsAuthenticated(true);
-        }
-      } catch (error) {
-        // For development, continue even with invalid tokens
-        console.warn('Invalid token format, continuing in demo mode');
-        setIsAuthenticated(true);
-      }
-    } else {
-      // For development, allow access without token (demo mode)
-      console.info('No token found, continuing in demo mode');
-      setIsAuthenticated(true);
+    try {
+      const authStatus = isAuthenticated();
+      setAuthenticated(authStatus);
+    } catch (error) {
+      console.error('Authentication check failed:', error);
+      setAuthenticated(false);
+    } finally {
+      setIsCheckingAuth(false);
     }
   }, []);
 
-  if (isAuthenticated === null) {
+  if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
-          <p className="text-gray-400">Loading AgiesFL Dashboard...</p>
+        <div className="text-white">Verifying authentication...</div>
+      </div>
+    );
+  }
+
+  return authenticated ? children : <Navigate to="/login" replace />;
+};
+
+// Layout wrapper to reduce code duplication
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex h-screen">
+    <Sidebar />
+    <div className="flex-1 flex flex-col">
+      <TopBar />
+      <main className="flex-1 overflow-auto">
+        {children}
+      </main>
+    </div>
+  </div>
+);
+
+function App() {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Initialize app state with error handling
+    try {
+      // Perform any necessary initialization
+      setIsInitialized(true);
+    } catch (error) {
+      console.error('App initialization failed:', error);
+      setInitError('Failed to initialize application. Please refresh the page.');
+    }
+  }, []);
+
+  if (initError) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <h2 className="text-xl font-bold mb-4">Application Error</h2>
+          <p className="text-gray-300 mb-4">{initError}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white"
+          >
+            Refresh Page
+          </button>
         </div>
       </div>
     );
   }
 
-  return <Component {...props} />;
-}
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading AgiesFL...</div>
+      </div>
+    );
+  }
 
-function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="min-h-screen bg-gray-900 text-white">
-          <Switch>
-            <Route path="/login" component={LoginPage} />
-            <Route>
-              {(params) => {
-                const isLoginRoute = params.path === '/login';
-                if (isLoginRoute) return null;
-                
-                return (
-                  <>
-                    <TopBar />
-                    <div className="flex">
-                      <Sidebar />
-                      <main className="flex-1 p-6 ml-64">
-                        <Switch>
-                          <Route path="/" component={() => <Redirect to="/dashboard" />} />
-                          <Route path="/dashboard" component={(props: any) => <PrivateRoute component={Dashboard} {...props} />} />
-                          <Route path="/incidents" component={(props: any) => <PrivateRoute component={Incidents} {...props} />} />
-                          <Route path="/threats" component={(props: any) => <PrivateRoute component={Threats} {...props} />} />
-                          <Route path="/analytics" component={(props: any) => <PrivateRoute component={Analytics} {...props} />} />
-                          <Route path="/forensics" component={(props: any) => <PrivateRoute component={Forensics} {...props} />} />
-                          <Route path="/federated-learning" component={(props: any) => <PrivateRoute component={FederatedLearning} {...props} />} />
-                          <Route component={NotFound} />
-                        </Switch>
-                      </main>
-                    </div>
-                  </>
-                );
-              }}
-            </Route>
-          </Switch>
-        </div>
-      </Router>
-      <Toaster />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <ElectronProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <div className="min-h-screen bg-gray-900">
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Dashboard />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Dashboard />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/incidents" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Incidents />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/threats" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Threats />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/analytics" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Analytics />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/federated-learning" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <FederatedLearning />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/forensics" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Forensics />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            <Toaster />
+          </BrowserRouter>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </ElectronProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -49,7 +49,7 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     console.error(`[Server Error] ${status}: ${message}`, err.stack);
-    
+
     res.status(status).json({ 
       error: message,
       ...(process.env.NODE_ENV === 'development' && { stack: err.stack })

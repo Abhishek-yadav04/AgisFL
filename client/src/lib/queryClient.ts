@@ -1,125 +1,123 @@
-import { QueryClient } from "@tanstack/react-query";
 
-// Custom fetch wrapper that includes authentication
-export const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('agiesfl_token');
+import { QueryClient } from '@tanstack/react-query';
 
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
-    ...(options.headers || {}),
-  };
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
-    // Handle authentication gracefully in development
-    if (response.status === 401) {
-      console.warn(`[Auth] Unauthenticated request to ${url} - continuing in demo mode`);
-      // Return response anyway for development flexibility
-    }
-
-    return response;
-  } catch (error) {
-    // Handle network errors gracefully
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.error(`[Network] Failed to connect to ${url}:`, error);
-      // Return a mock response for development
-      return new Response(JSON.stringify([]), { 
-        status: 200, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
-    }
-    throw error;
-  }
-};
-
-export const queryClient = new QueryClient({
+// Enhanced configuration for production reliability
+const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes for better performance
       retry: (failureCount, error: any) => {
-        // Don't retry on authentication errors
-        if (error?.message?.includes('401') || error?.message?.includes('Authentication failed')) {
+        // Don't retry on 4xx errors (client errors)
+        if (error?.status >= 400 && error?.status < 500) {
           return false;
         }
-        // Don't retry on network errors in development
-        if (error?.message?.includes('Network error')) {
-          return false;
-        }
-        return failureCount < 2; // Reduced retry attempts
+        // Retry up to 3 times for network/server errors
+        return failureCount < 3;
       },
-      refetchOnWindowFocus: false, // Prevents unnecessary refetches
-      queryFn: async ({ queryKey }) => {
-        try {
-          const [url] = queryKey as [string];
-          const response = await authenticatedFetch(url);
-          
-          if (!response.ok) {
-            // Handle different HTTP status codes appropriately
-            if (response.status === 404) {
-              return []; // Return empty array for missing resources
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          
-          return response.json();
-        } catch (error) {
-          console.error(`Query failed for ${queryKey}:`, error);
-          // Return empty data instead of throwing for better UX
-          return [];
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      onError: (error: any) => {
+        console.error('Query error:', error);
+        // Log to monitoring service in production
+        if (process.env.NODE_ENV === 'production') {
+          // Add your error tracking service here
         }
       },
     },
     mutations: {
-      mutationFn: async ({ url, method = 'POST', data }: any) => {
-        try {
-          const response = await authenticatedFetch(url, {
-            method,
-            body: data ? JSON.stringify(data) : undefined,
-          });
-          
-          if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorData}`);
-          }
-          
-          return response.json();
-        } catch (error) {
-          console.error(`Mutation failed for ${method} ${url}:`, error);
-          throw error;
+      retry: 1,
+      onError: (error: any) => {
+        console.error('Mutation error:', error);
+        // Show user-friendly error message
+        if (error?.message) {
+          // You can integrate with a toast notification system here
         }
       },
     },
   },
 });
 
-// API request helper function with comprehensive error handling
-export const apiRequest = async (method: string, url: string, data?: any) => {
+// Enhanced fetch function with better error handling
+export const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('agiesfl_token');
+  
+  const config: RequestInit = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+  };
+
   try {
-    console.log(`[API Request] ${method} ${url}`, data ? { payload: data } : '');
+    const response = await fetch(url, config);
     
-    const response = await authenticatedFetch(url, {
-      method,
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    
-    const result = await response.json();
-    
-    if (!response.ok) {
-      console.error(`[API Error] ${method} ${url} failed:`, result);
-      throw new Error(result.error || `HTTP ${response.status}: ${response.statusText}`);
+    // Handle authentication errors
+    if (response.status === 401) {
+      localStorage.removeItem('agiesfl_token');
+      window.location.href = '/login';
+      throw new Error('Authentication required');
     }
     
-    console.log(`[API Success] ${method} ${url}`, result);
-    return result;
+    // Handle other HTTP errors
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // If not JSON, use the text response
+        errorMessage = errorText || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle empty responses
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    } else {
+      return await response.text();
+    }
   } catch (error) {
-    console.error(`[API Exception] ${method} ${url}:`, error);
+    // Network errors or other fetch failures
+    if (error instanceof TypeError) {
+      throw new Error('Network error: Please check your internet connection');
+    }
     throw error;
   }
 };
 
-// Note: authenticatedFetch is already exported above
+// Helper function to check if user is authenticated
+export const isAuthenticated = (): boolean => {
+  const token = localStorage.getItem('agiesfl_token');
+  if (!token) return false;
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Date.now() / 1000;
+    return payload.exp > currentTime;
+  } catch {
+    return false;
+  }
+};
+
+// Helper function to get user info from token
+export const getUserInfo = () => {
+  const token = localStorage.getItem('agiesfl_token');
+  if (!token) return null;
+  
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch {
+    return null;
+  }
+};
+
+export default queryClient;

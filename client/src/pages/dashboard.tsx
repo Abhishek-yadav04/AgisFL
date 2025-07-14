@@ -26,6 +26,82 @@ const MemoizedAttackPathVisualization = memo(AttackPathVisualization);
 const MemoizedFederatedLearningPanel = memo(FederatedLearningPanel);
 
 export default function Dashboard() {
+  const { data: flStatus, isLoading: flLoading, error: flError } = useQuery({
+    queryKey: ['fl-status'],
+    queryFn: async () => {
+      const response = await fetch('/api/fl/status');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+    refetchInterval: 30000,
+    placeholderData: {
+      status: "active",
+      round: 15,
+      participants: 3,
+      accuracy: 94.7,
+      lastUpdate: new Date().toISOString()
+    }
+  });
+
+  const { data: nodes, isLoading: nodesLoading, error: nodesError } = useQuery({
+    queryKey: ['fl-nodes'],
+    queryFn: async () => {
+      const response = await fetch('/api/fl/nodes');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+    refetchInterval: 30000,
+    placeholderData: [
+      { id: 1, name: "Node-Finance", status: "active", accuracy: 95.2, lastSeen: new Date() },
+      { id: 2, name: "Node-HR", status: "active", accuracy: 93.8, lastSeen: new Date() },
+      { id: 3, name: "Node-IT", status: "training", accuracy: 96.1, lastSeen: new Date() }
+    ]
+  });
+
+  const { data: performance, isLoading: perfLoading, error: perfError } = useQuery({
+    queryKey: ['fl-performance'],
+    queryFn: async () => {
+      const response = await fetch('/api/fl/performance');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+    refetchInterval: 30000,
+    placeholderData: {
+      accuracy: 94.7,
+      precision: 92.3,
+      recall: 96.1,
+      f1Score: 94.2,
+      trainingTime: 45.2
+    }
+  });
+
+  const { data: threats, isLoading: threatsLoading, error: threatsError } = useQuery({
+    queryKey: ['threats'],
+    queryFn: async () => {
+      const response = await fetch('/api/threats');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+    refetchInterval: 15000,
+    placeholderData: [
+      {
+        id: 1,
+        title: "Suspicious Network Activity",
+        severity: "High",
+        description: "Unusual traffic patterns detected",
+        timestamp: new Date().toISOString()
+      }
+    ]
+  });
+
   // Optimized dashboard data queries with proper loading states
   const dashboardQueries = useQuery({
     queryKey: ['/api/dashboard/summary'],

@@ -128,46 +128,58 @@ function App() {
                       </Suspense>
                     </DashboardLayout>
                   </ProtectedRoute>
-                } /></Route>
+                } />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <Dashboard />
+                      <Suspense fallback={<PageLoader />}>
+                        <Dashboard />
+                      </Suspense>
                     </DashboardLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/incidents" element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <Incidents />
+                      <Suspense fallback={<PageLoader />}>
+                        <Incidents />
+                      </Suspense>
                     </DashboardLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/threats" element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <Threats />
+                      <Suspense fallback={<PageLoader />}>
+                        <Threats />
+                      </Suspense>
                     </DashboardLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/analytics" element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <Analytics />
+                      <Suspense fallback={<PageLoader />}>
+                        <Analytics />
+                      </Suspense>
                     </DashboardLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/federated-learning" element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <FederatedLearning />
+                      <Suspense fallback={<PageLoader />}>
+                        <FederatedLearning />
+                      </Suspense>
                     </DashboardLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/forensics" element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <Forensics />
+                      <Suspense fallback={<PageLoader />}>
+                        <Forensics />
+                      </Suspense>
                     </DashboardLayout>
                   </ProtectedRoute>
                 } />

@@ -1,79 +1,66 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express, { type Request, Response } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { createServer } from 'http';
+import { setupVite, serveStatic } from "./vite";
+import { logger } from "./logger";
+import path from "path";
 
 const app = express();
 
-// Enable trust proxy to fix rate limiting issues in hosted environments
+// Enhanced middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Trust proxy for proper IP handling
 app.set('trust proxy', 1);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
+// Enhanced error handling middleware
+app.use((err: any, req: Request, res: Response, next: any) => {
+  logger.error('Unhandled error:', err);
+  res.status(500).json({ 
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
-
-  next();
 });
 
-(async () => {
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+try {
+  // Register API routes and WebSocket
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    console.error(`[Server Error] ${status}: ${message}`, err.stack);
-
-    res.status(status).json({ 
-      error: message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    });
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup Vite or static serving
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  const PORT = process.env.PORT || 5000;
+
+  server.listen(PORT, "0.0.0.0", () => {
+    logger.info(`Server successfully started on port ${PORT}`);
+    console.log(`✅ AgiesFL Server running on http://0.0.0.0:${PORT}`);
+    console.log(`🚀 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 API Health Check: http://0.0.0.0:${PORT}/health`);
   });
-})();
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    logger.info('SIGTERM received, shutting down gracefully');
+    server.close(() => {
+      process.exit(0);
+    });
+  });
+
+} catch (error) {
+  logger.error('Failed to start server:', error);
+  console.error('❌ Server startup failed:', error);
+  process.exit(1);
+}

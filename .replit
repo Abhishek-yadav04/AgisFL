@@ -1,48 +1,31 @@
+run = "npm run electron-dev"
 modules = ["nodejs-20", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["cairo", "cargo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "gmp", "gobject-introspection", "gtk3", "iana-etc", "libiconv", "libxcrypt", "openssl", "pkg-config", "qhull", "rustc", "tcl", "tk"]
 
 [workflows]
-runButton = "Production Setup"
+runButton = "Start AgiesFL"
 
-[[workflows]]
-name = "Production Setup"
-author = "agent"
+[[workflows.workflow]]
+name = "Start AgiesFL"
+author = 24442136
+mode = "sequential"
 
-[[workflows.tasks]]
+[[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node setup-production.js"
+args = "npm install"
 
-[[workflows]]
-name = "Development Server"
-author = "agent"
-
-[[workflows.tasks]]
+[[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm install && npm run dev"
-
-[[workflows]]
-name = "Build Client"
-author = "agent"
-
-[[workflows.tasks]]
-task = "shell.exec"
-args = "npm run client-setup"
+args = "npm run dev"
 
 [deployment]
-run = ["npm", "start"]
-build = ["npm", "run", "build"]
-deploymentTarget = "static"
+run = ["npm", "run", "start"]
+deploymentTarget = "cloudrun"
+ignorePorts = false
 
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 5174
-externalPort = 443
-
-[[ports]]
-localPort = 6000    # Optional port for WebSocket or other functionality
-externalPort = 6000 # Maps to external 6000 as well

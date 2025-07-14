@@ -1,7 +1,8 @@
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Router, Route, Switch, Redirect } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
+import { queryClient } from "@/lib/queryClient";
 
 import { TopBar } from "@/components/layout/TopBar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -16,18 +17,6 @@ import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 
 import { useEffect, useState } from "react";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60, // 1 minute
-      retry: (failureCount, error: any) => {
-        if (error?.status === 401) return false;
-        return failureCount < 3;
-      },
-    },
-  },
-});
 
 function PrivateRoute({ component: Component, ...props }: any) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);

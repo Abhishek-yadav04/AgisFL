@@ -103,11 +103,15 @@ export function TopBar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
-                  <AvatarFallback className="bg-gradient-to-r from-blue-500 to-green-500 text-white">
-                    {user?.username ? user.username.substring(0, 2).toUpperCase() : 'SU'}
+                  <AvatarImage src="/placeholder-avatar.jpg" alt="Current User" />
+                  <AvatarFallback className="bg-blue-600 text-white font-semibold">
+                    SA
                   </AvatarFallback>
                 </Avatar>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium">Security Administrator</p>
+                  <p className="text-xs text-gray-400">System Operator</p>
+                </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -148,3 +152,7 @@ export function TopBar() {
     </header>
   );
 }
+```
+
+```
+</replit_final_file>

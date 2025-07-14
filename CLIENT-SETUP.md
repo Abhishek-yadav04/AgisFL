@@ -1,145 +1,155 @@
 
-# AgiesFL Client Setup Guide
+# AgiesFL Security Platform - Client Setup Guide
 
-## For External Client/VM Connection
+## 🎯 Overview
+This guide helps you set up the AgiesFL Security Platform client on any Windows/Mac/Linux machine to connect to your central server dashboard.
 
-### Prerequisites
-- Node.js 18+ installed
-- Git (optional, for cloning)
-- Network access to the AgiesFL server
+## 📋 Prerequisites
+- Node.js 18+ installed on your machine
+- Network access to the server (same WiFi/LAN or VPN)
+- 2GB free disk space for the client
 
-### Quick Setup
+## 🚀 Quick Setup (Recommended)
 
-1. **Get the Application Files**
-   ```bash
-   # If using git
-   git clone <repository-url>
-   cd agiesfl-security-platform
-   
-   # OR download and extract the ZIP file
-   ```
+### Option 1: Download Pre-built Client
+1. Download the client executable from the server:
+   - Windows: `AgiesFL-Setup.exe`
+   - Mac: `AgiesFL.dmg`
+   - Linux: `AgiesFL.AppImage`
 
-2. **Install Dependencies**
+2. Run the executable and it will automatically connect to your server
+
+### Option 2: Manual Setup
+1. **Download the source code** from your server
+2. **Install dependencies:**
    ```bash
    npm install
    ```
-
-3. **Configure Server Connection**
-   Create or edit `.env` file:
+3. **Configure connection:**
+   Create `.env` file:
    ```env
-   # Replace with your server's IP address
-   VITE_API_BASE_URL=http://YOUR_SERVER_IP:5000
-   VITE_WS_URL=ws://YOUR_SERVER_IP:5000/ws
+   REACT_APP_SERVER_HOST=YOUR_SERVER_IP
+   REACT_APP_SERVER_PORT=5000
+   REACT_APP_API_URL=http://YOUR_SERVER_IP:5000/api
+   REACT_APP_WS_URL=ws://YOUR_SERVER_IP:5000/ws
    ```
-
-4. **Start Client Application**
+4. **Start the client:**
    ```bash
-   npm run dev
+   npm run electron
    ```
 
-5. **Access Application**
-   - Open browser to: `http://localhost:5173`
-   - Or access via: `http://YOUR_CLIENT_IP:5173`
+## 🔧 Configuration
 
-### Default Login Credentials
-- **Administrator**: admin / SecureAdmin123!
-- **Analyst**: analyst / AnalystPass456!
-
-### Server Connection Testing
-
-Test server connectivity:
+### Finding Your Server IP
+On the server machine, run:
 ```bash
-# Test API connection
-curl http://YOUR_SERVER_IP:5000/api/health
+# Windows
+ipconfig
 
-# Expected response:
-{
-  "status": "healthy",
-  "timestamp": "...",
-  "version": "1.0.0",
-  "service": "AgiesFL Security Platform",
-  "fl_ids": "active"
-}
+# Mac/Linux
+ifconfig
+```
+Look for your local IP address (usually starts with 192.168.x.x or 10.x.x.x)
+
+### Connection Settings
+- **Server Port:** 5000 (default)
+- **Protocol:** HTTP (HTTPS in production)
+- **WebSocket:** Enabled for real-time updates
+
+## 🔑 Login Credentials
+- **Administrator:** admin / SecureAdmin123!
+- **Security Analyst:** analyst / AnalystPass456!
+
+## 🖥️ Client Features
+- **Real-time Dashboard:** Live security metrics and threat monitoring
+- **Incident Management:** View and respond to security incidents
+- **FL-IDS Analytics:** Federated learning insights and model performance
+- **Forensic Tools:** Digital forensics and investigation capabilities
+- **Report Generation:** Export security reports and analytics
+
+## 🛠️ Troubleshooting
+
+### Connection Issues
+1. **Check server status:**
+   ```bash
+   curl http://SERVER_IP:5000/health
+   ```
+2. **Verify firewall settings:**
+   - Ensure port 5000 is open on server
+   - Check Windows Defender/antivirus
+3. **Network connectivity:**
+   ```bash
+   ping SERVER_IP
+   ```
+
+### Client Won't Start
+1. **Check Node.js version:**
+   ```bash
+   node --version  # Should be 18+
+   ```
+2. **Clear cache and reinstall:**
+   ```bash
+   rm -rf node_modules package-lock.json
+   npm install
+   ```
+3. **Run in development mode:**
+   ```bash
+   npm run electron-dev
+   ```
+
+### Performance Issues
+- **Close unnecessary applications**
+- **Ensure stable network connection**
+- **Update graphics drivers for charts/visualizations**
+
+## 📊 Client Architecture
+```
+Client Application
+├── Electron Main Process (Desktop App)
+├── React Frontend (Dashboard UI)
+├── WebSocket Client (Real-time Data)
+├── API Client (REST Endpoints)
+└── Local Storage (User Preferences)
 ```
 
-### Troubleshooting
+## 🔐 Security Features
+- **Encrypted Communication:** All data encrypted in transit
+- **Session Management:** Automatic session timeout and renewal
+- **Role-based Access:** Different features based on user permissions
+- **Audit Logging:** All user actions logged for compliance
 
-**Connection Issues:**
-1. Verify server IP and port (default: 5000)
-2. Check firewall settings
-3. Ensure server is running with `0.0.0.0` binding
-4. Test network connectivity: `ping YOUR_SERVER_IP`
+## 📈 Real-time Capabilities
+- **Live Threat Feed:** Real-time security alerts and incidents
+- **System Metrics:** CPU, memory, network monitoring
+- **FL-IDS Updates:** Model training progress and accuracy metrics
+- **User Activity:** Multi-user collaboration and notifications
 
-**WebSocket Issues:**
-1. Check browser console for WebSocket errors
-2. Verify WebSocket URL in browser dev tools
-3. Ensure no proxy blocking WebSocket connections
+## 🎨 UI Customization
+The client supports:
+- **Dark/Light themes**
+- **Dashboard layout customization**
+- **Alert notification preferences**
+- **Chart and visualization settings**
 
-**CORS Errors:**
-1. Server is configured to allow all origins for demo
-2. If issues persist, check browser security settings
-
-### Building for Production
-
-```bash
-# Build optimized client
-npm run build
-
-# Serve built files
-npm run preview
+## 📱 Mobile Access
+For mobile access, open your web browser and navigate to:
+```
+http://SERVER_IP:5000
 ```
 
-### Features Available
+## 🆘 Support
+For technical support:
+1. Check the server logs: `/logs/combined.log`
+2. Enable debug mode: Set `DEBUG=true` in `.env`
+3. Contact your system administrator
 
-✅ Real-time threat monitoring
-✅ FL-IDS dashboard and controls  
-✅ Security incident management
-✅ Live attack simulation
-✅ Log export and analysis
-✅ Multi-user authentication
-✅ WebSocket real-time updates
+## 🔄 Updates
+The client will automatically check for updates when connecting to the server. Manual updates can be performed by:
+1. Downloading the latest version
+2. Backing up your configuration
+3. Installing the new version
+4. Restoring your settings
 
-### FL-IDS Features
-
-- **Live Training**: Train FL model with real data
-- **Attack Simulation**: Generate test attack patterns
-- **Log Analysis**: Export and analyze security logs
-- **Real-time Detection**: Monitor threats as they happen
-- **Node Management**: View federated learning nodes
-
-### Network Requirements
-
-- **Inbound**: Port 5173 (client dev server)
-- **Outbound**: Port 5000 (server API and WebSocket)
-- **Protocols**: HTTP, WebSocket
-
-### Performance Tips
-
-1. Use modern browser (Chrome, Firefox, Edge)
-2. Ensure stable network connection
-3. Close unnecessary browser tabs
-4. Use dedicated network if possible
-
-## Teacher Demo Checklist
-
-✅ Server running on `0.0.0.0:5000`
-✅ Client accessible from external machines
-✅ Database connected (or mock data working)
-✅ FL-IDS training functional
-✅ Attack simulation working
-✅ Logs being generated and exportable
-✅ Real-time updates via WebSocket
-✅ Authentication working
-✅ All dashboard features responsive
-
-### Demo Flow Suggestion
-
-1. **Login** - Show authentication
-2. **Dashboard** - Display real-time metrics
-3. **FL-IDS** - Demonstrate training and detection
-4. **Attack Simulation** - Generate and detect attacks
-5. **Incident Management** - Show automated incident creation
-6. **Logs Export** - Download analysis data
-7. **Multi-Client** - Show connectivity from different machines
-
-Good luck with your demonstration! 🚀
+---
+**AgiesFL Security Platform v1.0.0**  
+Enterprise Federated Learning Intrusion Detection System

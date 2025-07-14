@@ -1,74 +1,44 @@
-run = "npm run dev"
-modules = ["nodejs-20", "python-3.12", "web"]
+modules = ["nodejs-20", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["cairo", "cargo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "gmp", "gobject-introspection", "gtk3", "iana-etc", "libiconv", "libxcrypt", "openssl", "pkg-config", "qhull", "rustc", "tcl", "tk"]
 
 [workflows]
 runButton = "Production Setup"
 
-[[workflows.workflow]]
-name = "Start AgiesFL"
-author = 24442136
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm install"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow]]
-name = "Start AgiesFL Dev"
-author = 24442136
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm install"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow]]
-name = "AgiesFL Development Server"
-author = 45018365
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm install"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run db:push || echo \"Database not ready, continuing...\""
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow]]
+[[workflows]]
 name = "Production Setup"
-author = 45018365
-mode = "sequential"
+author = "agent"
 
-[[workflows.workflow.tasks]]
+[[workflows.tasks]]
 task = "shell.exec"
 args = "node setup-production.js"
 
-[[workflows.workflow.tasks]]
+[[workflows]]
+name = "Development Server"
+author = "agent"
+
+[[workflows.tasks]]
 task = "shell.exec"
-args = "npm start"
+args = "npm install && npm run dev"
+
+[[workflows]]
+name = "Build Client"
+author = "agent"
+
+[[workflows.tasks]]
+task = "shell.exec"
+args = "npm run client-setup"
 
 [deployment]
-run = ["sh", "-c", "npm run dev"]
-deploymentTarget = "cloudrun"
-ignorePorts = false
+run = ["npm", "start"]
+build = ["npm", "run", "build"]
+deploymentTarget = "static"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5174
+externalPort = 443

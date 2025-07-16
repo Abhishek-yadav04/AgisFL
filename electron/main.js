@@ -1,7 +1,12 @@
 
-const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
-const path = require('path');
-const { spawn } = require('child_process');
+import { app, BrowserWindow, Menu, ipcMain, dialog } from 'electron';
+import path from 'path';
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const isDev = process.env.NODE_ENV === 'development';
 
 let mainWindow;
@@ -9,14 +14,20 @@ let flaskProcess;
 
 // Flask server management
 function startFlaskServer() {
-  const pythonPath = process.platform === 'win32' ? 'python' : 'python3';
+  const pythonPath = 'E:/abhishek/AgisFL-1/.venv/Scripts/python.exe';
   flaskProcess = spawn(pythonPath, ['app.py'], {
     cwd: path.join(__dirname, '..'),
-    stdio: 'pipe'
+    stdio: 'pipe',
+    env: {
+      ...process.env,
+      FLASK_APP: 'app.py',
+      FLASK_ENV: isDev ? 'development' : 'production'
+    }
   });
 
   flaskProcess.stdout.on('data', (data) => {
-    console.log(`Flask: ${data}`);
+    const output = data.toString();
+    console.log(`Flask: ${output}`);
   });
 
   flaskProcess.stderr.on('data', (data) => {
@@ -53,10 +64,24 @@ function createWindow() {
     show: false
   });
 
-  // Wait for Flask server to start, then load the app
+  // Wait for Flask server to start and be ready
+  let serverStarted = false;
+  
+  flaskProcess.stdout.on('data', (data) => {
+    const output = data.toString();
+    console.log(`Flask: ${output}`);
+    if (output.includes('Starting FL-IDS Enterprise Backend')) {
+      serverStarted = true;
+      mainWindow.loadURL('http://localhost:5001');
+    }
+  });
+
+  // Fallback if server doesn't start in time
   setTimeout(() => {
-    mainWindow.loadURL('http://localhost:5000');
-  }, 3000);
+    if (!serverStarted) {
+      mainWindow.loadURL('http://localhost:5000');
+    }
+  }, 5000);
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
@@ -253,9 +278,11 @@ function createMenu() {
 
 // App event handlers
 app.whenReady().then(() => {
-  createWindow();
-  createMenu();
   startFlaskServer();
+  createMenu();
+  setTimeout(() => {
+    createWindow();
+  }, 2000);  // Give Flask server time to start
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

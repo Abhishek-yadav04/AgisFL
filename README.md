@@ -1,95 +1,134 @@
 
-# NexusGuard AI - Advanced Federated Learning Security Platform
+
+# AgisFL - Federated Learning Intrusion Detection System
 
 ## Project Overview
-NexusGuard AI represents a cutting-edge cybersecurity solution that leverages federated learning and artificial intelligence to provide real-time threat detection and incident response capabilities. This system is designed for enterprise-grade security operations centers (SOCs) and demonstrates the practical application of distributed machine learning in cybersecurity.
+AgisFL is a real-time, enterprise-grade Federated Learning Intrusion Detection System (FL-IDS) with persistent storage, live analytics, and a modern dashboard. Built for final year projects and beyond, it leverages federated learning and AI to provide advanced threat detection and incident response for security operations centers (SOCs), research, and education.
 
-## Technical Architecture
+## Architecture
 
 ### Core Technologies
-- **Frontend**: React 18 with TypeScript, Tailwind CSS, shadcn/ui components
-- **Backend**: Express.js with TypeScript, WebSocket real-time communication
-- **AI/ML**: Federated Learning implementation with privacy-preserving algorithms
-- **Database**: In-memory storage with planned PostgreSQL integration
-- **Security**: JWT authentication, rate limiting, comprehensive audit logging
+- **Frontend**: React 18 (Vite, TypeScript, Tailwind CSS, shadcn/ui)
+- **Backend**: Flask (Python), REST API, WebSocket real-time communication
+- **AI/ML**: Federated Learning, privacy-preserving algorithms
+- **Database**: PostgreSQL (Neon)
+- **Desktop**: Electron (for pure desktop packaging)
+- **Security**: JWT authentication, rate limiting, audit logging
+
+### System Diagram
+```
+┌────────────┐      ┌────────────┐      ┌────────────┐
+│  Electron  │─────▶│  React UI  │─────▶│  Flask API │
+└────────────┘      └────────────┘      └────────────┘
+        │                │                   │
+        ▼                ▼                   ▼
+   WebSocket        REST API           PostgreSQL
+```
+
+### Screenshots
+<p align="center">
+  <img src="client/public/agiesfl-logo.png" alt="AgisFL Logo" width="120" />
+</p>
+<p align="center">
+  <img src="attached_assets/Screenshot 2025-07-13 131618_1752476871237.png" alt="Dashboard Screenshot" width="600" />
+</p>
 
 ### Key Features
-1. **Real-time Threat Detection**: AI-powered threat identification with confidence scoring
-2. **Incident Management**: Complete incident lifecycle management with severity classification
-3. **Federated Learning**: Distributed ML training across multiple security nodes
-4. **Attack Path Visualization**: Network topology analysis and attack vector mapping
+1. **Real-time Threat Detection**: AI-powered, live threat identification
+2. **Incident Management**: Full incident lifecycle, severity classification
+3. **Federated Learning**: Distributed ML training across nodes
+4. **Attack Path Visualization**: Network topology and attack vector mapping
 5. **Compliance Reporting**: Automated security compliance and audit trails
+6. **Modern Dashboard**: React, Tailwind, dark/light mode, accessibility, onboarding, and more
+7. **Desktop App**: Runs as a pure desktop application via Electron
+
+## Setup Instructions
+
+### Prerequisites
+- Node.js (v18+)
+- Python 3.10+
+- PostgreSQL (or Neon cloud DB)
+
+### 1. Clone the Repository
+```sh
+git clone https://github.com/Abhishek-yadav04/AgisFL.git
+cd AgisFL-1
+```
+
+### 2. Install Dependencies
+#### Backend (Flask)
+```sh
+pip install -r requirements.txt
+```
+#### Frontend (React)
+```sh
+cd client
+npm install
+```
+
+### 3. Configure Environment
+- Set up your PostgreSQL database and update connection strings in backend config.
+
+### 4. Run the App (Web)
+#### Backend
+```sh
+python app.py
+```
+#### Frontend
+```sh
+cd client
+npm run dev
+```
+Visit [http://localhost:5173](http://localhost:5173)
+
+### 5. Build as Desktop App (Electron)
+```sh
+npm run build
+cd ..
+npm install --prefix electron
+npm run build --prefix electron
+npm run start --prefix electron
+```
+This will launch AgisFL as a pure desktop application.
+
+---
+
+## Usage Instructions
+
+1. **Login or access dashboard as guest**
+2. **Monitor real-time threats, system health, and analytics**
+3. **Load Demo Data**: Use the "Load Demo Data" button for instant demo
+4. **Download Reports**: Click "Download Report" for CSV/PDF
+5. **Help & Docs**: Access via floating button for API and usage info
+6. **Profile & Theme**: Switch dark/light mode, view user profile
+7. **Onboarding**: New users see onboarding tooltip for quick start
+
+---
 
 ## Implementation Highlights
 
-### Advanced Security Features
-- Multi-factor authentication with role-based access control
-- Byzantine fault tolerance in federated learning nodes
-- Privacy-preserving differential privacy mechanisms
-- Real-time anomaly detection with ensemble learning
+### Security Features
+- Multi-factor authentication, RBAC
+- Byzantine fault tolerance in FL nodes
+- Differential privacy, anomaly detection
 
-### Performance Optimizations
-- WebSocket-based real-time updates
-- Efficient query caching and state management
-- Responsive UI with optimistic updates
-- Scalable microservices architecture
-
-## Research Contributions
-This project demonstrates:
-1. Practical implementation of federated learning in cybersecurity
-2. Privacy-preserving machine learning techniques
-3. Real-time distributed threat detection
-4. Enterprise-grade security operations automation
-
-## Development Journey & Methodology
-
-### Personal Development Approach
-During the development of this project, I followed a systematic approach that combines academic research with practical implementation:
-
-1. **Research Phase**: Extensive study of federated learning algorithms, cybersecurity frameworks, and real-time system architectures
-2. **Design Phase**: Created comprehensive system architecture diagrams and database schemas
-3. **Implementation Strategy**: Adopted test-driven development to ensure code reliability
-4. **Performance Optimization**: Implemented React.memo, query optimization, and WebSocket efficiency improvements
-
-### Technical Challenges Overcome
-- **Cross-Platform Compatibility**: Resolved CORS issues and WebSocket connection stability
-- **Real-time Data Synchronization**: Implemented efficient state management for live threat updates
-- **Security Implementation**: Balanced demo functionality with production-grade security patterns
-- **UI/UX Optimization**: Created responsive design that works across different screen sizes
-
-### Code Quality Standards
-- **ESLint Configuration**: Custom rules for TypeScript and React best practices
-- **Prettier Integration**: Consistent code formatting across the entire codebase
-- **Security Analysis**: Regular vulnerability scanning with automated dependency updates
-- **Performance Monitoring**: Implemented comprehensive logging and metrics collection
-
-### Learning Outcomes
-This project enhanced my understanding of:
-- Advanced React patterns and performance optimization techniques
-- Federated learning implementation in practical cybersecurity scenarios
-- Full-stack TypeScript development with modern tooling
-- Real-time web application architecture and WebSocket management
-- Enterprise-grade security implementation and audit logging
-
-## Future Development Roadmap
-
-### Short-term Enhancements (Next 3 months)
-- Integration with popular SIEM platforms (Splunk, ELK Stack)
-- Advanced machine learning model optimization
-- Mobile application development for incident response
-
-### Long-term Vision (6-12 months)
-- Quantum-resistant cryptographic protocol implementation
-- Advanced graph neural networks for complex attack path analysis
-- Kubernetes-native deployment with auto-scaling capabilities
-- AI-powered automated incident response workflows
-
-## Project Impact & Applications
-This system demonstrates practical applications in:
-- Enterprise security operations centers (SOCs)
-- Educational institutions for cybersecurity training
-- Research organizations studying federated learning
-- Government agencies requiring distributed threat detection
+### Performance
+- WebSocket real-time updates
+- Query caching, state management
+- Responsive, accessible UI
 
 ---
-*Developed as a Computer Science final year capstone project, showcasing the integration of cutting-edge AI technologies with practical cybersecurity solutions. This project represents months of dedicated research, development, and testing to create a production-ready security platform.*
+
+## Research & Impact
+This project demonstrates:
+1. Practical federated learning in cybersecurity
+2. Privacy-preserving ML techniques
+3. Real-time distributed threat detection
+4. Enterprise-grade security automation
+
+## Support & Documentation
+- For questions, contact [Abhishek Yadav](mailto:abhishek@example.com)
+- [GitHub Repo](https://github.com/Abhishek-yadav04/AgisFL)
+- See `/client/src/pages/dashboard.tsx` for main dashboard code
+
+---

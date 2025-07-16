@@ -9,11 +9,12 @@ import time
 import threading
 import logging
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
 import numpy as np
 import pandas as pd
+from werkzeug.utils import secure_filename
 from fl_ids_core import (
     FederatedLearningServer, 
     FederatedLearningNode, 
@@ -24,6 +25,40 @@ from fl_ids_core import (
 )
 import psutil
 import secrets
+import psycopg2
+# --- PostgreSQL (Neon) connection setup ---
+PG_CONN_STR = 'postgresql://neondb_owner:npg_X0m9RjybzNWp@ep-twilight-rain-a1ztonhz-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+def get_db_conn():
+    return psycopg2.connect(PG_CONN_STR)
+
+# Create tables if not exist
+def init_db():
+    conn = get_db_conn()
+    cur = conn.cursor()
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS user_realtime_data (
+            id SERIAL PRIMARY KEY,
+            timestamp TIMESTAMPTZ NOT NULL,
+            data JSONB NOT NULL
+        );
+    ''')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS threat_feed (
+            id SERIAL PRIMARY KEY,
+            threat_id TEXT,
+            type TEXT,
+            severity TEXT,
+            source TEXT,
+            timestamp TIMESTAMPTZ NOT NULL,
+            status TEXT,
+            confidence FLOAT
+        );
+    ''')
+    conn.commit()
+    cur.close()
+    conn.close()
+
+init_db()
 
 # Configure logging
 logging.basicConfig(
@@ -36,9 +71,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='dist', static_url_path='/')
 app.config['SECRET_KEY'] = secrets.token_hex(16)
-CORS(app, origins=["http://localhost:5173", "http://0.0.0.0:5173"])
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+@app.route('/')
+def serve_app():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # Global FL-IDS system state
@@ -213,7 +260,88 @@ def monitor_system_health():
             logger.error(f"Health monitoring error: {e}")
             time.sleep(10)
 
+from collections import deque
+
+# Store recent real-time user data (for demo, keep last 100)
+user_realtime_data = deque(maxlen=100)
+
 # API Routes
+@app.route('/api/fl-ids/stream-data', methods=['POST'])
+def stream_user_data():
+    """Receive real-time data from user system for live analysis"""
+    global user_realtime_data
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No JSON data received'}), 400
+        # Store the data for dashboard/demo
+        # Store in PostgreSQL
+        ts = datetime.now()
+        user_data_point = {
+            'timestamp': ts.isoformat(),
+            'data': data
+        }
+        try:
+            conn = get_db_conn()
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO user_realtime_data (timestamp, data) VALUES (%s, %s)",
+                (ts, json.dumps(data))
+            )
+            conn.commit()
+            cur.close()
+            conn.close()
+        except Exception as db_e:
+            logger.error(f"DB insert user data error: {db_e}")
+
+        socketio.emit('user_data_update', user_data_point)
+
+        # Optionally, run live anomaly/threat detection here
+        numeric_values = [v for v in data.values() if isinstance(v, (int, float))]
+        if any(v > 0.9 for v in numeric_values):
+            threat = {
+                'id': f"user_threat_{int(time.time())}",
+                'type': 'UserDataAnomaly',
+                'severity': 'Medium',
+                'source': 'user_stream',
+                'timestamp': ts.isoformat(),
+                'status': 'Active',
+                'confidence': 0.9
+            }
+            try:
+                conn = get_db_conn()
+                cur = conn.cursor()
+                cur.execute(
+                    "INSERT INTO threat_feed (threat_id, type, severity, source, timestamp, status, confidence) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    (threat['id'], threat['type'], threat['severity'], threat['source'], ts, threat['status'], threat['confidence'])
+                )
+                conn.commit()
+                cur.close()
+                conn.close()
+            except Exception as db_e:
+                logger.error(f"DB insert threat error: {db_e}")
+            socketio.emit('threat_alert', threat)
+        return jsonify({'message': 'Data received', 'received': data}), 200
+    except Exception as e:
+        logger.error(f"Stream data error: {e}")
+        return jsonify({'error': 'Failed to process data'}), 500
+@app.route('/api/fl-ids/user-realtime-data', methods=['GET'])
+def get_user_realtime_data():
+    """Get the last 100 real-time data points sent by users"""
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT timestamp, data FROM user_realtime_data ORDER BY timestamp DESC LIMIT 100")
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        result = [
+            {'timestamp': row[0].isoformat(), 'data': row[1]} for row in rows
+        ]
+        return jsonify(result), 200
+    except Exception as e:
+        logger.error(f"User real-time data API error: {e}")
+        return jsonify({'error': 'Failed to get user data'}), 500
 @app.route('/api/fl-ids/status', methods=['GET'])
 def get_fl_status():
     """Get comprehensive FL-IDS status"""
@@ -304,17 +432,33 @@ def get_fl_nodes():
 def get_threat_feed():
     """Get real-time threat feed"""
     try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT threat_id, type, severity, source, timestamp, status, confidence FROM threat_feed ORDER BY timestamp DESC LIMIT 20")
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        threats = [
+            {
+                'id': row[0],
+                'type': row[1],
+                'severity': row[2],
+                'source': row[3],
+                'timestamp': row[4].isoformat(),
+                'status': row[5],
+                'confidence': row[6]
+            } for row in rows
+        ]
+        # Calculate threat categories
+        categories = {'DDoS': 0, 'Malware': 0, 'Intrusion': 0, 'Data Breach': 0, 'Phishing': 0, 'UserDataAnomaly': 0}
+        for t in threats:
+            if t['type'] in categories:
+                categories[t['type']] += 1
         return jsonify({
-            'threats': fl_system['threat_feed'][:20],  # Last 20 threats
-            'total_threats': len(fl_system['threat_feed']),
-            'active_threats': len([t for t in fl_system['threat_feed'] if t['status'] == 'Active']),
-            'threat_categories': {
-                'DDoS': len([t for t in fl_system['threat_feed'] if t['type'] == 'DDoS']),
-                'Malware': len([t for t in fl_system['threat_feed'] if t['type'] == 'Malware']),
-                'Intrusion': len([t for t in fl_system['threat_feed'] if t['type'] == 'Intrusion']),
-                'Data Breach': len([t for t in fl_system['threat_feed'] if t['type'] == 'Data Breach']),
-                'Phishing': len([t for t in fl_system['threat_feed'] if t['type'] == 'Phishing'])
-            }
+            'threats': threats,
+            'total_threats': len(threats),
+            'active_threats': len([t for t in threats if t['status'] == 'Active']),
+            'threat_categories': categories
         })
     except Exception as e:
         logger.error(f"Threat feed API error: {e}")
@@ -373,6 +517,114 @@ def handle_leave_room(data):
     room = data['room']
     leave_room(room)
     emit('left', {'room': room})
+
+
+
+# --- Replit-style CSV analysis endpoint and downloadable report ---
+last_csv_report = {'filename': None, 'anomalies': [], 'total_rows': 0}
+
+@app.route('/api/fl-ids/analyze-csv', methods=['POST'])
+def analyze_csv():
+    """Upload a CSV and get threat/anomaly analysis (Replit-style positive point)"""
+    global last_csv_report
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part in request'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    try:
+        filename = secure_filename(file.filename)
+        df = pd.read_csv(file)
+
+        numeric_cols = df.select_dtypes(include=['number']).columns
+        anomalies = []
+        for idx, row in df.iterrows():
+            for col in numeric_cols:
+                if row[col] > 0.9 * df[col].max():
+                    anomalies.append({
+                        'row': int(idx),
+                        'column': col,
+                        'value': row[col],
+                        'reason': f'High value in {col}'
+                    })
+                    break
+
+        # Save last report in memory for download
+        last_csv_report = {
+            'filename': filename,
+            'anomalies': anomalies,
+            'total_rows': len(df)
+        }
+
+        return jsonify({
+            'filename': filename,
+            'total_rows': len(df),
+            'anomaly_count': len(anomalies),
+            'anomalies': anomalies[:20]  # Limit output
+        })
+    except Exception as e:
+        logger.error(f"CSV analysis error: {e}")
+        return jsonify({'error': 'Failed to analyze CSV'}), 500
+
+@app.route('/api/fl-ids/download-report', methods=['GET'])
+def download_csv_report():
+    """Download the last analyzed CSV anomaly report as a CSV file"""
+    global last_csv_report
+    if not last_csv_report['filename'] or not last_csv_report['anomalies']:
+        return jsonify({'error': 'No report available. Please analyze a CSV first.'}), 400
+    try:
+        import io
+        import csv
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=['row', 'column', 'value', 'reason'])
+        writer.writeheader()
+        for anomaly in last_csv_report['anomalies']:
+            writer.writerow(anomaly)
+        output.seek(0)
+        return send_from_directory(
+            directory=os.getcwd(),
+            path=None,
+            as_attachment=True,
+            download_name=f"{last_csv_report['filename']}_anomaly_report.csv",
+            mimetype='text/csv',
+            file=io.BytesIO(output.getvalue().encode('utf-8'))
+        )
+    except Exception as e:
+        logger.error(f"Download report error: {e}")
+        return jsonify({'error': 'Failed to generate report'}), 500
+
+@app.route('/api/fl-ids/health', methods=['GET'])
+def get_system_health():
+    """Get real-time system health metrics (for dashboard)"""
+    try:
+        return jsonify(fl_system['system_health'])
+    except Exception as e:
+        logger.error(f"System health API error: {e}")
+        return jsonify({'error': 'Failed to get system health'}), 500
+
+
+# --- Simple API documentation endpoint ---
+@app.route('/api/fl-ids/docs', methods=['GET'])
+def api_docs():
+    """Serve a simple HTML API documentation page"""
+    html = '''
+    <html><head><title>AgisFL API Documentation</title></head><body>
+    <h1>AgisFL API Endpoints</h1>
+    <ul>
+      <li><b>GET /api/fl-ids/status</b> - System status and node details</li>
+      <li><b>GET /api/fl-ids/performance</b> - Performance metrics</li>
+      <li><b>GET /api/fl-ids/nodes</b> - Node information</li>
+      <li><b>GET /api/fl-ids/threats</b> - Threat feed</li>
+      <li><b>POST /api/fl-ids/start</b> - Start the FL-IDS system</li>
+      <li><b>POST /api/fl-ids/stop</b> - Stop the FL-IDS system</li>
+      <li><b>POST /api/fl-ids/analyze-csv</b> - Upload a CSV for anomaly analysis (multipart/form-data, file param: file)</li>
+      <li><b>GET /api/fl-ids/download-report</b> - Download the last anomaly report as CSV</li>
+      <li><b>GET /api/fl-ids/health</b> - Real-time system health metrics</li>
+    </ul>
+    <p>WebSocket events: <b>fl_update</b> (training), <b>threat_alert</b> (threats)</p>
+    </body></html>
+    '''
+    return html, 200, {'Content-Type': 'text/html'}
 
 if __name__ == '__main__':
     app.start_time = time.time()

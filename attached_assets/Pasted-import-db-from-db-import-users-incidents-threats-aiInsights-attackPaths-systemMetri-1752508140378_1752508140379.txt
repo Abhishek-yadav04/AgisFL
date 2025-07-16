@@ -1,0 +1,103 @@
+import { db } from "./db";
+import { users, incidents, threats, aiInsights, attackPaths, systemMetrics } from "@shared/schema";
+
+async function seedData() {
+  console.log('Adding sample enterprise security data...');
+
+  try {
+    // Add sample users
+    await db.insert(users).values([
+      {
+        username: 'admin',
+        password: 'admin',
+        email: 'admin@agiesfl.com',
+        role: 'administrator'
+      },
+      {
+        username: 'analyst',
+        password: 'admin',
+        email: 'analyst@agiesfl.com',
+        role: 'analyst'
+      }
+    ]).onConflictDoNothing();
+
+    // Add sample threats
+    await db.insert(threats).values([
+      {
+        threatId: 'THR-001',
+        name: 'Suspicious Network Activity',
+        type: 'network_intrusion',
+        severity: 'high',
+        description: 'Unusual traffic patterns detected from external IP',
+        sourceIp: '192.168.1.100',
+        targetIp: '10.0.0.50',
+        isActive: true,
+        confidence: '0.95'
+      },
+      {
+        threatId: 'THR-002',
+        name: 'Malware Detection',
+        type: 'malware',
+        severity: 'critical',
+        description: 'Trojan detected in user workstation',
+        sourceIp: '10.0.0.25',
+        targetIp: '10.0.0.1',
+        isActive: true,
+        confidence: '0.98'
+      }
+    ]).onConflictDoNothing();
+
+    // Add sample incidents
+    const sampleIncidents = [
+      {
+        incidentId: 'INC-2025-001',
+        title: 'Advanced Persistent Threat Detected',
+        description: 'Suspicious lateral movement detected across multiple endpoints in the finance department.',
+        severity: 'Critical',
+        type: 'APT Activity',
+        status: 'investigating',
+        riskScore: '95.5',
+        metadata: {
+          affectedSystems: ['FIN-WS-001', 'FIN-WS-007'],
+          attackVectors: ['Spear Phishing', 'Credential Dumping', 'Lateral Movement'],
+        }
+      },
+      // Add more incidents as needed
+    ];
+
+    for (const incident of sampleIncidents) {
+      await db.insert(incidents).values(incident).onConflictDoNothing();
+    }
+
+    // Add sample attack paths
+    await db.insert(attackPaths).values([
+      {
+        name: 'Lateral Movement Path',
+        sourceNode: 'workstation-01',
+        targetNode: 'server-db-01',
+        pathData: { 
+          steps: ['initial_access', 'privilege_escalation', 'lateral_movement'],
+          techniques: ['T1078', 'T1068', 'T1021']
+        },
+        riskLevel: 'high',
+        compromisedAssets: 3,
+        attackVectors: 2
+      }
+    ]).onConflictDoNothing();
+
+    console.log('✅ Sample data added successfully');
+  } catch (error) {
+    console.error('❌ Error seeding database:', error);
+  }
+}
+
+// Run if called directly
+seedData().then(() => {
+  console.log('🎯 Database seeding completed');
+  process.exit(0);
+}).catch(error => {
+  console.error('💥 Seeding failed:', error);
+  process.exit(1);
+});
+
+export { seedData };

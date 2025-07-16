@@ -1,4 +1,3 @@
-
 import express from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
@@ -15,6 +14,9 @@ import rateLimit from "express-rate-limit";
  * Enterprise-grade Federated Learning Intrusion Detection System
  */
 
+const app = express();
+const PORT = process.env.PORT || 5000;
+
 // Global types for FL-IDS request logging
 declare global {
   var requestLog: Array<{
@@ -28,296 +30,162 @@ declare global {
   }>;
 }
 
-const app = express();
-const server = createServer(app);
+app.get("/api/test-db-connection", async (req, res) => {
+  try {
+    const isConnected = await testDatabaseConnection();
+    if (isConnected) {
+      res.json({ success: true, message: "Database connection successful!" });
+    } else {
+      res
+        .status(500)
+        .json({ success: false, message: "Database connection failed!" });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 /**
  * Security middleware configuration for production deployment
  */
-app.use(helmet({
-  contentSecurityPolicy: false, // Disabled for development compatibility
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 
 /**
  * Rate limiting configuration
- * Prevents abuse while allowing legitimate traffic
  */
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Allow more requests for demo purposes
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
   message: {
     error: "Too many requests from this IP",
-    retryAfter: "15 minutes"
+    retryAfter: "15 minutes",
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
-app.use('/api/', limiter);
+app.use("/api/", limiter);
 
 /**
- * CORS configuration for cross-origin requests
- * Allows client applications to connect from different machines
+ * CORS configuration
  */
-app.use(cors({
-  origin: true, // Allow all origins for demo flexibility
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
-}));
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
+  }),
+);
 
 // Request parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 /**
  * FL-IDS Request Logging Middleware
- * Captures all incoming requests for intrusion detection analysis
  */
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
-  const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
-  
+  const clientIP = req.ip || req.connection.remoteAddress || "unknown";
+
   console.log(`📡 ${timestamp} - ${req.method} ${req.path} from ${clientIP}`);
-  
-  // Create request data for FL-IDS analysis
+
   const requestData = {
     timestamp,
     method: req.method,
     path: req.path,
     ip: clientIP,
-    userAgent: req.get('User-Agent'),
-    contentLength: parseInt(req.get('Content-Length') || '0'),
-    isAttack: false // Will be analyzed by FL-IDS engine
+    userAgent: req.get("User-Agent"),
+    contentLength: parseInt(req.get("Content-Length") || "0"),
+    isAttack: false,
   };
-  
-  // Store request for FL-IDS processing
+
   if (!global.requestLog) {
     global.requestLog = [];
   }
   global.requestLog.push(requestData);
-  
-  // Maintain rolling window of last 1000 requests
+
   if (global.requestLog.length > 1000) {
     global.requestLog = global.requestLog.slice(-1000);
   }
-  
+
   next();
 });
 
 /**
  * FL-IDS API Endpoints
- * Provides real-time request data for intrusion detection
  */
-app.get('/api/fl-ids/requests', (req, res) => {
+app.get("/api/fl-ids/requests", (req, res) => {
   res.json({
     success: true,
     data: {
       requests: global.requestLog || [],
       total: (global.requestLog || []).length,
       lastUpdate: new Date().toISOString(),
-      status: 'active'
-    }
+      status: "active",
+    },
   });
 });
 
-/**
- * Database Status Endpoint
- * Returns current database connection status and configuration
- */
-app.get('/api/db-status', async (req, res) => {
-  try {
-    const isConnected = await testDatabaseConnection();
-    res.json({ 
-      success: true,
-      data: {
-        connected: isConnected,
-        timestamp: new Date().toISOString(),
-        configuration: {
-          host: process.env.DATABASE_HOST || '0.0.0.0',
-          port: process.env.DATABASE_PORT || '5432',
-          database: process.env.DATABASE_NAME || 'agiesfl_security',
-          environment: process.env.NODE_ENV || 'development'
-        }
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false,
-      error: {
-        message: error instanceof Error ? error.message : 'Database connection failed',
-        timestamp: new Date().toISOString(),
-        connected: false
-      }
-    });
-  }
-});
+// Other API endpoints and routes registration
+registerRoutes(app);
 
-/**
- * Health Check Endpoint
- * Comprehensive system health monitoring
- */
-app.get('/health', async (req, res) => {
-  const dbConnected = await testDatabaseConnection();
-  
-  res.json({ 
-    success: true,
-    data: {
-      status: 'healthy', 
-      timestamp: new Date().toISOString(),
-      services: {
-        database: dbConnected ? 'connected' : 'offline',
-        websocket: 'active',
-        fl_ids: 'monitoring'
-      },
-      version: '1.0.0',
-      environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime()
-    }
-  });
-});
-
-/**
- * Default Credentials Endpoint
- * Provides demo login credentials for easy access
- */
-app.get('/api/credentials', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      admin: {
-        username: 'admin',
-        password: 'SecureAdmin123!',
-        role: 'administrator',
-        permissions: ['read', 'write', 'admin']
-      },
-      analyst: {
-        username: 'analyst', 
-        password: 'AnalystPass456!',
-        role: 'security_analyst',
-        permissions: ['read', 'analyze']
-      }
-    }
-  });
-});
-
-/**
- * Client Connection Information
- * Provides connectivity details for external clients
- */
-app.get('/api/connection-info', (req, res) => {
-  const host = process.env.HOST || '0.0.0.0';
-  const port = process.env.PORT || 5000;
-  
-  res.json({
-    success: true,
-    data: {
-      server: {
-        host,
-        port,
-        secure: false // Set to true in production with HTTPS
-      },
-      endpoints: {
-        api: `http://${host}:${port}/api`,
-        websocket: `ws://${host}:${port}/ws`,
-        health: `http://${host}:${port}/health`
-      },
-      timestamp: new Date().toISOString()
-    }
-  });
-});
+const server = createServer(app);
 
 /**
  * Initialize and start the AgiesFL Security Platform server
  */
 async function initializeServer() {
   try {
-    console.log('🚀 Starting AgiesFL Security Platform Server...');
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📡 Host: ${process.env.HOST || '0.0.0.0'}`);
-    console.log(`🔌 Port: ${process.env.PORT || 5000}`);
+    console.log("🚀 Starting AgiesFL Security Platform Server...");
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`📡 Host: ${process.env.HOST || "0.0.0.0"}`);
+    console.log(`🔌 Port: ${PORT}`);
 
-    // Initialize database connection
-    console.log('\n📊 Database Initialization:');
     await initializeDatabase();
 
-    // Test database connection and seed if available
     const dbConnected = await testDatabaseConnection();
     if (dbConnected) {
-      console.log('🌱 Seeding database with security data...');
+      console.log("🌱 Seeding database with security data...");
       await seedDatabase();
-      console.log('✅ Database ready with sample data');
+      console.log("✅ Database ready with sample data");
     } else {
-      console.log('⚠️ Database offline - using mock security data');
+      console.log("⚠️ Database offline - using mock security data");
     }
 
-    // Setup WebSocket for real-time communication
-    console.log('\n🔗 WebSocket Configuration:');
     setupWebSocket(server);
-    console.log('✅ Real-time communication enabled');
+    console.log("✅ Real-time communication enabled");
 
-    // Register all API routes
-    console.log('\n🛣️ API Routes Registration:');
-    registerRoutes(app);
-    console.log('✅ Security API endpoints active');
-
-    // Setup development or production serving
     if (process.env.NODE_ENV === "development") {
       await setupVite(app, server);
-      console.log('✅ Development server configured');
+      console.log("✅ Development server configured");
     } else {
       serveStatic(app);
-      console.log('✅ Production static serving enabled');
+      console.log("✅ Production static serving enabled");
     }
 
-    // Initialize FL-IDS request logging
     global.requestLog = [];
-
-    // Start the server
-    const port = parseInt(process.env.PORT || '5000');
-    const host = process.env.HOST || '0.0.0.0';
-
-    server.listen(port, host, () => {
-      console.log(`\n🎯 AgiesFL Security Platform is LIVE!`);
-      console.log(`✅ Server: http://${host}:${port}`);
-      console.log(`📊 Database: ${dbConnected ? 'Connected' : 'Mock Data Mode'}`);
-      console.log(`🔗 WebSocket: Real-time enabled`);
-      console.log(`🛡️ FL-IDS: Monitoring active`);
-      console.log(`\n🎪 Demo Access:`);
-      console.log(`🌐 Local: http://localhost:${port}`);
-      console.log(`🌍 Network: http://${host}:${port}`);
-      console.log(`👤 Admin: admin / SecureAdmin123!`);
-      console.log(`👤 Analyst: analyst / AnalystPass456!`);
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server is running on port ${PORT}`);
     });
-
   } catch (error) {
-    console.error('🚨 Server startup failed:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-    }
+    console.error("🚨 Server startup failed:", error);
     process.exit(1);
   }
 }
 
-/**
- * Graceful shutdown handlers
- */
-process.on('SIGINT', () => {
-  console.log('\n🛑 Gracefully shutting down...');
-  server.close(() => {
-    console.log('✅ Server stopped');
-    process.exit(0);
-  });
-});
-
-process.on('SIGTERM', () => {
-  console.log('\n🛑 Received termination signal...');
-  server.close(() => {
-    console.log('✅ Server terminated');
-    process.exit(0);
-  });
-});
-
-// Start the security platform
 initializeServer();

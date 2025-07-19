@@ -275,10 +275,10 @@ export const Login = () => {
           </form>
         </Card>
 
-        {/* Security Note */}
+        {/* System Info */}
         <div className="text-center text-xs text-gray-500 space-y-1">
-          <p>🔒 Your data is protected with enterprise-grade security</p>
-          <p>🛡️ Real-time threat detection and federated learning</p>
+          <p>Demo Credentials: admin / password123</p>
+          <p>Built for cybersecurity professionals and SOC teams</p>
         </div>
       </div>
     </div>

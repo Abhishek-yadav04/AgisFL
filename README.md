@@ -44,10 +44,10 @@ chmod +x setup.sh
    npm install
 
    # Python dependencies
-   pip install flask flask-socketio psutil scapy pandas numpy scikit-learn
+   pip install flask flask-socketio psutil scapy pandas numpy scikit-learn jsonwebtoken
 
-   # SQLite support
-   npm install better-sqlite3
+   # Additional packages
+   npm install jsonwebtoken @types/jsonwebtoken
    ```
 
 3. **Build Application**
@@ -59,6 +59,15 @@ chmod +x setup.sh
    ```bash
    npm run dev
    ```
+
+## 🔐 Default Credentials
+
+### Admin Access
+- **Username:** admin
+- **Password:** password123
+
+### Guest Access
+- Click "Continue as Guest" for demo mode
 
 ## 🖥️ Desktop Application
 

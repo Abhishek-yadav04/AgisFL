@@ -19,6 +19,52 @@ const queryClient = new QueryClient({
 });
 
 // Authentication wrapper component
+const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [location, setLocation] = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('auth_token');
+      const demoMode = localStorage.getItem('demo_mode');
+      const isAuth = !!(token || demoMode);
+      setIsAuthenticated(isAuth);
+      
+      if (!isAuth && location !== '/') {
+        setLocation('/');
+      }
+    };
+
+    checkAuth();
+  }, [location, setLocation]);
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthWrapper>
+        <Switch>
+          <Route path="/" component={Login} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route component={NotFound} />
+        </Switch>
+        <Toaster />
+      </AuthWrapper>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
 function AuthWrapper() {
   const [location, setLocation] = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);

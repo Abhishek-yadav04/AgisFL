@@ -97,7 +97,7 @@ export function FLDashboard({ data }: FLDashboardProps) {
         <CardContent>
           <div className="space-y-4">
             {activeClients.map((client) => (
-              <div key={`client-${client.id}-${client.clientId}`} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={`${client.id}-${client.status}-${client.clientId}`} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-4">
                   <div className={`w-3 h-3 rounded-full ${getStatusColor(client.status)}`} />
                   <div>

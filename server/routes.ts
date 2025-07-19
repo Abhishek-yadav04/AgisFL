@@ -8,7 +8,7 @@ import { threatDetector } from "./services/threat-detector";
 import { flCoordinator } from "./services/fl-coordinator";
 import { realSystemMonitor } from "./services/real-system-monitor";
 import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
 // Authentication schemas
@@ -32,13 +32,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = loginSchema.parse(req.body);
       
-      // For demo purposes, accept any login or create demo user
+      // Demo credentials
+      const validCredentials = [
+        { username: 'admin', password: 'password123' },
+        { username: 'user', password: 'password' },
+        { username: 'demo', password: 'demo' }
+      ];
+      
+      const isValidUser = validCredentials.some(cred => 
+        cred.username === username && cred.password === password
+      );
+      
+      if (!isValidUser) {
+        return res.status(401).json({ 
+          success: false,
+          message: "Invalid credentials. Try admin/password123" 
+        });
+      }
+      
       const demoUser = {
         id: 1,
         username,
-        role: 'admin',
+        role: username === 'admin' ? 'admin' : 'user',
         email: `${username}@agisfl.com`,
-        permissions: ['read', 'write', 'admin']
+        permissions: username === 'admin' ? ['read', 'write', 'admin'] : ['read']
       };
 
       // Generate JWT token
@@ -54,7 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Login error:", error);
       res.status(401).json({ 
         success: false,
-        message: "Invalid credentials" 
+        message: "Authentication failed" 
       });
     }
   });

@@ -1,0 +1,162 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+
+  /* Cybersecurity Theme Colors */
+  --cyber-primary: hsl(213, 46%, 12%);
+  --cyber-secondary: hsl(216, 50%, 16%);
+  --cyber-accent: hsl(211, 68%, 19%);
+  --cyber-success: hsl(142, 100%, 50%);
+  --cyber-warning: hsl(38, 100%, 50%);
+  --cyber-danger: hsl(349, 89%, 63%);
+  --cyber-info: hsl(189, 100%, 50%);
+  --cyber-text-primary: hsl(214, 15%, 91%);
+  --cyber-text-muted: hsl(215, 16%, 58%);
+}
+
+.dark {
+  --background: hsl(213, 46%, 12%);
+  --foreground: hsl(214, 15%, 91%);
+  --muted: hsl(216, 50%, 16%);
+  --muted-foreground: hsl(215, 16%, 58%);
+  --popover: hsl(213, 46%, 12%);
+  --popover-foreground: hsl(214, 15%, 91%);
+  --card: hsl(216, 50%, 16%);
+  --card-foreground: hsl(214, 15%, 91%);
+  --border: hsl(211, 68%, 19%);
+  --input: hsl(211, 68%, 19%);
+  --primary: hsl(189, 100%, 50%);
+  --primary-foreground: hsl(213, 46%, 12%);
+  --secondary: hsl(216, 50%, 16%);
+  --secondary-foreground: hsl(214, 15%, 91%);
+  --accent: hsl(211, 68%, 19%);
+  --accent-foreground: hsl(214, 15%, 91%);
+  --destructive: hsl(349, 89%, 63%);
+  --destructive-foreground: hsl(214, 15%, 91%);
+  --ring: hsl(189, 100%, 50%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    background: linear-gradient(135deg, var(--cyber-primary) 0%, var(--cyber-secondary) 100%);
+    color: var(--cyber-text-primary);
+  }
+}
+
+@layer components {
+  .metric-card {
+    background: linear-gradient(145deg, rgba(22, 33, 62, 0.9), rgba(15, 52, 96, 0.6));
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .metric-card:hover {
+    border-color: rgba(0, 212, 255, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+  }
+
+  .chart-container {
+    background: linear-gradient(145deg, rgba(22, 33, 62, 0.8), rgba(15, 52, 96, 0.4));
+  }
+
+  .threat-high {
+    border-left: 4px solid var(--cyber-danger);
+  }
+
+  .threat-medium {
+    border-left: 4px solid var(--cyber-warning);
+  }
+
+  .threat-low {
+    border-left: 4px solid var(--cyber-success);
+  }
+
+  .network-node {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--cyber-success);
+    position: absolute;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+  }
+
+  .network-connection {
+    position: absolute;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyber-info), transparent);
+    opacity: 0.6;
+  }
+
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+
+  .glow {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .cyber-gradient {
+    background: linear-gradient(135deg, var(--cyber-primary) 0%, var(--cyber-secondary) 100%);
+  }
+
+  .cyber-card {
+    @apply metric-card rounded-xl p-6;
+  }
+
+  .cyber-text-primary {
+    color: var(--cyber-text-primary);
+  }
+
+  .cyber-text-muted {
+    color: var(--cyber-text-muted);
+  }
+
+  .cyber-success {
+    color: var(--cyber-success);
+  }
+
+  .cyber-warning {
+    color: var(--cyber-warning);
+  }
+
+  .cyber-danger {
+    color: var(--cyber-danger);
+  }
+
+  .cyber-info {
+    color: var(--cyber-info);
+  }
+}

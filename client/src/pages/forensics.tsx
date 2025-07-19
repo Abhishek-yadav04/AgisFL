@@ -1,135 +1,117 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TopBar } from '@/components/layout/TopBar';
+import { 
+  Search, 
+  Download, 
+  Eye, 
+  Clock, 
+  AlertTriangle,
+  Shield,
+  FileText,
+  HardDrive,
+  Network,
+  Fingerprint,
+  Camera,
+  Lock
+} from 'lucide-react';
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { TopBar } from "@/components/layout/TopBar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Search, FileText, Download, Calendar, Clock, User, HardDrive, Network, Shield, AlertTriangle, Microscope, Database } from "lucide-react";
+interface ForensicsEvidence {
+  id: string;
+  type: 'file' | 'network' | 'memory' | 'registry';
+  timestamp: string;
+  source: string;
+  description: string;
+  severity: 'Critical' | 'High' | 'Medium' | 'Low';
+  status: 'Collected' | 'Analyzing' | 'Verified' | 'Archived';
+  hash: string;
+}
 
-export function Forensics() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [timeRange, setTimeRange] = useState("24h");
-  const [evidenceType, setEvidenceType] = useState("all");
+export default function Forensics() {
+  const [evidence, setEvidence] = useState<ForensicsEvidence[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["/api/forensics", searchQuery, timeRange, evidenceType],
-    refetchInterval: 10000,
-  });
+  useEffect(() => {
+    const fetchForensicsData = async () => {
+      try {
+        const response = await fetch('/api/forensics');
+        if (response.ok) {
+          const data = await response.json();
+          setEvidence(data.evidence || []);
+        } else {
+          throw new Error('Failed to fetch forensics data');
+        }
+      } catch (err) {
+        console.error('Forensics data error:', err);
+        setError('Failed to connect to backend services');
+        // Mock data for demonstration
+        setEvidence([
+          {
+            id: 'EVD-001',
+            type: 'file',
+            timestamp: new Date().toISOString(),
+            source: '/var/log/suspicious.exe',
+            description: 'Malicious executable detected in system directory',
+            severity: 'Critical',
+            status: 'Verified',
+            hash: 'a1b2c3d4e5f6789012345678901234567890'
+          },
+          {
+            id: 'EVD-002',
+            type: 'network',
+            timestamp: new Date(Date.now() - 1800000).toISOString(),
+            source: '192.168.1.100:8080',
+            description: 'Suspicious outbound connection to unknown server',
+            severity: 'High',
+            status: 'Analyzing',
+            hash: 'b2c3d4e5f6789012345678901234567890ab'
+          },
+          {
+            id: 'EVD-003',
+            type: 'memory',
+            timestamp: new Date(Date.now() - 3600000).toISOString(),
+            source: 'Process ID: 1337',
+            description: 'Injection detected in system process memory',
+            severity: 'Critical',
+            status: 'Collected',
+            hash: 'c3d4e5f6789012345678901234567890abc2'
+          },
+          {
+            id: 'EVD-004',
+            type: 'registry',
+            timestamp: new Date(Date.now() - 7200000).toISOString(),
+            source: 'HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+            description: 'Unauthorized registry modification detected',
+            severity: 'Medium',
+            status: 'Verified',
+            hash: 'd4e5f6789012345678901234567890abc23'
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const evidenceItems = [
-    {
-      id: "EV-2024-001",
-      type: "Network Log",
-      timestamp: "2024-01-07 14:32:15",
-      source: "192.168.1.100",
-      size: "2.4 MB",
-      hash: "sha256:a1b2c3d4e5f6...",
-      status: "Verified",
-      severity: "High"
-    },
-    {
-      id: "EV-2024-002",
-      type: "System Log",
-      timestamp: "2024-01-07 14:28:42",
-      source: "Server-01",
-      size: "856 KB",
-      hash: "sha256:f6e5d4c3b2a1...",
-      status: "Analyzing",
-      severity: "Medium"
-    },
-    {
-      id: "EV-2024-003",
-      type: "Memory Dump",
-      timestamp: "2024-01-07 14:25:33",
-      source: "Workstation-05",
-      size: "1.2 GB",
-      hash: "sha256:9f8e7d6c5b4a...",
-      status: "Collected",
-      severity: "Critical"
-    },
-    {
-      id: "EV-2024-004",
-      type: "Packet Capture",
-      timestamp: "2024-01-07 14:20:18",
-      source: "Network Interface",
-      size: "45.3 MB",
-      hash: "sha256:3c4d5e6f7a8b...",
-      status: "Verified",
-      severity: "High"
-    }
-  ];
-
-  const timelineEvents = [
-    {
-      time: "14:32:15",
-      event: "Suspicious network connection detected",
-      source: "IDS System",
-      severity: "High",
-      details: "Connection to known malicious IP 203.0.113.42"
-    },
-    {
-      time: "14:28:42",
-      event: "Unusual process execution",
-      source: "EDR Agent",
-      severity: "Medium",
-      details: "PowerShell executed with suspicious parameters"
-    },
-    {
-      time: "14:25:33",
-      event: "Memory anomaly detected",
-      source: "Memory Scanner",
-      severity: "Critical",
-      details: "Code injection patterns identified"
-    },
-    {
-      time: "14:20:18",
-      event: "Abnormal traffic pattern",
-      source: "Network Monitor",
-      severity: "High",
-      details: "High volume of encrypted traffic to external IP"
-    }
-  ];
-
-  const analysisResults = [
-    {
-      artifact: "suspicious.exe",
-      hash: "MD5: a1b2c3d4e5f6789...",
-      verdict: "Malware",
-      confidence: 95,
-      tags: ["trojan", "backdoor", "persistence"]
-    },
-    {
-      artifact: "network_traffic.pcap",
-      hash: "SHA1: f6e5d4c3b2a1098...",
-      verdict: "Suspicious",
-      confidence: 78,
-      tags: ["c2-communication", "exfiltration"]
-    },
-    {
-      artifact: "system_memory.dmp",
-      hash: "SHA256: 9f8e7d6c5b4a321...",
-      verdict: "Compromised",
-      confidence: 89,
-      tags: ["injection", "rootkit", "privilege-escalation"]
-    }
-  ];
+    fetchForensicsData();
+    const interval = setInterval(fetchForensicsData, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (error) {
     return (
-      <div className="min-h-screen cyber-gradient">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
         <TopBar />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-red-500 mb-2">Connection Error</h2>
-            <p className="text-gray-300">Failed to load forensics data</p>
-            <Button onClick={() => window.location.reload()} className="mt-4">
+            <h2 className="text-xl font-semibold text-red-400 mb-2">Connection Error</h2>
+            <p className="text-slate-300">Failed to load forensics data</p>
+            <Button onClick={() => window.location.reload()} className="mt-4 bg-blue-600 hover:bg-blue-700">
               Retry
             </Button>
           </div>
@@ -140,12 +122,12 @@ export function Forensics() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen cyber-gradient">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
         <TopBar />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="cyber-text-primary text-lg">Loading Digital Forensics...</p>
+            <p className="text-blue-400 text-lg">Loading Digital Forensics...</p>
           </div>
         </div>
       </div>
@@ -162,129 +144,152 @@ export function Forensics() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'Verified': return 'bg-green-600 text-white';
-      case 'Analyzing': return 'bg-blue-500 text-white';
-      case 'Collected': return 'bg-yellow-500 text-black';
-      case 'Error': return 'bg-red-600 text-white';
-      default: return 'bg-gray-500 text-white';
+      case 'Collected': return <HardDrive className="h-4 w-4" />;
+      case 'Analyzing': return <Search className="h-4 w-4" />;
+      case 'Verified': return <Shield className="h-4 w-4" />;
+      case 'Archived': return <FileText className="h-4 w-4" />;
+      default: return <Clock className="h-4 w-4" />;
+    }
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'file': return <FileText className="h-4 w-4" />;
+      case 'network': return <Network className="h-4 w-4" />;
+      case 'memory': return <HardDrive className="h-4 w-4" />;
+      case 'registry': return <Lock className="h-4 w-4" />;
+      default: return <Fingerprint className="h-4 w-4" />;
     }
   };
 
   return (
-    <div className="min-h-screen cyber-gradient">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
       <TopBar />
-      
-      <div className="container mx-auto p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold cyber-text-primary mb-2 flex items-center gap-2">
-              <Microscope className="h-8 w-8" />
-              Digital Forensics Lab
-            </h1>
-            <p className="text-gray-400">Comprehensive digital evidence analysis and investigation</p>
+            <h1 className="text-3xl font-bold text-white">Digital Forensics</h1>
+            <p className="text-slate-400 mt-2">
+              Comprehensive evidence collection and analysis
+            </p>
           </div>
-          
-          <div className="flex gap-4">
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export Case
+          <div className="flex gap-3">
+            <Button variant="outline" className="border-slate-700 text-slate-300">
+              <Camera className="mr-2 h-4 w-4" />
+              Capture Evidence
             </Button>
-            <Button>
-              <Database className="h-4 w-4 mr-2" />
-              New Investigation
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Download className="mr-2 h-4 w-4" />
+              Export Report
             </Button>
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="border-blue-500/20 bg-card/50 backdrop-blur mb-6">
-          <CardContent className="p-4">
-            <div className="flex gap-4 items-center">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search evidence, hashes, IPs, or case IDs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <FileText className="h-8 w-8 text-blue-500" />
+                <div>
+                  <p className="text-2xl font-bold text-white">{evidence.length}</p>
+                  <p className="text-xs text-slate-400">Total Evidence</p>
+                </div>
               </div>
-              
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1h">Last Hour</SelectItem>
-                  <SelectItem value="24h">Last 24h</SelectItem>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
-                  <SelectItem value="30d">Last 30 days</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={evidenceType} onValueChange={setEvidenceType}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Evidence</SelectItem>
-                  <SelectItem value="network">Network Logs</SelectItem>
-                  <SelectItem value="system">System Logs</SelectItem>
-                  <SelectItem value="memory">Memory Dumps</SelectItem>
-                  <SelectItem value="disk">Disk Images</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Forensics Tabs */}
-        <Tabs defaultValue="evidence" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-card/50 backdrop-blur border border-blue-500/20">
-            <TabsTrigger value="evidence">Evidence Chain</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="analysis">Analysis</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
-            <TabsTrigger value="tools">Tools</TabsTrigger>
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <Shield className="h-8 w-8 text-green-500" />
+                <div>
+                  <p className="text-2xl font-bold text-white">
+                    {evidence.filter(e => e.status === 'Verified').length}
+                  </p>
+                  <p className="text-xs text-slate-400">Verified Items</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <AlertTriangle className="h-8 w-8 text-red-500" />
+                <div>
+                  <p className="text-2xl font-bold text-white">
+                    {evidence.filter(e => e.severity === 'Critical').length}
+                  </p>
+                  <p className="text-xs text-slate-400">Critical Findings</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <Search className="h-8 w-8 text-orange-500" />
+                <div>
+                  <p className="text-2xl font-bold text-white">
+                    {evidence.filter(e => e.status === 'Analyzing').length}
+                  </p>
+                  <p className="text-xs text-slate-400">Under Analysis</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="evidence" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-slate-800 border-slate-700">
+            <TabsTrigger value="evidence" className="data-[state=active]:bg-blue-600">Evidence Collection</TabsTrigger>
+            <TabsTrigger value="analysis" className="data-[state=active]:bg-blue-600">Analysis Results</TabsTrigger>
+            <TabsTrigger value="chain" className="data-[state=active]:bg-blue-600">Chain of Custody</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="evidence" className="space-y-6">
-            <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
+          <TabsContent value="evidence" className="space-y-4">
+            <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Evidence Inventory
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Fingerprint className="h-5 w-5" />
+                  Digital Evidence Repository
                 </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Collected evidence from various sources and systems
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Evidence ID</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Timestamp</TableHead>
-                      <TableHead>Source</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Severity</TableHead>
-                      <TableHead>Actions</TableHead>
+                    <TableRow className="border-slate-700">
+                      <TableHead className="text-slate-300">ID</TableHead>
+                      <TableHead className="text-slate-300">Type</TableHead>
+                      <TableHead className="text-slate-300">Source</TableHead>
+                      <TableHead className="text-slate-300">Description</TableHead>
+                      <TableHead className="text-slate-300">Severity</TableHead>
+                      <TableHead className="text-slate-300">Status</TableHead>
+                      <TableHead className="text-slate-300">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {evidenceItems.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-mono">{item.id}</TableCell>
-                        <TableCell>{item.type}</TableCell>
-                        <TableCell>{item.timestamp}</TableCell>
-                        <TableCell>{item.source}</TableCell>
-                        <TableCell>{item.size}</TableCell>
+                    {evidence.map((item) => (
+                      <TableRow key={item.id} className="border-slate-700">
+                        <TableCell className="text-white font-mono">{item.id}</TableCell>
                         <TableCell>
-                          <Badge className={getStatusColor(item.status)}>
-                            {item.status}
-                          </Badge>
+                          <div className="flex items-center gap-2 text-slate-300">
+                            {getTypeIcon(item.type)}
+                            {item.type}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-slate-300 max-w-xs truncate">
+                          {item.source}
+                        </TableCell>
+                        <TableCell className="text-slate-300 max-w-md truncate">
+                          {item.description}
                         </TableCell>
                         <TableCell>
                           <Badge className={getSeverityColor(item.severity)}>
@@ -292,12 +297,18 @@ export function Forensics() {
                           </Badge>
                         </TableCell>
                         <TableCell>
+                          <div className="flex items-center gap-1">
+                            {getStatusIcon(item.status)}
+                            <span className="text-slate-300">{item.status}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Download className="h-4 w-4" />
+                            <Button size="sm" variant="outline" className="border-slate-600">
+                              <Eye className="h-3 w-3" />
                             </Button>
-                            <Button size="sm" variant="outline">
-                              Analyze
+                            <Button size="sm" variant="outline" className="border-slate-600">
+                              <Download className="h-3 w-3" />
                             </Button>
                           </div>
                         </TableCell>
@@ -309,175 +320,94 @@ export function Forensics() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="timeline" className="space-y-6">
-            <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Incident Timeline
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {timelineEvents.map((event, index) => (
-                  <div key={index} className="flex gap-4 p-4 bg-gray-800/50 rounded border border-gray-700">
-                    <div className="flex-shrink-0 w-20 text-sm text-blue-400 font-mono">
-                      {event.time}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-medium">{event.event}</h4>
-                        <Badge className={getSeverityColor(event.severity)}>
-                          {event.severity}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-400 mb-1">{event.details}</p>
-                      <p className="text-xs text-gray-500">Source: {event.source}</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="analysis" className="space-y-6">
+          <TabsContent value="analysis" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
+              <Card className="bg-slate-800 border-slate-700">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    Malware Analysis Results
-                  </CardTitle>
+                  <CardTitle className="text-white">Hash Analysis</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {analysisResults.map((result, index) => (
-                    <div key={index} className="p-4 bg-gray-800/50 rounded border border-gray-700">
+                  {evidence.slice(0, 3).map((item) => (
+                    <div key={item.id} className="bg-slate-700 p-4 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{result.artifact}</h4>
-                        <Badge variant={result.verdict === "Malware" ? "destructive" : "secondary"}>
-                          {result.verdict}
+                        <span className="text-blue-400 font-mono text-sm">{item.id}</span>
+                        <Badge className={getSeverityColor(item.severity)}>
+                          {item.severity}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-400 mb-2">{result.hash}</p>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm">Confidence:</span>
-                        <span className="text-sm font-medium">{result.confidence}%</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {result.tags.map((tag, tagIndex) => (
-                          <Badge key={tagIndex} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
+                      <p className="text-slate-300 text-sm mb-2">{item.description}</p>
+                      <p className="text-slate-400 font-mono text-xs">
+                        SHA-256: {item.hash}
+                      </p>
                     </div>
                   ))}
                 </CardContent>
               </Card>
 
-              <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
+              <Card className="bg-slate-800 border-slate-700">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Network className="h-5 w-5" />
-                    Network Analysis
-                  </CardTitle>
+                  <CardTitle className="text-white">Timeline Analysis</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="p-3 bg-gray-800/50 rounded">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Suspicious Connections</span>
-                        <Badge variant="destructive">23</Badge>
+                  {evidence.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-white text-sm">{item.type} evidence</span>
+                          <span className="text-slate-400 text-xs">
+                            {new Date(item.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-xs">{item.source}</p>
                       </div>
                     </div>
-                    
-                    <div className="p-3 bg-gray-800/50 rounded">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">C&C Communications</span>
-                        <Badge variant="destructive">5</Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-800/50 rounded">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Data Exfiltration</span>
-                        <Badge className="bg-orange-500">2</Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-800/50 rounded">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Port Scans</span>
-                        <Badge className="bg-yellow-500 text-black">12</Badge>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
-          <TabsContent value="reports" className="space-y-6">
-            <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
+          <TabsContent value="chain" className="space-y-4">
+            <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Forensics Reports
-                </CardTitle>
+                <CardTitle className="text-white">Chain of Custody Log</CardTitle>
+                <CardDescription className="text-slate-400">
+                  Complete audit trail for all collected evidence
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { name: "Incident Response Report", date: "2024-01-07", status: "Complete" },
-                    { name: "Digital Evidence Analysis", date: "2024-01-06", status: "In Progress" },
-                    { name: "Malware Analysis Report", date: "2024-01-06", status: "Complete" },
-                    { name: "Network Forensics Summary", date: "2024-01-05", status: "Complete" }
-                  ].map((report, index) => (
-                    <div key={index} className="p-4 bg-gray-800/50 rounded border border-gray-700">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{report.name}</h4>
-                        <Badge variant={report.status === "Complete" ? "default" : "secondary"}>
-                          {report.status}
+              <CardContent>
+                <div className="space-y-4">
+                  {evidence.map((item) => (
+                    <div key={item.id} className="bg-slate-700 p-4 rounded-lg">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="text-white font-semibold">Evidence {item.id}</h3>
+                        <Badge className={getSeverityColor(item.severity)}>
+                          {item.severity}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-400 mb-3">{report.date}</p>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          View
-                        </Button>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <p className="text-slate-400">Collected</p>
+                          <p className="text-white">{new Date(item.timestamp).toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400">Integrity Hash</p>
+                          <p className="text-white font-mono">{item.hash.slice(0, 16)}...</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400">Current Status</p>
+                          <div className="flex items-center gap-1 text-white">
+                            {getStatusIcon(item.status)}
+                            {item.status}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="tools" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { name: "Hash Calculator", icon: "🔒", description: "Calculate MD5, SHA1, SHA256 hashes" },
-                { name: "Hex Viewer", icon: "🔍", description: "View and analyze binary files" },
-                { name: "String Extractor", icon: "📝", description: "Extract readable strings from files" },
-                { name: "Packet Analyzer", icon: "📡", description: "Deep packet inspection tool" },
-                { name: "Registry Viewer", icon: "🗂️", description: "Windows registry analysis" },
-                { name: "Memory Dump Analyzer", icon: "🧠", description: "Analyze memory dumps" }
-              ].map((tool, index) => (
-                <Card key={index} className="border-blue-500/20 bg-card/50 backdrop-blur cursor-pointer hover:bg-card/70 transition-colors">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-3xl mb-3">{tool.icon}</div>
-                    <h3 className="font-medium mb-2">{tool.name}</h3>
-                    <p className="text-sm text-gray-400 mb-4">{tool.description}</p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Launch Tool
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </TabsContent>
         </Tabs>
       </div>

@@ -1,146 +1,144 @@
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { TopBar } from "@/components/layout/TopBar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
-import { Search, Plus, AlertTriangle, Clock, User, FileText, Database, Network, Eye, Download, Calendar, Filter } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TopBar } from '@/components/layout/TopBar';
+import { 
+  Search, 
+  Eye, 
+  Download, 
+  FileText, 
+  Clock, 
+  AlertTriangle,
+  Shield,
+  Users,
+  Database,
+  Network,
+  Fingerprint,
+  Magnify,
+  Target
+} from 'lucide-react';
 
-export function Investigation() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
+interface Investigation {
+  id: string;
+  title: string;
+  description: string;
+  status: 'Active' | 'Pending' | 'Completed' | 'On Hold';
+  priority: 'Critical' | 'High' | 'Medium' | 'Low';
+  investigator: string;
+  createdAt: string;
+  updatedAt: string;
+  evidence: Array<{
+    id: string;
+    type: string;
+    description: string;
+    collected: string;
+  }>;
+  timeline: Array<{
+    timestamp: string;
+    action: string;
+    user: string;
+    details: string;
+  }>;
+}
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["/api/investigations", searchQuery, statusFilter, priorityFilter],
-    refetchInterval: 10000,
-  });
+export default function Investigation() {
+  const [investigations, setInvestigations] = useState<Investigation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const investigations = [
-    {
-      id: "INV-2024-001",
-      title: "Advanced Persistent Threat Investigation",
-      description: "Investigation into sophisticated APT campaign targeting financial data",
-      priority: "Critical",
-      status: "Active",
-      investigator: "John Smith",
-      created: "2024-01-05 09:00:00",
-      deadline: "2024-01-15 17:00:00",
-      progress: 65,
-      evidenceCount: 47,
-      findings: 12,
-      category: "Advanced Threat"
-    },
-    {
-      id: "INV-2024-002",
-      title: "Data Exfiltration Analysis",
-      description: "Investigating unauthorized data transfer from production database",
-      priority: "High",
-      status: "In Progress",
-      investigator: "Jane Doe",
-      created: "2024-01-06 14:30:00",
-      deadline: "2024-01-12 12:00:00",
-      progress: 80,
-      evidenceCount: 32,
-      findings: 8,
-      category: "Data Breach"
-    },
-    {
-      id: "INV-2024-003",
-      title: "Insider Threat Assessment",
-      description: "Investigation into anomalous employee access patterns",
-      priority: "Medium",
-      status: "Review",
-      investigator: "Mike Johnson",
-      created: "2024-01-04 11:15:00",
-      deadline: "2024-01-10 16:00:00",
-      progress: 90,
-      evidenceCount: 28,
-      findings: 6,
-      category: "Insider Threat"
-    },
-    {
-      id: "INV-2024-004",
-      title: "Malware Campaign Analysis",
-      description: "Detailed analysis of new malware strain affecting multiple endpoints",
-      priority: "High",
-      status: "Completed",
-      investigator: "Sarah Wilson",
-      created: "2024-01-03 08:45:00",
-      deadline: "2024-01-09 15:00:00",
-      progress: 100,
-      evidenceCount: 64,
-      findings: 15,
-      category: "Malware"
-    }
-  ];
+  useEffect(() => {
+    const fetchInvestigations = async () => {
+      try {
+        const response = await fetch('/api/investigations');
+        if (response.ok) {
+          const data = await response.json();
+          setInvestigations(data.investigations || []);
+        } else {
+          throw new Error('Failed to fetch investigations');
+        }
+      } catch (err) {
+        console.error('Investigation data error:', err);
+        setError('Failed to connect to backend services');
+        // Mock data for demonstration
+        setInvestigations([
+          {
+            id: 'INV-2024-001',
+            title: 'Advanced Persistent Threat Analysis',
+            description: 'Investigation of sophisticated attack targeting financial systems',
+            status: 'Active',
+            priority: 'Critical',
+            investigator: 'Dr. Sarah Johnson',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            evidence: [
+              { id: 'EVD-001', type: 'Network Log', description: 'Suspicious connection patterns', collected: '2 hours ago' },
+              { id: 'EVD-002', type: 'Malware Sample', description: 'Unknown payload analysis', collected: '4 hours ago' },
+              { id: 'EVD-003', type: 'System Image', description: 'Compromised server snapshot', collected: '6 hours ago' }
+            ],
+            timeline: [
+              { timestamp: new Date().toISOString(), action: 'Evidence Analysis', user: 'Dr. Sarah Johnson', details: 'Analyzing network traffic patterns' },
+              { timestamp: new Date(Date.now() - 3600000).toISOString(), action: 'Sample Collection', user: 'Security Team', details: 'Malware sample isolated and secured' }
+            ]
+          },
+          {
+            id: 'INV-2024-002',
+            title: 'Data Exfiltration Incident',
+            description: 'Investigating potential data breach and unauthorized access',
+            status: 'Completed',
+            priority: 'High',
+            investigator: 'Michael Chen',
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+            updatedAt: new Date(Date.now() - 3600000).toISOString(),
+            evidence: [
+              { id: 'EVD-004', type: 'Access Log', description: 'Unusual login activities', collected: '1 day ago' },
+              { id: 'EVD-005', type: 'Database Log', description: 'Query execution records', collected: '1 day ago' }
+            ],
+            timeline: [
+              { timestamp: new Date(Date.now() - 3600000).toISOString(), action: 'Investigation Closed', user: 'Michael Chen', details: 'False positive - legitimate maintenance activity' },
+              { timestamp: new Date(Date.now() - 86400000).toISOString(), action: 'Investigation Started', user: 'Security System', details: 'Automated alert triggered investigation' }
+            ]
+          },
+          {
+            id: 'INV-2024-003',
+            title: 'Insider Threat Assessment',
+            description: 'Behavioral analysis of suspicious employee activities',
+            status: 'Pending',
+            priority: 'Medium',
+            investigator: 'Lisa Rodriguez',
+            createdAt: new Date(Date.now() - 172800000).toISOString(),
+            updatedAt: new Date(Date.now() - 172800000).toISOString(),
+            evidence: [
+              { id: 'EVD-006', type: 'User Activity', description: 'Abnormal access patterns', collected: '2 days ago' }
+            ],
+            timeline: [
+              { timestamp: new Date(Date.now() - 172800000).toISOString(), action: 'Investigation Created', user: 'HR Department', details: 'Report filed for suspicious behavior' }
+            ]
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const evidenceTypes = [
-    { type: "Network Logs", count: 156, percentage: 35 },
-    { type: "System Logs", count: 124, percentage: 28 },
-    { type: "Email Headers", count: 89, percentage: 20 },
-    { type: "File Artifacts", count: 67, percentage: 15 },
-    { type: "Memory Dumps", count: 34, percentage: 8 },
-    { type: "Registry Data", count: 23, percentage: 5 }
-  ];
-
-  const investigationPhases = [
-    { phase: "Preparation", status: "Completed", progress: 100 },
-    { phase: "Identification", status: "Completed", progress: 100 },
-    { phase: "Containment", status: "In Progress", progress: 75 },
-    { phase: "Analysis", status: "In Progress", progress: 60 },
-    { phase: "Recovery", status: "Pending", progress: 0 },
-    { phase: "Lessons Learned", status: "Pending", progress: 0 }
-  ];
-
-  const timeline = [
-    {
-      timestamp: "2024-01-07 14:30:00",
-      event: "Investigation INV-2024-001 created",
-      investigator: "John Smith",
-      category: "Administrative",
-      details: "APT investigation initiated following threat intelligence alert"
-    },
-    {
-      timestamp: "2024-01-07 14:45:00",
-      event: "Evidence collection started",
-      investigator: "John Smith",
-      category: "Collection",
-      details: "Network traffic capture initiated for 192.168.1.0/24 subnet"
-    },
-    {
-      timestamp: "2024-01-07 15:15:00",
-      event: "Malicious IP identified",
-      investigator: "Jane Doe",
-      category: "Analysis",
-      details: "C&C server 203.0.113.42 identified through traffic analysis"
-    },
-    {
-      timestamp: "2024-01-07 15:30:00",
-      event: "Additional evidence collected",
-      investigator: "Mike Johnson",
-      category: "Collection",
-      details: "Memory dumps collected from 3 affected workstations"
-    }
-  ];
+    fetchInvestigations();
+    const interval = setInterval(fetchInvestigations, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (error) {
     return (
-      <div className="min-h-screen cyber-gradient">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
         <TopBar />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-red-500 mb-2">Connection Error</h2>
-            <p className="text-gray-300">Failed to load investigation data</p>
-            <Button onClick={() => window.location.reload()} className="mt-4">
+            <h2 className="text-xl font-semibold text-red-400 mb-2">Connection Error</h2>
+            <p className="text-slate-300">Failed to load investigation data</p>
+            <Button onClick={() => window.location.reload()} className="mt-4 bg-blue-600 hover:bg-blue-700">
               Retry
             </Button>
           </div>
@@ -151,12 +149,12 @@ export function Investigation() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen cyber-gradient">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
         <TopBar />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="cyber-text-primary text-lg">Loading Investigation Center...</p>
+            <p className="text-blue-400 text-lg">Loading Investigations...</p>
           </div>
         </div>
       </div>
@@ -175,347 +173,308 @@ export function Investigation() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active': return 'bg-red-600 text-white';
-      case 'In Progress': return 'bg-blue-500 text-white';
-      case 'Review': return 'bg-yellow-500 text-black';
+      case 'Active': return 'bg-blue-600 text-white';
+      case 'Pending': return 'bg-yellow-600 text-white';
       case 'Completed': return 'bg-green-600 text-white';
+      case 'On Hold': return 'bg-gray-600 text-white';
       default: return 'bg-gray-500 text-white';
     }
   };
 
   return (
-    <div className="min-h-screen cyber-gradient">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
       <TopBar />
-      
-      <div className="container mx-auto p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold cyber-text-primary mb-2 flex items-center gap-2">
-              <FileText className="h-8 w-8" />
-              Investigation Center
-            </h1>
-            <p className="text-gray-400">Advanced threat investigation and digital forensics management</p>
+            <h1 className="text-3xl font-bold text-white">Security Investigations</h1>
+            <p className="text-slate-400 mt-2">
+              Track and manage comprehensive security investigations
+            </p>
           </div>
-          
-          <div className="flex gap-4">
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export Case Files
+          <div className="flex gap-3">
+            <Button variant="outline" className="border-slate-700 text-slate-300">
+              <Search className="mr-2 h-4 w-4" />
+              Search
             </Button>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Target className="mr-2 h-4 w-4" />
               New Investigation
             </Button>
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <Magnify className="h-8 w-8 text-blue-500" />
                 <div>
-                  <p className="text-sm text-gray-400">Active Cases</p>
-                  <p className="text-2xl font-bold text-red-500">12</p>
-                  <p className="text-xs text-red-500">↑ 3 new this week</p>
+                  <p className="text-2xl font-bold text-white">
+                    {investigations.filter(i => i.status === 'Active').length}
+                  </p>
+                  <p className="text-xs text-slate-400">Active Investigations</p>
                 </div>
-                <FileText className="h-8 w-8 text-red-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">Evidence Items</p>
-                  <p className="text-2xl font-bold text-blue-500">1,247</p>
-                  <p className="text-xs text-green-500">↑ 156 collected today</p>
-                </div>
-                <Database className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-400">Avg Case Time</p>
-                  <p className="text-2xl font-bold text-yellow-500">8.4d</p>
-                  <p className="text-xs text-green-500">↓ 1.2d improvement</p>
-                </div>
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
                 <Clock className="h-8 w-8 text-yellow-500" />
+                <div>
+                  <p className="text-2xl font-bold text-white">
+                    {investigations.filter(i => i.status === 'Pending').length}
+                  </p>
+                  <p className="text-xs text-slate-400">Pending Review</p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <Shield className="h-8 w-8 text-green-500" />
                 <div>
-                  <p className="text-sm text-gray-400">Success Rate</p>
-                  <p className="text-2xl font-bold text-green-500">96.7%</p>
-                  <p className="text-xs text-green-500">↑ 2.1% vs last month</p>
+                  <p className="text-2xl font-bold text-white">
+                    {investigations.filter(i => i.status === 'Completed').length}
+                  </p>
+                  <p className="text-xs text-slate-400">Completed</p>
                 </div>
-                <Eye className="h-8 w-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <AlertTriangle className="h-8 w-8 text-red-500" />
+                <div>
+                  <p className="text-2xl font-bold text-white">
+                    {investigations.filter(i => i.priority === 'Critical').length}
+                  </p>
+                  <p className="text-xs text-slate-400">Critical Priority</p>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="border-blue-500/20 bg-card/50 backdrop-blur mb-6">
-          <CardContent className="p-4">
-            <div className="flex gap-4 items-center">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search investigations by ID, title, or investigator..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="review">Review</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priority</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Investigation Management Tabs */}
-        <Tabs defaultValue="cases" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-card/50 backdrop-blur border border-blue-500/20">
-            <TabsTrigger value="cases">Active Cases</TabsTrigger>
-            <TabsTrigger value="evidence">Evidence</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="methodology">Methodology</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
+        <Tabs defaultValue="active" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 bg-slate-800 border-slate-700">
+            <TabsTrigger value="active" className="data-[state=active]:bg-blue-600">Active</TabsTrigger>
+            <TabsTrigger value="evidence" className="data-[state=active]:bg-blue-600">Evidence</TabsTrigger>
+            <TabsTrigger value="timeline" className="data-[state=active]:bg-blue-600">Timeline</TabsTrigger>
+            <TabsTrigger value="completed" className="data-[state=active]:bg-blue-600">Completed</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="cases" className="space-y-6">
-            <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
+          <TabsContent value="active" className="space-y-4">
+            <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Investigation Cases
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Magnify className="h-5 w-5" />
+                  Active Investigations
                 </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Ongoing security investigations requiring attention
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {investigations.filter(i => i.status === 'Active').map((investigation) => (
+                    <div key={investigation.id} className="bg-slate-700 p-6 rounded-lg">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-white font-semibold text-lg">{investigation.title}</h3>
+                          <p className="text-slate-400 mt-2">{investigation.description}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className={getPriorityColor(investigation.priority)}>
+                            {investigation.priority}
+                          </Badge>
+                          <Badge className={getStatusColor(investigation.status)}>
+                            {investigation.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <p className="text-slate-400 text-sm">Investigation ID</p>
+                          <p className="text-blue-400 font-mono">{investigation.id}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 text-sm">Lead Investigator</p>
+                          <p className="text-white">{investigation.investigator}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 text-sm">Evidence Count</p>
+                          <p className="text-white">{investigation.evidence.length} items</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                          <Eye className="mr-2 h-3 w-3" />
+                          View Details
+                        </Button>
+                        <Button size="sm" variant="outline" className="border-slate-600">
+                          <FileText className="mr-2 h-3 w-3" />
+                          Evidence
+                        </Button>
+                        <Button size="sm" variant="outline" className="border-slate-600">
+                          <Download className="mr-2 h-3 w-3" />
+                          Export
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="evidence" className="space-y-4">
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Fingerprint className="h-5 w-5" />
+                  Investigation Evidence
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Digital evidence collected across all investigations
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Case ID</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Investigator</TableHead>
-                      <TableHead>Deadline</TableHead>
-                      <TableHead>Actions</TableHead>
+                    <TableRow className="border-slate-700">
+                      <TableHead className="text-slate-300">Evidence ID</TableHead>
+                      <TableHead className="text-slate-300">Investigation</TableHead>
+                      <TableHead className="text-slate-300">Type</TableHead>
+                      <TableHead className="text-slate-300">Description</TableHead>
+                      <TableHead className="text-slate-300">Collected</TableHead>
+                      <TableHead className="text-slate-300">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {investigations.map((investigation) => (
-                      <TableRow key={investigation.id}>
-                        <TableCell className="font-mono">{investigation.id}</TableCell>
-                        <TableCell className="max-w-xs truncate">{investigation.title}</TableCell>
-                        <TableCell>
-                          <Badge className={getPriorityColor(investigation.priority)}>
-                            {investigation.priority}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(investigation.status)}>
-                            {investigation.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-24">
-                            <Progress value={investigation.progress} className="h-2" />
-                            <span className="text-xs text-gray-400">{investigation.progress}%</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{investigation.investigator}</TableCell>
-                        <TableCell>{investigation.deadline}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              Edit
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {investigations.flatMap(inv => 
+                      inv.evidence.map(evidence => (
+                        <TableRow key={evidence.id} className="border-slate-700">
+                          <TableCell className="text-blue-400 font-mono">{evidence.id}</TableCell>
+                          <TableCell className="text-white">{inv.id}</TableCell>
+                          <TableCell className="text-slate-300">{evidence.type}</TableCell>
+                          <TableCell className="text-slate-300">{evidence.description}</TableCell>
+                          <TableCell className="text-slate-300">{evidence.collected}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" className="border-slate-600">
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                              <Button size="sm" variant="outline" className="border-slate-600">
+                                <Download className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="evidence" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5" />
-                    Evidence Distribution
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {evidenceTypes.map((evidence, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">{evidence.type}</span>
-                        <span className="text-sm font-medium">{evidence.count} items</span>
-                      </div>
-                      <Progress value={evidence.percentage} className="h-2" />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Investigation Phases
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {investigationPhases.map((phase, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">{phase.phase}</span>
-                        <Badge variant={phase.status === "Completed" ? "default" : phase.status === "In Progress" ? "secondary" : "outline"}>
-                          {phase.status}
-                        </Badge>
-                      </div>
-                      <Progress value={phase.progress} className="h-2" />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="timeline" className="space-y-6">
-            <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
+          <TabsContent value="timeline" className="space-y-4">
+            <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-white flex items-center gap-2">
                   <Clock className="h-5 w-5" />
                   Investigation Timeline
                 </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Chronological view of all investigation activities
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {timeline.map((event, index) => (
-                  <div key={index} className="flex gap-4 p-4 bg-gray-800/50 rounded border border-gray-700">
-                    <div className="flex-shrink-0 w-32 text-sm text-blue-400 font-mono">
-                      {event.timestamp}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-medium">{event.event}</h4>
-                        <Badge variant="outline">{event.category}</Badge>
+              <CardContent>
+                <div className="space-y-6">
+                  {investigations.flatMap(inv => 
+                    inv.timeline.map((event, index) => (
+                      <div key={`${inv.id}-${index}`} className="relative">
+                        <div className="flex items-start gap-4">
+                          <div className="flex flex-col items-center">
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <div className="w-px h-12 bg-slate-600 mt-2"></div>
+                          </div>
+                          <div className="flex-1 bg-slate-700 p-4 rounded-lg">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h4 className="text-white font-medium">{event.action}</h4>
+                                <p className="text-blue-400 text-sm">{inv.id} - {inv.title}</p>
+                              </div>
+                              <span className="text-slate-400 text-sm">
+                                {new Date(event.timestamp).toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-slate-300 text-sm mb-2">{event.details}</p>
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4 text-slate-400" />
+                              <span className="text-slate-400 text-sm">{event.user}</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-400 mb-1">{event.details}</p>
-                      <p className="text-xs text-gray-500">Investigator: {event.investigator}</p>
-                    </div>
-                  </div>
-                ))}
+                    ))
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="methodology" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { name: "NIST Framework", description: "Structured incident response methodology", steps: 6 },
-                { name: "SANS Methodology", description: "Comprehensive digital forensics process", steps: 8 },
-                { name: "OWASP Guidelines", description: "Application security investigation", steps: 5 },
-                { name: "ISO 27035", description: "Information security incident management", steps: 7 },
-                { name: "Custom Playbook", description: "Organization-specific procedures", steps: 12 },
-                { name: "Threat Hunting", description: "Proactive threat detection process", steps: 4 }
-              ].map((methodology, index) => (
-                <Card key={index} className="border-blue-500/20 bg-card/50 backdrop-blur cursor-pointer hover:bg-card/70 transition-colors">
-                  <CardContent className="p-6">
-                    <h3 className="font-medium mb-2">{methodology.name}</h3>
-                    <p className="text-sm text-gray-400 mb-4">{methodology.description}</p>
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-xs text-gray-500">{methodology.steps} steps</span>
-                      <Badge variant="outline">Active</Badge>
-                    </div>
-                    <Button size="sm" variant="outline" className="w-full">
-                      View Framework
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="reports" className="space-y-6">
-            <Card className="border-blue-500/20 bg-card/50 backdrop-blur">
+          <TabsContent value="completed" className="space-y-4">
+            <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Investigation Reports
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Completed Investigations
                 </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Historical record of resolved security investigations
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { title: "APT Campaign Analysis Report", case: "INV-2024-001", date: "2024-01-07", status: "Draft" },
-                    { title: "Data Exfiltration Investigation", case: "INV-2024-002", date: "2024-01-06", status: "Review" },
-                    { title: "Insider Threat Assessment", case: "INV-2024-003", date: "2024-01-05", status: "Final" },
-                    { title: "Malware Campaign Summary", case: "INV-2024-004", date: "2024-01-04", status: "Final" }
-                  ].map((report, index) => (
-                    <div key={index} className="p-4 bg-gray-800/50 rounded border border-gray-700">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{report.title}</h4>
-                        <Badge variant={report.status === "Final" ? "default" : "secondary"}>
-                          {report.status}
-                        </Badge>
+              <CardContent>
+                <div className="space-y-4">
+                  {investigations.filter(i => i.status === 'Completed').map((investigation) => (
+                    <div key={investigation.id} className="bg-slate-700 p-4 rounded-lg">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="text-white font-semibold">{investigation.title}</h3>
+                          <p className="text-slate-400 text-sm">{investigation.description}</p>
+                        </div>
+                        <Badge className="bg-green-600 text-white">Completed</Badge>
                       </div>
-                      <p className="text-sm text-gray-400 mb-1">Case: {report.case}</p>
-                      <p className="text-sm text-gray-400 mb-3">{report.date}</p>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <p className="text-slate-400">Investigation ID</p>
+                          <p className="text-blue-400 font-mono">{investigation.id}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400">Investigator</p>
+                          <p className="text-white">{investigation.investigator}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400">Duration</p>
+                          <p className="text-white">
+                            {Math.round((new Date(investigation.updatedAt).getTime() - new Date(investigation.createdAt).getTime()) / (1000 * 60 * 60))}h
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400">Evidence Items</p>
+                          <p className="text-white">{investigation.evidence.length}</p>
+                        </div>
                       </div>
                     </div>
                   ))}

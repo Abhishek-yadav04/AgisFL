@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { Activity, Users, Brain, Shield, TrendingUp, Server } from "lucide-react";
 
-export default function FederatedLearningPage() {
+export function FederalLearning() {
   const { data, isConnected, error } = useWebSocket('/api/ws');
 
   const federatedNodes = [

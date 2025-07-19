@@ -6,13 +6,107 @@ import { networkMonitor } from "./services/network-monitor";
 import { systemMonitor } from "./services/system-monitor";
 import { threatDetector } from "./services/threat-detector";
 import { flCoordinator } from "./services/fl-coordinator";
+import { realSystemMonitor } from "./services/real-system-monitor";
+import * as bcrypt from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
+import { z } from 'zod';
+
+// Authentication schemas
+const loginSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+});
+
+const registerSchema = z.object({
+  username: z.string().min(3).max(50),
+  email: z.string().email().optional(),
+  password: z.string().min(6),
+});
+
+// JWT secret (use env variable in production)
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = loginSchema.parse(req.body);
+      
+      // For demo purposes, accept any login or create demo user
+      const demoUser = {
+        id: 1,
+        username,
+        role: 'admin',
+        email: `${username}@agisfl.com`,
+        permissions: ['read', 'write', 'admin']
+      };
+
+      // Generate JWT token
+      const token = jwt.sign(demoUser, JWT_SECRET, { expiresIn: '24h' });
+
+      res.json({
+        success: true,
+        token,
+        user: demoUser
+      });
+
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(401).json({ 
+        success: false,
+        message: "Invalid credentials" 
+      });
+    }
+  });
+
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { username, email, password } = registerSchema.parse(req.body);
+      
+      // For demo purposes, always succeed with registration
+      const newUser = {
+        id: Math.floor(Math.random() * 1000),
+        username,
+        email: email || `${username}@agisfl.com`,
+        role: 'user',
+        permissions: ['read']
+      };
+
+      const token = jwt.sign(newUser, JWT_SECRET, { expiresIn: '24h' });
+
+      res.json({
+        success: true,
+        token,
+        user: newUser
+      });
+
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(400).json({ 
+        success: false,
+        message: "Registration failed" 
+      });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    res.json({ success: true, message: "Logged out successfully" });
+  });
+
   // Dashboard data endpoint
   app.get("/api/dashboard", async (req, res) => {
     try {
       const dashboardData = await storage.getDashboardData();
-      res.json(dashboardData);
+      
+      // Add real system information
+      const systemInfo = realSystemMonitor.getSystemInfo();
+      
+      res.json({
+        ...dashboardData,
+        systemInfo,
+        realTimeMonitoring: true,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
       console.error("Error getting dashboard data:", error);
       res.status(500).json({ error: "Failed to get dashboard data" });

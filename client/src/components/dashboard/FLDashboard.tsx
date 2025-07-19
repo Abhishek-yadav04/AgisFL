@@ -82,8 +82,8 @@ export function FLDashboard({ flData }: FLDashboardProps) {
           <h4 className="font-medium mb-3 cyber-text-primary">Client Status</h4>
           <div className="space-y-2 max-h-32 overflow-y-auto">
             {clients.length > 0 ? (
-              clients.slice(0, 5).map((client) => (
-                <div key={client.id} className="flex justify-between items-center bg-accent bg-opacity-30 p-2 rounded">
+              clients.slice(0, 5).map((client, index) => (
+                <div key={`${client.clientId}-${client.id}-${index}`} className="flex justify-between items-center bg-accent bg-opacity-30 p-2 rounded">
                   <span className="font-mono text-sm cyber-text-primary">{client.clientId}</span>
                   <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full ${getClientStatusColor(client.status)}`}></div>

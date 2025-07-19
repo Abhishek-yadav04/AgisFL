@@ -38,7 +38,7 @@ export interface IStorage {
   updateFLClientStatus(clientId: string, status: string): Promise<FLClient | undefined>;
   
   createFLModel(model: InsertFLModel): Promise<FLModel>;
-  getCurrentFLModel(): Promise<FLModel | undefined>;
+  getCurrentFLModel(): Promise<FLModel | null>;
   
   // Alerts
   createAlert(alert: InsertAlert): Promise<Alert>;
@@ -194,6 +194,9 @@ export class MemStorage implements IStorage {
       timestamp: new Date(),
       status: "active",
       mitigated: false,
+      description: threat.description || null,
+      destination: threat.destination || null,
+      protocol: threat.protocol || null,
       ...threat
     };
     this.threats.set(id, newThreat);
@@ -220,6 +223,7 @@ export class MemStorage implements IStorage {
       id: this.packetId++,
       timestamp: new Date(),
       suspicious: false,
+      flags: packet.flags || null,
       ...packet
     };
     this.packets.push(newPacket);
@@ -273,14 +277,16 @@ export class MemStorage implements IStorage {
     const newModel: FLModel = {
       id: this.flModelId++,
       timestamp: new Date(),
+      modelData: model.modelData || {},
       ...model
     };
     this.flModels.push(newModel);
     return newModel;
   }
 
-  async getCurrentFLModel(): Promise<FLModel | undefined> {
-    return this.flModels[this.flModels.length - 1];
+  async getCurrentFLModel(): Promise<FLModel | null> {
+    const model = this.flModels[this.flModels.length - 1];
+    return model || null;
   }
 
   async createAlert(alert: InsertAlert): Promise<Alert> {
@@ -289,6 +295,7 @@ export class MemStorage implements IStorage {
       id,
       timestamp: new Date(),
       acknowledged: false,
+      source: alert.source || null,
       ...alert
     };
     this.alerts.set(id, newAlert);

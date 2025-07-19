@@ -5,6 +5,7 @@ import { networkMonitor } from './services/network-monitor';
 import { systemMonitor } from './services/system-monitor';
 import { threatDetector } from './services/threat-detector';
 import { flCoordinator } from './services/fl-coordinator';
+import { realSystemMonitor } from './services/real-system-monitor';
 
 export function setupWebSocket(server: Server) {
   const wss = new WebSocketServer({ server, path: '/ws' });
@@ -91,6 +92,11 @@ export function startMonitoringServices() {
   threatDetector.start();
   flCoordinator.start();
   
+  // Start real system monitor for actual network and system monitoring
+  realSystemMonitor.start().catch(error => {
+    console.error('Failed to start real system monitor:', error);
+  });
+  
   console.log('All monitoring services started');
 }
 
@@ -100,6 +106,7 @@ export function stopMonitoringServices() {
   systemMonitor.stop();
   threatDetector.stop();
   flCoordinator.stop();
+  realSystemMonitor.stop();
   
   console.log('All monitoring services stopped');
 }

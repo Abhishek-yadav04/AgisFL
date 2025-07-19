@@ -13,41 +13,91 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // Network metrics
   createNetworkMetrics(metrics: InsertNetworkMetrics): Promise<NetworkMetrics>;
   getRecentNetworkMetrics(limit?: number): Promise<NetworkMetrics[]>;
-  
+
   // System metrics
   createSystemMetrics(metrics: InsertSystemMetrics): Promise<SystemMetrics>;
   getRecentSystemMetrics(limit?: number): Promise<SystemMetrics[]>;
   getCurrentSystemMetrics(): Promise<SystemMetrics | undefined>;
-  
+
   // Threats
   createThreat(threat: InsertThreat): Promise<Threat>;
   getActiveThreats(): Promise<Threat[]>;
   updateThreatStatus(id: number, status: string): Promise<Threat | undefined>;
-  
+
   // Packets
   createPacket(packet: InsertPacket): Promise<Packet>;
   getRecentPackets(limit?: number): Promise<Packet[]>;
-  
+
   // Federated Learning
   createOrUpdateFLClient(client: InsertFLClient): Promise<FLClient>;
   getFLClients(): Promise<FLClient[]>;
   updateFLClientStatus(clientId: string, status: string): Promise<FLClient | undefined>;
-  
+
   createFLModel(model: InsertFLModel): Promise<FLModel>;
   getCurrentFLModel(): Promise<FLModel | null>;
-  
+
   // Alerts
   createAlert(alert: InsertAlert): Promise<Alert>;
   getRecentAlerts(limit?: number): Promise<Alert[]>;
   acknowledgeAlert(id: number): Promise<Alert | undefined>;
-  
+
   // Dashboard data
   getDashboardData(): Promise<DashboardData>;
 }
+
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
+
+const sqlite = new Database('agisfl.db');
+export const db = drizzle(sqlite);
+
+// Initialize tables if they don't exist
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS threats (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    source_ip TEXT,
+    target_ip TEXT,
+    description TEXT,
+    status TEXT DEFAULT 'active',
+    confidence REAL DEFAULT 0.0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS alerts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    message TEXT NOT NULL,
+    acknowledged INTEGER DEFAULT 0,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS network_metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    bytes_sent INTEGER DEFAULT 0,
+    bytes_received INTEGER DEFAULT 0,
+    packets_sent INTEGER DEFAULT 0,
+    packets_received INTEGER DEFAULT 0,
+    connections_active INTEGER DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS fl_clients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id TEXT UNIQUE NOT NULL,
+    status TEXT DEFAULT 'offline',
+    last_update DATETIME DEFAULT CURRENT_TIMESTAMP,
+    model_version INTEGER DEFAULT 1,
+    data_samples INTEGER DEFAULT 0
+  );
+`);
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
@@ -58,7 +108,7 @@ export class MemStorage implements IStorage {
   private flClients: Map<string, FLClient>;
   private flModels: FLModel[];
   private alerts: Map<number, Alert>;
-  
+
   private currentId: number;
   private threatId: number;
   private alertId: number;
@@ -75,14 +125,14 @@ export class MemStorage implements IStorage {
     this.flClients = new Map();
     this.flModels = [];
     this.alerts = new Map();
-    
+
     this.currentId = 1;
     this.threatId = 1;
     this.alertId = 1;
     this.packetId = 1;
     this.flModelId = 1;
     this.metricsId = 1;
-    
+
     this.initializeTestData();
   }
 
@@ -97,7 +147,7 @@ export class MemStorage implements IStorage {
       trainingRounds: 24,
       dataContribution: 1500
     });
-    
+
     this.flClients.set("client-002", {
       id: 2,
       clientId: "client-002",
@@ -107,7 +157,7 @@ export class MemStorage implements IStorage {
       trainingRounds: 23,
       dataContribution: 1200
     });
-    
+
     this.flClients.set("client-003", {
       id: 3,
       clientId: "client-003",

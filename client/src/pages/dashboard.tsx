@@ -13,16 +13,35 @@ import { FLDashboard } from "@/components/dashboard/FLDashboard";
 import { NotificationToast } from "@/components/ui/notification-toast";
 import { DashboardData } from "@shared/schema";
 
-export default function Dashboard() {
-  const { data: dashboardData, isLoading } = useQuery<DashboardData>({
+export function Dashboard() {
+  const { data: dashboardData, isLoading, error } = useQuery<DashboardData>({
     queryKey: ["/api/dashboard"],
     refetchInterval: 5000, // Refresh every 5 seconds
+    retry: 3,
+    retryDelay: 1000,
   });
 
-  const { data: realTimeData } = useWebSocket("/api/ws");
+  const { data: realTimeData, isConnected } = useWebSocket("/api/ws");
 
   // Merge real-time data with dashboard data
   const data = realTimeData || dashboardData;
+
+  if (error) {
+    return (
+      <div className="min-h-screen cyber-gradient flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-lg mb-4">Connection Error</div>
+          <p className="text-gray-300">Failed to connect to backend services</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

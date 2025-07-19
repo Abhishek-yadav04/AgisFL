@@ -1,12 +1,12 @@
+
 import React, { useEffect, useState } from 'react';
-import { Route, Switch, Router } from 'wouter';
+import { Route, Switch, useLocation } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { Toaster } from '@/components/ui/toaster';
 import { Dashboard } from '@/pages/dashboard';
 import { Login } from '@/pages/login';
 import { NotFound } from '@/pages/not-found';
-import { TopBar } from '@/components/layout/TopBar';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,12 +69,10 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="min-h-screen cyber-gradient">
-          <Toaster />
-          <AuthWrapper />
-        </div>
-      </TooltipProvider>
+      <div className="min-h-screen cyber-gradient">
+        <Toaster />
+        <AuthWrapper />
+      </div>
     </QueryClientProvider>
   );
 }

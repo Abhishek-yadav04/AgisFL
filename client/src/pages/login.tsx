@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Eye, EyeOff, Lock, User } from 'lucide-react';
 import { useLocation } from 'wouter';
 
-const Login = () => {
+export const Login = () => {
   const [, setLocation] = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -285,4 +285,3 @@ const Login = () => {
   );
 };
 
-export default Login;

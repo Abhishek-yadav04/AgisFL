@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { DashboardData } from '@shared/schema';
 
@@ -13,7 +14,6 @@ export function useWebSocket(url: string) {
   useEffect(() => {
     const connect = () => {
       try {
-        // Determine WebSocket URL based on current location
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.host;
         const wsUrl = `${protocol}//${host}/ws`;
@@ -26,8 +26,6 @@ export function useWebSocket(url: string) {
           setIsConnected(true);
           setError(null);
           reconnectAttempts.current = 0;
-
-          // Send initial request for data
           wsRef.current?.send(JSON.stringify({ type: 'request_update' }));
         };
 
@@ -46,7 +44,6 @@ export function useWebSocket(url: string) {
                 setError(message.message);
                 break;
               case 'pong':
-                // Handle heartbeat response
                 break;
               default:
                 console.log('Unknown WebSocket message type:', message.type);
@@ -60,7 +57,6 @@ export function useWebSocket(url: string) {
           console.log('🔌 WebSocket disconnected:', event.code, event.reason);
           setIsConnected(false);
 
-          // Reconnect with exponential backoff unless it's a normal closure
           if (event.code !== 1000 && reconnectAttempts.current < maxReconnectAttempts) {
             const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
             setError(`Connection lost. Reconnecting in ${delay/1000}s... (${reconnectAttempts.current + 1}/${maxReconnectAttempts})`);
@@ -85,7 +81,6 @@ export function useWebSocket(url: string) {
 
     connect();
 
-    // Set up periodic ping to keep connection alive
     const pingInterval = setInterval(() => {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({ type: 'ping' }));

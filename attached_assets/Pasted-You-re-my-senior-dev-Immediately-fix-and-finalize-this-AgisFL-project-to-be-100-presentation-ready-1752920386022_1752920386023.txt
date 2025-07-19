@@ -1,0 +1,51 @@
+You're my senior dev. Immediately fix and finalize this AgisFL project to be 100% presentation-ready in under 1 hour. My teacher will review it tomorrow. Make it a clean, platform-independent **desktop-only** app with no dependency on Replit or browser. Prioritize stability, clarity, and demonstration value.
+
+Here is exactly what I need you to do (in priority order):
+
+1. ✅ FIX ALL BROKEN TABS:
+   - “Threats” page must load real alerts properly from backend.
+   - “Network Analysis” must show live system/network data using Scapy or psutil.
+   - “Federated Learning” tab must show current model training status and client activity.
+
+2. ✅ REAL-TIME DATA ONLY — REMOVE DUMMY DATA.
+   - Use real packet capture (Scapy), process monitoring (psutil), and system metrics.
+   - Remove static JSON, fake chart values, or hardcoded responses.
+
+3. ✅ REMOVE ANNOYING ALERT SPAM:
+   - Fix notification system — only show high-priority alerts once.
+   - Use toast-style popups or highlight areas instead of repeating messages every second.
+
+4. ✅ FULLY INTEGRATE SIDS CORE (from GitHub):
+   - Import and enable federated learning modules (`trainer.py`, `aggregator.py`, etc.).
+   - Ensure training and inference work with real inputs.
+   - Log predictions and detections to the backend.
+
+5. ✅ CROSS-PLATFORM, DESKTOP-ONLY FINAL BUILD:
+   - Make it an Electron app with React frontend + Python backend.
+   - Remove all Replit-specific dependencies and code.
+   - Provide setup scripts for Windows and Linux (`setup.bat` and `setup.sh`).
+   - Use SQLite as default DB — remove PostgreSQL.
+
+6. ✅ USER INTERFACE:
+   - Keep the current UI layout, but smooth loading and data refreshes.
+   - Include useful charts: threat stats, FL progress, network traffic graphs.
+   - Add tooltips or legends for better presentation clarity.
+   - Ensure it runs full-screen for demos.
+
+7. ✅ DOCUMENTATION & POLISH:
+   - Add README instructions for setup and run.
+   - Include optional CLI for launching app or collecting logs.
+   - Ensure security: no open ports, sanitize inputs, enable token auth (if login used).
+   - Evaluate for accessibility (WCAG compliant).
+
+8. ✅ DROP UNNECESSARY COMPLEXITY:
+   - Remove experimental/unfinished modules, if they cause instability.
+   - Strip unused scripts or duplicate logic.
+
+9. ✅ CRITICALLY REVIEW & FINALIZE:
+   - Run critical analysis of this codebase.
+   - Fix import errors, dead APIs, and dependency issues.
+   - Make it robust, fast, and ready to present.
+   - It should be rated 100000/100 — flawless demo quality.
+
+Summarize your actions clearly at the end. Don’t stop until this is complete.

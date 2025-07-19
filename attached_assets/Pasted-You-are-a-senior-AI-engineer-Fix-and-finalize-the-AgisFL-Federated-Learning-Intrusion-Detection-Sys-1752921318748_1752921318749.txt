@@ -1,0 +1,45 @@
+You are a senior AI engineer. Fix and finalize the AgisFL Federated Learning Intrusion Detection System with the following absolute goals. This is a critical deployment, and the app must be presentation-ready, platform-independent, and flawless.
+
+🔧 1. FIX CORE FUNCTIONALITY:
+- Make sure the “Threats” and “Network Analysis” tabs fetch and display real data.
+- Use the proper backend endpoints (e.g., GET /api/threats) and Scapy/psutil for system data.
+- Remove all dummy/static JSON — only real-time data should be used.
+
+🚫 2. STOP SPAM ALERTS:
+- Eliminate repetitive alerts popping every second.
+- Use non-blocking, temporary toast notifications with severity-based filtering.
+
+🧠 3. STABILIZE THE APPLICATION:
+- Add robust try-catch error handling around data fetches, backend services, and startup.
+- Make sure no action causes crashes, blank UI, or unresponsive states.
+
+🧪 4. ENSURE WEB SOCKET STABILITY:
+- Fix the WebSocket system so real-time updates never fail across multiple tabs.
+- Resolve "WebSocket disconnected" errors during normal app operation.
+- Use auto-reconnect if a connection drops.
+
+🖥️ 5. PLATFORM-INDEPENDENT, DESKTOP-ONLY:
+- Package the entire app as a desktop application using Electron with React + Python Flask backend.
+- Remove any Replit or browser-based dependencies.
+- SQLite should be the default database — no PostgreSQL.
+
+📦 6. INSTALLATION & DEPLOYMENT:
+- Add Windows/Linux installation scripts with full environment setup (Python, Node, dependencies).
+- Ensure installation includes instructions AND creates a working desktop shortcut.
+- App must open and run correctly **under all conditions**.
+
+📊 7. ENHANCE UI FOR PRESENTATION:
+- Keep existing design but polish threat charts, FL progress graphs, and resource metrics.
+- Add loading indicators, smooth transitions, and error popups for failed operations.
+
+🧾 8. UPGRADE README & INSTRUCTIONS:
+- Add full setup instructions, prerequisites, and startup guide.
+- Include CLI commands for manual setup AND automated install script links.
+
+✅ 9. FINAL QUALITY REVIEW:
+- Remove unused code/modules.
+- Optimize performance for real-time system resource monitoring.
+- Test against multiple OS (Windows, Linux).
+- Ensure application can NEVER fail to open or crash.
+
+Your job is to make this app flawless, secure, and ready for demonstration to faculty within 60 minutes. Every part must work, and the user should be able to launch it without editing any code. This must be rated 100,000/100 — truly enterprise quality.

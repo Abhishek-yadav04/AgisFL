@@ -1,3 +1,4 @@
+
 import { storage } from "../storage";
 import { InsertFLClient, InsertFLModel, InsertAlert } from "@shared/schema";
 
@@ -6,19 +7,19 @@ export class FederatedLearningCoordinator {
   private interval: NodeJS.Timeout | null = null;
   private trainingRound = 156;
   private modelAccuracy = 0.973;
+  private clients: Map<string, any> = new Map();
+  private trainingHistory: any[] = [];
 
   start() {
     if (this.isRunning) return;
     
     this.isRunning = true;
-    console.log('Federated Learning coordinator started');
+    console.log('🤖 Federated Learning coordinator started');
     
-    // Update FL status every 30 seconds
     this.interval = setInterval(async () => {
       await this.updateFLStatus();
     }, 30000);
 
-    // Simulate federated learning process
     this.simulateTraining();
   }
 
@@ -28,34 +29,42 @@ export class FederatedLearningCoordinator {
       this.interval = null;
     }
     this.isRunning = false;
-    console.log('Federated Learning coordinator stopped');
+    console.log('🛑 Federated Learning coordinator stopped');
   }
 
   private async simulateTraining() {
-    // Simulate clients joining and training
-    const clientIds = ['client-004', 'client-005', 'client-006', 'client-007', 'client-008'];
+    const clientIds = ['client-001', 'client-002', 'client-003', 'client-004', 'client-005'];
     
     for (const clientId of clientIds) {
       const client: InsertFLClient = {
         clientId,
         status: Math.random() > 0.3 ? 'active' : 'inactive',
-        modelAccuracy: Math.random() * 0.05 + 0.95, // 95-100%
-        trainingRounds: Math.floor(Math.random() * 50 + 100), // 100-150 rounds
-        dataContribution: Math.floor(Math.random() * 2000 + 500), // 500-2500 samples
+        modelAccuracy: Math.random() * 0.05 + 0.95,
+        trainingRounds: Math.floor(Math.random() * 50 + 100),
+        dataContribution: Math.floor(Math.random() * 2000 + 500),
       };
 
+      this.clients.set(clientId, client);
       await storage.createOrUpdateFLClient(client);
+    }
+
+    // Initialize training history
+    for (let i = 0; i < 10; i++) {
+      this.trainingHistory.push({
+        round: this.trainingRound - (10 - i),
+        accuracy: 0.85 + (i * 0.01),
+        participants: Math.floor(Math.random() * 3 + 3),
+        timestamp: new Date(Date.now() - (10 - i) * 60000).toISOString()
+      });
     }
   }
 
   private async updateFLStatus() {
     try {
-      // Simulate model training progress
-      if (Math.random() < 0.3) { // 30% chance of new training round
+      if (Math.random() < 0.3) {
         this.trainingRound++;
         this.modelAccuracy = Math.min(0.999, this.modelAccuracy + Math.random() * 0.001);
 
-        // Create new model version
         const clients = await storage.getFLClients();
         const activeClients = clients.filter(c => c.status === 'active');
 
@@ -73,7 +82,19 @@ export class FederatedLearningCoordinator {
 
         await storage.createFLModel(model);
 
-        // Create alert for significant accuracy improvements
+        // Update training history
+        this.trainingHistory.push({
+          round: this.trainingRound,
+          accuracy: this.modelAccuracy,
+          participants: activeClients.length,
+          timestamp: new Date().toISOString()
+        });
+
+        // Keep only last 20 entries
+        if (this.trainingHistory.length > 20) {
+          this.trainingHistory = this.trainingHistory.slice(-20);
+        }
+
         if (this.modelAccuracy > 0.98 && this.trainingRound % 10 === 0) {
           const alert: InsertAlert = {
             type: 'info',
@@ -86,19 +107,45 @@ export class FederatedLearningCoordinator {
         }
       }
 
-      // Randomly update client statuses
+      // Update client statuses
       const clients = await storage.getFLClients();
       for (const client of clients) {
-        if (Math.random() < 0.1) { // 10% chance of status change
+        if (Math.random() < 0.1) {
           const statuses = ['active', 'training', 'inactive', 'reconnecting'];
           const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
           await storage.updateFLClientStatus(client.clientId, newStatus);
+          
+          // Update local cache
+          if (this.clients.has(client.clientId)) {
+            const cachedClient = this.clients.get(client.clientId);
+            cachedClient.status = newStatus;
+            this.clients.set(client.clientId, cachedClient);
+          }
         }
       }
 
     } catch (error) {
       console.error('Error updating FL status:', error);
     }
+  }
+
+  getStatus() {
+    return {
+      isRunning: this.isRunning,
+      currentRound: this.trainingRound,
+      modelAccuracy: this.modelAccuracy,
+      activeClients: Array.from(this.clients.values()).filter(c => c.status === 'active').length,
+      totalClients: this.clients.size,
+      lastUpdate: new Date().toISOString()
+    };
+  }
+
+  getNodes() {
+    return Array.from(this.clients.values());
+  }
+
+  getTrainingHistory() {
+    return this.trainingHistory;
   }
 
   async addClient(clientId: string) {
@@ -110,10 +157,12 @@ export class FederatedLearningCoordinator {
       dataContribution: 0,
     };
 
+    this.clients.set(clientId, client);
     return await storage.createOrUpdateFLClient(client);
   }
 
   async removeClient(clientId: string) {
+    this.clients.delete(clientId);
     return await storage.updateFLClientStatus(clientId, 'inactive');
   }
 

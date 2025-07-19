@@ -1,287 +1,291 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Eye, EyeOff, Lock, User } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Shield, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-export const Login = () => {
+export function Login() {
   const [, setLocation] = useLocation();
-  const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
+  const [isLoading, setIsLoading] = useState(false);
+  const [showMFA, setShowMFA] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
+  const [credentials, setCredentials] = useState({
     username: '',
-    email: '',
     password: '',
-    confirmPassword: ''
+    rememberMe: false
   });
+  const [demoMfaCode, setDemoMfaCode] = useState('');
+  const { toast } = useToast();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    setError(''); // Clear error when user types
-  };
-
-  const validateForm = () => {
-    if (!formData.username.trim()) {
-      setError('Username is required');
-      return false;
-    }
-    if (!formData.password.trim()) {
-      setError('Password is required');
-      return false;
-    }
-    if (!isLogin) {
-      if (!formData.email.trim()) {
-        setError('Email is required for registration');
-        return false;
-      }
-      if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters long');
-        return false;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
-    setLoading(true);
-    setError('');
+    setIsLoading(true);
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...credentials,
+          mfaCode: showMFA ? mfaCode : undefined
+        }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        // Store authentication token
+      if (data.requiresMFA) {
+        setShowMFA(true);
+        setDemoMfaCode(data.mfaCode || ''); // For demo purposes
+        toast({
+          title: "MFA Required",
+          description: `Enter the 6-digit code: ${data.mfaCode}`,
+          duration: 10000,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.success) {
         localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('user_data', JSON.stringify(data.user));
-        
-        // Redirect to dashboard
+        localStorage.removeItem('demo_mode');
+        toast({
+          title: "Login Successful",
+          description: "Welcome to AgisFL Dashboard",
+        });
         setLocation('/dashboard');
       } else {
-        setError(data.message || 'Authentication failed');
+        throw new Error(data.message || 'Login failed');
       }
-    } catch (err) {
-      // For demo purposes, allow guest access
-      console.warn('Authentication service not available, allowing demo access');
-      localStorage.setItem('demo_mode', 'true');
-      localStorage.setItem('user_data', JSON.stringify({
-        username: formData.username,
-        role: 'guest',
-        permissions: ['read']
-      }));
-      setLocation('/dashboard');
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login Failed",
+        description: error instanceof Error ? error.message : 'Authentication failed',
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleGuestAccess = () => {
-    localStorage.setItem('demo_mode', 'true');
-    localStorage.setItem('user_data', JSON.stringify({
-      username: 'guest',
-      role: 'guest',
-      permissions: ['read']
-    }));
-    setLocation('/dashboard');
+  const handleGuestLogin = async () => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/guest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('demo_mode', 'true');
+        toast({
+          title: "Guest Access Granted",
+          description: "Welcome to AgisFL Demo",
+        });
+        setLocation('/dashboard');
+      } else {
+        throw new Error(data.message || 'Guest login failed');
+      }
+    } catch (error) {
+      console.error('Guest login error:', error);
+      toast({
+        title: "Guest Login Failed",
+        description: error instanceof Error ? error.message : 'Failed to access demo mode',
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fillDemoCredentials = () => {
+    setCredentials({
+      username: 'admin',
+      password: 'password123',
+      rememberMe: false
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Logo and Title */}
-        <div className="text-center space-y-2">
-          <div className="flex justify-center">
-            <div className="relative">
-              <Shield className="h-12 w-12 text-cyan-400" />
-              <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full animate-pulse" />
+    <div className="min-h-screen cyber-gradient flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-card/95 backdrop-blur">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600">
+              <Shield className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white">AgisFL</h1>
-          <p className="text-gray-400">Federated Learning Intrusion Detection System</p>
-        </div>
+          <CardTitle className="text-2xl font-bold cyber-text-primary">
+            AgisFL Security Center
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Federated Learning Intrusion Detection System
+          </CardDescription>
+        </CardHeader>
 
-        {/* Auth Card */}
-        <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center text-white">
-              {isLogin ? 'Sign In' : 'Create Account'}
-            </CardTitle>
-            <CardDescription className="text-center text-gray-400">
-              {isLogin 
-                ? 'Enter your credentials to access the security dashboard' 
-                : 'Register for enterprise-grade intrusion detection'
-              }
-            </CardDescription>
-          </CardHeader>
-
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              {error && (
-                <Alert className="border-red-500 bg-red-500/10">
-                  <AlertDescription className="text-red-400">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Username Field */}
+        <CardContent className="space-y-6">
+          {!showMFA ? (
+            <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-gray-300">
+                <Label htmlFor="username" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
                   Username
                 </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input
-                    id="username"
-                    name="username"
-                    type="text"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    className="pl-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-500 focus:border-cyan-400 focus:ring-cyan-400"
-                    placeholder="Enter your username"
-                    required
-                  />
-                </div>
+                <Input
+                  id="username"
+                  type="text"
+                  value={credentials.username}
+                  onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder="Enter username"
+                  required
+                  className="bg-background/50"
+                />
               </div>
 
-              {/* Email Field (Registration only) */}
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-300">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="bg-gray-700/50 border-gray-600 text-white placeholder-gray-500 focus:border-cyan-400 focus:ring-cyan-400"
-                    placeholder="Enter your email"
-                    required={!isLogin}
-                  />
-                </div>
-              )}
-
-              {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-300">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
                   Password
                 </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="pl-10 pr-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-500 focus:border-cyan-400 focus:ring-cyan-400"
-                    placeholder="Enter your password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={credentials.password}
+                  onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Enter password"
+                  required
+                  className="bg-background/50"
+                />
               </div>
 
-              {/* Confirm Password Field (Registration only) */}
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-300">
-                    Confirm Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showPassword ? "text" : "password"}
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="pl-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-500 focus:border-cyan-400 focus:ring-cyan-400"
-                      placeholder="Confirm your password"
-                      required={!isLogin}
-                    />
-                  </div>
-                </div>
-              )}
-            </CardContent>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="remember"
+                  checked={credentials.rememberMe}
+                  onCheckedChange={(checked) => 
+                    setCredentials(prev => ({ ...prev, rememberMe: !!checked }))
+                  }
+                />
+                <Label htmlFor="remember" className="text-sm">Remember me</Label>
+              </div>
 
-            <CardFooter className="flex flex-col space-y-4">
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-md transition-all duration-200"
-                disabled={loading}
+              <Button 
+                type="submit" 
+                className="w-full cyber-button-primary" 
+                disabled={isLoading}
               >
-                {loading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>{isLogin ? 'Signing In...' : 'Creating Account...'}</span>
+                {isLoading ? "Authenticating..." : "Sign In"}
+              </Button>
+
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={fillDemoCredentials}
+                  className="text-xs"
+                >
+                  Fill Demo Credentials
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="text-center space-y-2">
+                <CheckCircle className="h-8 w-8 text-green-500 mx-auto" />
+                <h3 className="font-semibold">Multi-Factor Authentication</h3>
+                <p className="text-sm text-muted-foreground">
+                  Enter the 6-digit verification code
+                </p>
+                {demoMfaCode && (
+                  <div className="p-2 bg-blue-500/10 rounded text-blue-400 text-sm">
+                    Demo Code: <strong>{demoMfaCode}</strong>
                   </div>
-                ) : (
-                  isLogin ? 'Sign In' : 'Create Account'
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mfa" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Verification Code
+                </Label>
+                <Input
+                  id="mfa"
+                  type="text"
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  placeholder="000000"
+                  maxLength={6}
+                  className="text-center text-lg tracking-widest bg-background/50"
+                  required
+                />
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full cyber-button-primary" 
+                disabled={isLoading || mfaCode.length !== 6}
+              >
+                {isLoading ? "Verifying..." : "Verify & Sign In"}
               </Button>
 
               <Button
                 type="button"
-                variant="outline"
-                onClick={handleGuestAccess}
-                className="w-full border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                variant="ghost"
+                onClick={() => {
+                  setShowMFA(false);
+                  setMfaCode('');
+                  setDemoMfaCode('');
+                }}
+                className="w-full"
               >
-                Continue as Guest
+                Back to Login
               </Button>
+            </form>
+          )}
 
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-sm text-cyan-400 hover:text-cyan-300 underline"
-                >
-                  {isLogin ? "Don't have an account? Register" : "Already have an account? Sign In"}
-                </button>
-              </div>
-            </CardFooter>
-          </form>
-        </Card>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-muted" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or</span>
+            </div>
+          </div>
 
-        {/* System Info */}
-        <div className="text-center text-xs text-gray-500 space-y-1">
-          <p>Demo Credentials: admin / password123</p>
-          <p>Built for cybersecurity professionals and SOC teams</p>
-        </div>
-      </div>
+          <Button
+            onClick={handleGuestLogin}
+            variant="outline"
+            className="w-full cyber-button-secondary"
+            disabled={isLoading}
+          >
+            {isLoading ? "Connecting..." : "Continue as Guest"}
+          </Button>
+
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <AlertCircle className="h-3 w-3" />
+              <span>Demo Credentials</span>
+            </div>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div>Username: <code className="bg-muted px-1 rounded">admin</code></div>
+              <div>Password: <code className="bg-muted px-1 rounded">password123</code></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
+}

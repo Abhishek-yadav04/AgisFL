@@ -13,7 +13,6 @@ import { realSystemMonitor } from "./services/real-system-monitor";
 
 const router = Router();
 
-// Enhanced login schema with MFA support
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
@@ -24,16 +23,13 @@ const loginSchema = z.object({
 const JWT_SECRET = process.env.JWT_SECRET || "agisfl_secure_key_2024";
 const DEMO_CREDENTIALS = { username: "admin", password: "password123" };
 
-// Rate limiting store (in production, use Redis)
 const rateLimitStore = new Map();
-
-// MFA store (in production, use database)
 const mfaStore = new Map();
 
 function rateLimitMiddleware(req: any, res: any, next: any) {
   const ip = req.ip || req.connection.remoteAddress;
   const now = Date.now();
-  const windowMs = 15 * 60 * 1000; // 15 minutes
+  const windowMs = 15 * 60 * 1000;
   const maxAttempts = 5;
 
   if (!rateLimitStore.has(ip)) {
@@ -63,26 +59,21 @@ function generateMFACode(): string {
 }
 
 function simulateSendMFA(username: string, code: string) {
-  console.log(`MFA Code for ${username}: ${code}`);
-  // In production, send via SMS/Email
+  console.log(`🔐 MFA Code for ${username}: ${code}`);
 }
 
-// Authentication routes
 router.post("/api/auth/login", rateLimitMiddleware, async (req, res) => {
   try {
     const { username, password, mfaCode, rememberMe } = loginSchema.parse(req.body);
     
-    // Demo mode authentication
     if (username === DEMO_CREDENTIALS.username && password === DEMO_CREDENTIALS.password) {
-      
-      // Check if MFA is required
       const requiresMFA = !mfaCode;
       
       if (requiresMFA) {
         const code = generateMFACode();
         mfaStore.set(username, {
           code,
-          expires: Date.now() + 300000, // 5 minutes
+          expires: Date.now() + 300000,
           verified: false
         });
         
@@ -90,17 +81,16 @@ router.post("/api/auth/login", rateLimitMiddleware, async (req, res) => {
         
         return res.json({
           requiresMFA: true,
-          message: "MFA code sent. Please check console for demo code."
+          message: "MFA code sent. Check console for demo code.",
+          mfaCode: code // For demo purposes only
         });
       }
 
-      // Verify MFA code
       const mfaRecord = mfaStore.get(username);
       if (!mfaRecord || mfaRecord.code !== mfaCode || Date.now() > mfaRecord.expires) {
         return res.status(401).json({ message: "Invalid or expired MFA code" });
       }
 
-      // Clear rate limiting on successful login
       rateLimitStore.delete(req.ip);
       mfaStore.delete(username);
 
@@ -134,34 +124,37 @@ router.post("/api/auth/login", rateLimitMiddleware, async (req, res) => {
 });
 
 router.post("/api/auth/guest", (req, res) => {
-  const token = jwt.sign(
-    { 
-      username: "guest", 
-      role: "guest",
-      mfaVerified: false,
-      loginTime: new Date().toISOString()
-    },
-    JWT_SECRET,
-    { expiresIn: "1h" }
-  );
+  try {
+    const token = jwt.sign(
+      { 
+        username: "guest", 
+        role: "guest",
+        mfaVerified: false,
+        loginTime: new Date().toISOString()
+      },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-  res.json({
-    success: true,
-    token,
-    user: {
-      username: "guest",
-      role: "guest",
-      permissions: ["read"]
-    }
-  });
+    res.json({
+      success: true,
+      token,
+      user: {
+        username: "guest",
+        role: "guest",
+        permissions: ["read"]
+      }
+    });
+  } catch (error) {
+    console.error("Guest login error:", error);
+    res.status(500).json({ message: "Guest login failed" });
+  }
 });
 
 router.post("/api/auth/logout", (req, res) => {
-  // In production, blacklist the token
   res.json({ success: true, message: "Logged out successfully" });
 });
 
-// Token verification middleware
 function authenticateToken(req: any, res: any, next: any) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -179,93 +172,128 @@ function authenticateToken(req: any, res: any, next: any) {
   });
 }
 
-// System status endpoints
-router.get("/api/system/status", authenticateToken, (req, res) => {
-  const metrics = systemMonitor.getLatestMetrics();
-  const realMetrics = realSystemMonitor.getLatestMetrics();
-  const threats = threatDetector.getActiveThreats();
-  const flStatus = flCoordinator.getStatus();
+router.get("/api/dashboard", authenticateToken, async (req, res) => {
+  try {
+    const dashboardData = await storage.getDashboardData();
+    res.json(dashboardData);
+  } catch (error) {
+    console.error("Dashboard data error:", error);
+    res.status(500).json({ message: "Failed to fetch dashboard data" });
+  }
+});
 
-  res.json({
-    timestamp: new Date().toISOString(),
-    system: metrics || realMetrics,
-    security: {
-      activeThreats: threats.length,
-      threatLevel: threats.some(t => t.severity === 'critical') ? 'critical' : 
-                   threats.some(t => t.severity === 'high') ? 'high' : 'normal',
-      lastScan: new Date().toISOString()
-    },
-    federatedLearning: flStatus,
-    services: {
-      systemMonitor: true,
-      networkMonitor: true,
-      threatDetector: true,
-      flCoordinator: true
-    }
-  });
+router.get("/api/system/status", authenticateToken, (req, res) => {
+  try {
+    const metrics = systemMonitor.getLatestMetrics();
+    const realMetrics = realSystemMonitor.getLatestMetrics();
+    const threats = threatDetector.getActiveThreats();
+    const flStatus = flCoordinator.getStatus();
+
+    res.json({
+      timestamp: new Date().toISOString(),
+      system: metrics || realMetrics,
+      security: {
+        activeThreats: threats.length,
+        threatLevel: threats.some(t => t.severity === 'critical') ? 'critical' : 
+                     threats.some(t => t.severity === 'high') ? 'high' : 'normal',
+        lastScan: new Date().toISOString()
+      },
+      federatedLearning: flStatus,
+      services: {
+        systemMonitor: true,
+        networkMonitor: true,
+        threatDetector: true,
+        flCoordinator: true
+      }
+    });
+  } catch (error) {
+    console.error("System status error:", error);
+    res.status(500).json({ message: "Failed to fetch system status" });
+  }
 });
 
 router.get("/api/threats", authenticateToken, (req, res) => {
-  const threats = threatDetector.getAllThreats();
-  const stats = threatDetector.getThreatStats();
-  
-  res.json({
-    threats,
-    statistics: stats,
-    lastUpdated: new Date().toISOString()
-  });
+  try {
+    const threats = threatDetector.getAllThreats();
+    const stats = threatDetector.getThreatStats();
+    
+    res.json({
+      threats,
+      statistics: stats,
+      lastUpdated: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Threats data error:", error);
+    res.status(500).json({ message: "Failed to fetch threats data" });
+  }
 });
 
 router.get("/api/network/metrics", authenticateToken, (req, res) => {
-  const metrics = networkMonitor.getLatestMetrics();
-  const topology = networkMonitor.getNetworkTopology();
-  
-  res.json({
-    metrics,
-    topology,
-    lastUpdated: new Date().toISOString()
-  });
+  try {
+    const metrics = networkMonitor.getLatestMetrics();
+    const topology = networkMonitor.getNetworkTopology();
+    
+    res.json({
+      metrics,
+      topology,
+      lastUpdated: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Network metrics error:", error);
+    res.status(500).json({ message: "Failed to fetch network metrics" });
+  }
 });
 
 router.get("/api/federated-learning/status", authenticateToken, (req, res) => {
-  const status = flCoordinator.getStatus();
-  const nodes = flCoordinator.getNodes();
-  const trainingHistory = flCoordinator.getTrainingHistory();
-  
-  res.json({
-    status,
-    nodes,
-    trainingHistory,
-    lastUpdated: new Date().toISOString()
-  });
+  try {
+    const status = flCoordinator.getStatus();
+    const nodes = flCoordinator.getNodes();
+    const trainingHistory = flCoordinator.getTrainingHistory();
+    
+    res.json({
+      status,
+      nodes,
+      trainingHistory,
+      lastUpdated: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("FL status error:", error);
+    res.status(500).json({ message: "Failed to fetch federated learning status" });
+  }
 });
 
-// Real-time system metrics
 router.get("/api/system/metrics", authenticateToken, (req, res) => {
-  const realMetrics = realSystemMonitor.getLatestMetrics();
-  const health = realSystemMonitor.getSystemHealth();
-  
-  res.json({
-    metrics: realMetrics,
-    health,
-    timestamp: new Date().toISOString()
-  });
+  try {
+    const realMetrics = realSystemMonitor.getLatestMetrics();
+    const health = realSystemMonitor.getSystemHealth();
+    
+    res.json({
+      metrics: realMetrics,
+      health,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("System metrics error:", error);
+    res.status(500).json({ message: "Failed to fetch system metrics" });
+  }
 });
 
-// Security endpoints
 router.post("/api/threats/:id/mitigate", authenticateToken, (req, res) => {
-  const { id } = req.params;
-  // In a real system, this would trigger automated mitigation
-  res.json({
-    success: true,
-    message: `Mitigation initiated for threat ${id}`,
-    timestamp: new Date().toISOString()
-  });
+  try {
+    const { id } = req.params;
+    res.json({
+      success: true,
+      message: `Mitigation initiated for threat ${id}`,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Threat mitigation error:", error);
+    res.status(500).json({ message: "Failed to mitigate threat" });
+  }
 });
 
 router.get("/api/security/scan", authenticateToken, async (req, res) => {
   try {
-    // Trigger a security scan
     const scanResults = {
       id: `scan_${Date.now()}`,
       status: 'completed',
@@ -284,24 +312,31 @@ router.get("/api/security/scan", authenticateToken, async (req, res) => {
     
     res.json(scanResults);
   } catch (error) {
+    console.error("Security scan error:", error);
     res.status(500).json({ message: "Security scan failed" });
   }
 });
 
-export function registerRoutes(app: any) {
+export function registerRoutes(app: any, httpServer?: any) {
   app.use(router);
 
-  // Start all monitoring services
-  console.log("Starting monitoring services...");
+  console.log("🔧 Starting monitoring services...");
   
-  systemMonitor.start();
-  networkMonitor.start();
-  threatDetector.start();
-  flCoordinator.start();
-  realSystemMonitor.start();
+  try {
+    systemMonitor.start();
+    networkMonitor.start();
+    threatDetector.start();
+    flCoordinator.start();
+    realSystemMonitor.start();
+    console.log("✅ All monitoring services started");
+  } catch (error) {
+    console.error("❌ Error starting monitoring services:", error);
+  }
 
-  console.log("All monitoring services started");
-
-  const server = setupWebSocket(app);
-  return server;
+  if (httpServer) {
+    const wss = setupWebSocket(httpServer);
+    return httpServer;
+  }
+  
+  return app;
 }

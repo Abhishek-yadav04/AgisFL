@@ -1,3 +1,4 @@
+
 import { WebSocket, WebSocketServer } from 'ws';
 import { Server } from 'http';
 import { storage } from './storage';
@@ -10,26 +11,28 @@ import { realSystemMonitor } from './services/real-system-monitor';
 export function setupWebSocket(server: Server) {
   const wss = new WebSocketServer({ server, path: '/ws' });
 
-  wss.on('connection', (ws: WebSocket) => {
-    console.log('WebSocket client connected');
+  console.log('🔌 WebSocket server initialized');
+
+  wss.on('connection', (ws: WebSocket, req) => {
+    console.log('📡 WebSocket client connected from:', req.socket.remoteAddress);
 
     // Send initial dashboard data
     sendDashboardUpdate(ws);
 
-    // Set up periodic updates every 5 seconds
+    // Set up periodic updates every 3 seconds
     const updateInterval = setInterval(async () => {
       if (ws.readyState === WebSocket.OPEN) {
         await sendDashboardUpdate(ws);
       }
-    }, 5000);
+    }, 3000);
 
     ws.on('close', () => {
-      console.log('WebSocket client disconnected');
+      console.log('📡 WebSocket client disconnected');
       clearInterval(updateInterval);
     });
 
     ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
+      console.error('❌ WebSocket error:', error);
       clearInterval(updateInterval);
     });
 
@@ -39,7 +42,19 @@ export function setupWebSocket(server: Server) {
         await handleWebSocketMessage(ws, data);
       } catch (error) {
         console.error('Error handling WebSocket message:', error);
+        ws.send(JSON.stringify({ error: 'Invalid message format' }));
       }
+    });
+
+    // Send heartbeat
+    const heartbeat = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+      }
+    }, 30000);
+
+    ws.on('close', () => {
+      clearInterval(heartbeat);
     });
   });
 
@@ -51,62 +66,88 @@ async function sendDashboardUpdate(ws: WebSocket) {
     const dashboardData = await storage.getDashboardData();
     
     if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(dashboardData));
+      ws.send(JSON.stringify({
+        type: 'dashboard_update',
+        data: dashboardData,
+        timestamp: new Date().toISOString()
+      }));
     }
   } catch (error) {
     console.error('Error sending dashboard update:', error);
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Failed to fetch dashboard data'
+      }));
+    }
   }
 }
 
 async function handleWebSocketMessage(ws: WebSocket, data: any) {
   const { type, payload } = data;
 
-  switch (type) {
-    case 'acknowledge_alert':
-      if (payload.alertId) {
-        await storage.acknowledgeAlert(payload.alertId);
+  try {
+    switch (type) {
+      case 'acknowledge_alert':
+        if (payload.alertId) {
+          await storage.acknowledgeAlert(payload.alertId);
+          await sendDashboardUpdate(ws);
+          ws.send(JSON.stringify({ type: 'alert_acknowledged', alertId: payload.alertId }));
+        }
+        break;
+
+      case 'mitigate_threat':
+        if (payload.threatId) {
+          await threatDetector.mitigateThreat(payload.threatId);
+          await sendDashboardUpdate(ws);
+          ws.send(JSON.stringify({ type: 'threat_mitigated', threatId: payload.threatId }));
+        }
+        break;
+
+      case 'request_update':
         await sendDashboardUpdate(ws);
-      }
-      break;
+        break;
 
-    case 'mitigate_threat':
-      if (payload.threatId) {
-        await threatDetector.mitigateThreat(payload.threatId);
-        await sendDashboardUpdate(ws);
-      }
-      break;
+      case 'ping':
+        ws.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
+        break;
 
-    case 'request_update':
-      await sendDashboardUpdate(ws);
-      break;
-
-    default:
-      console.log('Unknown WebSocket message type:', type);
+      default:
+        console.log('Unknown WebSocket message type:', type);
+        ws.send(JSON.stringify({ type: 'error', message: 'Unknown message type' }));
+    }
+  } catch (error) {
+    console.error('Error handling WebSocket message:', error);
+    ws.send(JSON.stringify({ type: 'error', message: 'Failed to process message' }));
   }
 }
 
-// Start all monitoring services
 export function startMonitoringServices() {
-  networkMonitor.start();
-  systemMonitor.start();
-  threatDetector.start();
-  flCoordinator.start();
-  
-  // Start real system monitor for actual network and system monitoring
-  realSystemMonitor.start().catch(error => {
-    console.error('Failed to start real system monitor:', error);
-  });
-  
-  console.log('All monitoring services started');
+  try {
+    networkMonitor.start();
+    systemMonitor.start();
+    threatDetector.start();
+    flCoordinator.start();
+    realSystemMonitor.start().catch(error => {
+      console.error('Failed to start real system monitor:', error);
+    });
+    
+    console.log('✅ All monitoring services started');
+  } catch (error) {
+    console.error('❌ Failed to start monitoring services:', error);
+  }
 }
 
-// Stop all monitoring services
 export function stopMonitoringServices() {
-  networkMonitor.stop();
-  systemMonitor.stop();
-  threatDetector.stop();
-  flCoordinator.stop();
-  realSystemMonitor.stop();
-  
-  console.log('All monitoring services stopped');
+  try {
+    networkMonitor.stop();
+    systemMonitor.stop();
+    threatDetector.stop();
+    flCoordinator.stop();
+    realSystemMonitor.stop();
+    
+    console.log('🛑 All monitoring services stopped');
+  } catch (error) {
+    console.error('❌ Error stopping monitoring services:', error);
+  }
 }

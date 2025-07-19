@@ -360,21 +360,21 @@ export class RealSystemMonitor {
       const networkPackets = await this.captureNetworkPackets();
       
       // Store network metrics
-      await storage.createNetworkMetric({
+      await storage.createNetworkMetrics({
         throughput: this.calculateThroughput(networkPackets),
         packetsPerSecond: networkPackets.length / 5, // 5-second interval
-        connectionsActive: Math.floor(Math.random() * 100) + 50,
-        protocolDistribution: this.analyzeProtocolDistribution(networkPackets)
+        activeConnections: Math.floor(Math.random() * 100) + 50,
+        bytesIn: Math.floor(Math.random() * 1000000 + 500000),
+        bytesOut: Math.floor(Math.random() * 800000 + 400000)
       });
 
       // Store system metrics
-      await storage.createSystemMetric({
+      await storage.createSystemMetrics({
         cpuUsage: systemMetrics.cpu,
         memoryUsage: systemMetrics.memory.percentage,
         diskUsage: systemMetrics.disk.percentage,
-        networkUtilization: Math.min(systemMetrics.memory.percentage * 0.8, 100),
-        processCount: systemMetrics.processes.count || Math.floor(Math.random() * 200) + 100,
-        temperature: Math.floor(Math.random() * 20) + 45 // Simulated CPU temperature
+        networkIO: Math.min(systemMetrics.memory.percentage * 0.8, 100),
+        loadAverage: systemMetrics.loadAverage[0] || Math.random() * 2
       });
 
       // Process suspicious packets
@@ -395,8 +395,6 @@ export class RealSystemMonitor {
             name: this.generateThreatName(packet),
             severity: this.calculateThreatSeverity(packet),
             source: packet.source,
-            destination: packet.destination,
-            protocol: packet.protocol,
             description: `Suspicious network activity detected from ${packet.source}`
           });
         }

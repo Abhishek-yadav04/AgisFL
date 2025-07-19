@@ -1,12 +1,22 @@
-import { Switch, Route, useLocation } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
-import Dashboard from "@/pages/dashboard";
-import Login from "@/pages/login";
-import NotFound from "@/pages/not-found";
+import React, { useEffect, useState } from 'react';
+import { Route, Switch, Router } from 'wouter';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+import { Toaster } from '@/components/ui/toaster';
+import { Dashboard } from '@/pages/dashboard';
+import { Login } from '@/pages/login';
+import { NotFound } from '@/pages/not-found';
+import { TopBar } from '@/components/layout/TopBar';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Authentication wrapper component
 function AuthWrapper() {
@@ -18,11 +28,11 @@ function AuthWrapper() {
     // Check authentication status
     const token = localStorage.getItem('auth_token');
     const demoMode = localStorage.getItem('demo_mode');
-    
+
     if (token || demoMode) {
       setIsAuthenticated(true);
     }
-    
+
     setLoading(false);
   }, [location]);
 

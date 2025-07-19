@@ -54,7 +54,7 @@ detect_os() {
         OS="unknown"
         DISTRO="unknown"
     fi
-    
+
     print_status "Detected OS: $OS ($DISTRO)"
 }
 
@@ -66,7 +66,7 @@ command_exists() {
 # Install system dependencies
 install_system_deps() {
     print_status "Installing system dependencies..."
-    
+
     case "$DISTRO" in
         "ubuntu")
             sudo apt-get update
@@ -92,14 +92,14 @@ install_system_deps() {
             print_warning "Unknown distribution. Please install manually: python3, nodejs, libpcap-dev, git"
             ;;
     esac
-    
+
     print_success "System dependencies installed"
 }
 
 # Setup Python environment
 setup_python_env() {
     print_status "Setting up Python virtual environment..."
-    
+
     # Create virtual environment
     if [ ! -d "venv" ]; then
         python3 -m venv venv
@@ -107,13 +107,13 @@ setup_python_env() {
     else
         print_warning "Virtual environment already exists"
     fi
-    
+
     # Activate virtual environment
     source venv/bin/activate
-    
+
     # Upgrade pip
     pip install --upgrade pip
-    
+
     # Install Python dependencies
     if [ -f "requirements.txt" ]; then
         print_status "Installing Python dependencies..."
@@ -129,7 +129,7 @@ setup_python_env() {
 # Setup Node.js environment
 setup_nodejs_env() {
     print_status "Setting up Node.js environment..."
-    
+
     # Check Node.js version
     if command_exists node; then
         NODE_VERSION=$(node -v | cut -c2-)
@@ -138,7 +138,7 @@ setup_nodejs_env() {
         print_error "Node.js not found. Please install Node.js 16+ manually."
         exit 1
     fi
-    
+
     # Install client dependencies
     if [ -d "client" ]; then
         cd client
@@ -147,32 +147,34 @@ setup_nodejs_env() {
         print_success "Frontend dependencies installed"
         cd ..
     fi
-    
+
     # Install root dependencies if package.json exists
     if [ -f "package.json" ]; then
         print_status "Installing root dependencies..."
         npm install
-        print_success "Root dependencies installed"
+
+        echo "Installing Electron for desktop app..."
+        npm install --save-dev electron electron-builder || echo "Warning: Failed to install Electron, continuing anyway..."
     fi
 }
 
 # Create necessary directories
 setup_directories() {
     print_status "Creating necessary directories..."
-    
+
     mkdir -p logs
     mkdir -p data
     mkdir -p models
     mkdir -p temp
     mkdir -p backups
-    
+
     print_success "Directories created"
 }
 
 # Setup database (SQLite for platform independence)
 setup_database() {
     print_status "Setting up database..."
-    
+
     # Create SQLite database if it doesn't exist
     if [ ! -f "data/agisfl.db" ]; then
         python3 -c "
@@ -250,7 +252,7 @@ print('SQLite database initialized successfully')
 # Create environment configuration
 setup_config() {
     print_status "Creating configuration files..."
-    
+
     # Create .env file if it doesn't exist
     if [ ! -f ".env" ]; then
         cat > .env << EOL
@@ -278,7 +280,7 @@ EOL
     else
         print_warning "Configuration file already exists"
     fi
-    
+
     # Create systemd service file (Linux only)
     if [ "$OS" = "linux" ]; then
         sudo tee /etc/systemd/system/agisfl.service > /dev/null << EOL
@@ -298,7 +300,7 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target
 EOL
-        
+
         sudo systemctl daemon-reload
         print_success "Systemd service created"
     fi
@@ -307,7 +309,7 @@ EOL
 # Create startup scripts
 create_startup_scripts() {
     print_status "Creating startup scripts..."
-    
+
     # Create start script
     cat > start.sh << 'EOL'
 #!/bin/bash
@@ -345,7 +347,7 @@ wait
 EOL
 
     chmod +x start.sh
-    
+
     # Create stop script
     cat > stop.sh << 'EOL'
 #!/bin/bash
@@ -361,16 +363,16 @@ echo "AgisFL stopped"
 EOL
 
     chmod +x stop.sh
-    
+
     print_success "Startup scripts created"
 }
 
 # Run tests
 run_tests() {
     print_status "Running system tests..."
-    
+
     source venv/bin/activate
-    
+
     # Test Python imports
     python3 -c "
 try:
@@ -380,7 +382,7 @@ except ImportError as e:
     print(f'❌ Import error: {e}')
     exit(1)
 "
-    
+
     # Test Node.js setup
     if command_exists node && [ -d "client" ]; then
         cd client
@@ -391,7 +393,7 @@ except ImportError as e:
         fi
         cd ..
     fi
-    
+
     # Test database connection
     python3 -c "
 import sqlite3
@@ -405,7 +407,7 @@ except Exception as e:
     print(f'❌ Database error: {e}')
     exit(1)
 "
-    
+
     print_success "System tests completed"
 }
 
@@ -421,7 +423,7 @@ main() {
     Intrusion Detection System
 EOF
     echo -e "${NC}\n"
-    
+
     # Check if running as root (not recommended)
     if [ "$EUID" -eq 0 ]; then
         print_warning "Running as root is not recommended for security reasons"
@@ -431,34 +433,34 @@ EOF
             exit 1
         fi
     fi
-    
+
     # Detect operating system
     detect_os
-    
+
     # Install system dependencies
     install_system_deps
-    
+
     # Setup Python environment
     setup_python_env
-    
+
     # Setup Node.js environment
     setup_nodejs_env
-    
+
     # Create directories
     setup_directories
-    
+
     # Setup database
     setup_database
-    
+
     # Setup configuration
     setup_config
-    
+
     # Create startup scripts
     create_startup_scripts
-    
+
     # Run tests
     run_tests
-    
+
     echo
     print_success "🎉 AgisFL installation completed successfully!"
     echo

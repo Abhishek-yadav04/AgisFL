@@ -124,6 +124,15 @@ if exist "package.json" (
         pause
         exit /b 1
     )
+    
+    echo %BLUE%[INFO]%RESET% Installing Electron for desktop app...
+    call npm install --save-dev electron electron-builder
+    if %errorLevel% neq 0 (
+        echo %YELLOW%[WARNING]%RESET% Failed to install Electron, continuing anyway...
+    ) else (
+        echo %GREEN%[SUCCESS]%RESET% Electron installed successfully
+    )
+    
     echo %GREEN%[SUCCESS]%RESET% Root dependencies installed
 )
 
@@ -257,14 +266,15 @@ REM Create start.bat script
 (
 echo @echo off
 echo title AgisFL - Federated Learning IDS
-echo echo Starting AgisFL System...
+echo echo Starting AgisFL Desktop Application...
 echo.
-echo REM Activate virtual environment
-echo call venv\Scripts\activate.bat
-echo.
-echo REM Start the application
-echo if exist "app.py" (
+echo REM Check if Electron is available
+echo if exist "node_modules\electron" (
+echo     echo Starting Electron desktop app...
+echo     npm run electron
+echo ^) else if exist "app.py" (
 echo     echo Starting Flask backend...
+echo     call venv\Scripts\activate.bat
 echo     python app.py
 echo ^) else (
 echo     echo Starting development server...
@@ -273,6 +283,19 @@ echo ^)
 echo.
 echo pause
 ) > start.bat
+
+REM Create desktop start script
+(
+echo @echo off
+echo title AgisFL - Desktop App
+echo echo Starting AgisFL Desktop Application...
+echo.
+echo REM Build and start Electron app
+echo call npm run build 2^>nul
+echo call npm run electron
+echo.
+echo pause
+) > start-desktop.bat
 
 REM Create stop.bat script
 (

@@ -1,340 +1,425 @@
-# AgisFL - Enterprise-Grade Federated Learning Intrusion Detection System
+# AgisFL - Federated Learning Intrusion Detection System
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](README.md)
-[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](README.md)
+A real-time, desktop-based intrusion detection system that leverages federated learning for distributed threat detection across multiple clients while preserving privacy.
 
-## 🛡️ Overview
+## 🚀 Features
 
-**AgisFL** is a production-ready, enterprise-grade Federated Learning Intrusion Detection System that combines real-time network monitoring, advanced threat detection, and privacy-preserving machine learning. Built for cybersecurity professionals, researchers, and organizations requiring robust network security solutions.
+- **Real-time Network Monitoring**: Live packet capture and analysis using system APIs
+- **Federated Learning**: Distributed machine learning for collaborative threat detection
+- **Cross-Platform Desktop App**: Electron-based application for Windows and Linux
+- **Live Threat Detection**: Real-time threat identification and alerting
+- **System Metrics**: Comprehensive system performance monitoring
+- **Modern UI**: React-based dashboard with real-time data visualization
 
-### 🎯 Key Features
+## 📋 Prerequisites
 
-- **🔥 Real-Time Monitoring**: Live network traffic analysis and system resource monitoring
-- **🤖 Federated Learning**: Privacy-preserving distributed machine learning across multiple nodes
-- **⚡ Advanced Threat Detection**: AI-powered intrusion detection with behavioral analysis
-- **🌐 Cross-Platform**: Runs seamlessly on Windows, Linux, and macOS
-- **🔒 Enterprise Security**: Multi-factor authentication, RBAC, and audit logging
-- **📊 Interactive Dashboard**: Modern React-based cybersecurity command center
-- **🛠️ Easy Deployment**: One-click installation scripts and Docker support
+- **Node.js** 16+ and npm
+- **Python** 3.8+
+- **Administrator/Root privileges** (required for network monitoring)
 
-## 🏗️ System Architecture
+## 🛠️ Installation
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React UI      │◄──►│   Express API   │◄──►│   PostgreSQL    │
-│   Dashboard     │    │   + WebSocket   │    │   Database      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         ▲                       ▲                       ▲
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  FL-IDS Core    │◄──►│  Network Mon.   │◄──►│  Threat Engine  │
-│  (Python)       │    │  (Real-time)    │    │  (ML-based)     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Node.js** 16+ ([Download](https://nodejs.org))
-- **Python** 3.8+ ([Download](https://python.org))
-- **Git** ([Download](https://git-scm.com))
-
-### Installation
-
-#### Windows
+### Windows
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/AgisFL.git
-cd AgisFL
-
-# Run Windows installer (as Administrator)
+# Run the automated setup script
 setup.bat
 ```
 
-#### Linux/macOS
+### Linux
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/AgisFL.git
-cd AgisFL
-
-# Make installer executable and run
+# Make script executable and run
 chmod +x setup.sh
 ./setup.sh
 ```
 
-### Starting the System
-
-#### Option 1: Production Mode
+### Manual Installation
 ```bash
-# Windows
-start.bat
+# Install Node.js dependencies
+npm install
 
-# Linux/macOS
-./start.sh
+# Install Python dependencies
+pip install flask flask-socketio flask-cors pandas numpy scikit-learn psutil requests cryptography
+
+# Install Electron for desktop app
+npm install --save-dev electron electron-builder
+
+# Create necessary directories
+mkdir -p logs data models temp backups
 ```
 
-#### Option 2: Development Mode
+## 🚀 Running the Application
+
+### Desktop Application (Recommended)
 ```bash
-# Terminal 1: Start the backend
+# Start the desktop app
+npm run electron
+
+# Or use the batch/shell script
+start-desktop.bat    # Windows
+./start-desktop.sh   # Linux
+```
+
+### Development Mode
+```bash
+# Start development server
 npm run dev
 
-# Terminal 2: Start the FL-IDS core (if available)
-python fl_ids_core.py
+# Or use the main start script
+start.bat    # Windows  
+./start.sh   # Linux
 ```
 
-#### Option 3: Using Docker
+### Production Web Mode
 ```bash
-docker-compose up -d
+# Build and start production server
+npm run build
+npm start
 ```
 
-Access the dashboard at: **http://localhost:5000**
+## 📱 Usage
 
-## 📋 Core Components
+1. **Launch Application**: Run the desktop app or access via web browser at `http://localhost:5000`
 
-### 🖥️ Frontend Dashboard
-- **React 18** with TypeScript
-- **Tailwind CSS** with cybersecurity theme
-- **Real-time updates** via WebSocket
-- **Responsive design** for all screen sizes
-- **Dark mode** optimized for SOC environments
+2. **Dashboard Overview**: 
+   - System metrics (CPU, Memory, Disk, Network)
+   - Real-time threat detection
+   - Network packet analysis
+   - Federated learning client status
 
-### ⚙️ Backend Services
-- **Express.js** REST API with TypeScript
-- **WebSocket** for real-time communication
-- **PostgreSQL** with Drizzle ORM
-- **JWT Authentication** with session management
-- **Rate limiting** and security middleware
+3. **Navigation**:
+   - **Dashboard**: System overview and key metrics
+   - **Network Analysis**: Real-time network monitoring and packet capture
+   - **Threat Detection**: Active threats and security alerts
+   - **Federated Learning**: FL client management and model training
 
-### 🧠 FL-IDS Core Engine
-- **Federated Learning** server and client nodes
-- **Differential Privacy** for data protection
-- **Byzantine Fault Tolerance** for robust aggregation
-- **Real-time Packet Analysis** with Scapy integration
-- **Cross-platform System Monitoring**
+4. **Real-time Features**:
+   - Live system monitoring every 5 seconds
+   - Network packet capture and analysis
+   - Automatic threat detection and alerting
+   - FL model training progress tracking
 
-### 🔍 Monitoring Services
-- **Network Monitor**: Real-time traffic analysis and packet capture
-- **System Monitor**: CPU, memory, disk, and process monitoring  
-- **Threat Detector**: ML-based anomaly detection and threat classification
-- **FL Coordinator**: Manages federated learning training rounds
+## 🏗️ Architecture
 
-## 🛡️ Security Features
-
-### Authentication & Authorization
-- Multi-factor authentication (MFA)
-- Role-based access control (RBAC)
-- Session management with secure tokens
-- Guest mode for demonstrations
-
-### Privacy Protection
-- Differential privacy in federated learning
-- Secure multi-party computation
-- Data anonymization and encryption
-- Privacy budget management
-
-### Threat Detection
-- Real-time network traffic analysis
-- Behavioral anomaly detection
-- Signature-based threat identification
-- Machine learning-powered classification
-- Automatic incident response
-
-## 📊 Dashboard Features
-
-### Overview Dashboard
-- Real-time system health metrics
-- Active threat summary
-- Network traffic visualization
-- Federated learning status
-
-### Network Analysis
-- Live packet capture and analysis
-- Protocol distribution charts
-- Bandwidth utilization graphs
-- Suspicious activity alerts
-
-### Threat Management
-- Active threat timeline
-- Severity classification
-- Incident response workflows
-- Forensic analysis tools
-
-### Federated Learning
-- Node status monitoring
-- Training progress tracking
-- Model performance metrics
-- Privacy compliance reports
-
-## 🧪 Testing & Validation
-
-### Automated Testing Suite
-```bash
-# Run comprehensive tests
-python scripts/fl_data_simulator.py --mode test
-
-# Performance benchmarking
-python scripts/fl_data_simulator.py --mode both --samples 10000
-
-# Security validation
-npm run test:security
 ```
-
-### Manual Testing
-1. **Network Simulation**: Generate realistic network traffic patterns
-2. **Attack Simulation**: Test threat detection capabilities
-3. **FL Training**: Validate federated learning convergence
-4. **Performance Testing**: Monitor system under load
-
-## 📈 Performance Optimization
-
-### System Requirements
-- **Minimum**: 4GB RAM, 2 CPU cores, 10GB storage
-- **Recommended**: 8GB+ RAM, 4+ CPU cores, 50GB+ storage
-- **Production**: 16GB+ RAM, 8+ CPU cores, 100GB+ storage
-
-### Optimization Tips
-- Enable hardware acceleration for ML computations
-- Configure database connection pooling
-- Use SSD storage for better I/O performance
-- Implement caching for frequently accessed data
+AgisFL/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # UI components
+│   │   ├── pages/         # Application pages
+│   │   └── hooks/         # Custom React hooks
+├── server/                # Node.js backend
+│   ├── services/          # Monitoring services
+│   ├── storage.ts         # Data management
+│   └── routes.ts          # API endpoints
+├── shared/                # Shared TypeScript definitions
+├── electron-main.js       # Electron main process
+└── setup scripts          # Platform setup scripts
+```
 
 ## 🔧 Configuration
 
-### Environment Variables (.env)
-```bash
-# Server Configuration
+### Environment Variables
+Create a `.env` file:
+```env
 NODE_ENV=production
 PORT=5000
-DATABASE_URL=postgresql://user:pass@host:5432/agisfl
+HOST=0.0.0.0
 
-# Security Settings
-JWT_SECRET=your-secret-key
+# Security
+JWT_SECRET=your-secure-secret
 SESSION_SECRET=your-session-secret
-
-# FL-IDS Settings
-FL_MIN_CLIENTS=3
-FL_ROUNDS_PER_TRAINING=10
-THREAT_THRESHOLD=0.7
-PRIVACY_EPSILON=1.0
 
 # Monitoring Settings
 MONITOR_INTERVAL=5
 PACKET_CAPTURE_DURATION=10
 LOG_LEVEL=INFO
+
+# FL Settings
+FL_MIN_CLIENTS=2
+FL_ROUNDS_PER_TRAINING=10
+THREAT_THRESHOLD=0.7
 ```
 
-### Database Configuration
-- **Development**: SQLite (included)
-- **Production**: PostgreSQL (recommended)
-- **Cloud**: Compatible with AWS RDS, Google Cloud SQL
+### Database
+- Uses SQLite for local data storage
+- Database file: `data/agisfl.db`
+- Automatically initialized on first run
 
-## 🐳 Docker Deployment
+## 🔒 Security Features
 
-### Docker Compose
-```yaml
-version: '3.8'
-services:
-  agisfl:
-    build: .
-    ports:
-      - "5000:5000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:password@db:5432/agisfl
-    depends_on:
-      - db
-  
-  db:
-    image: postgres:15
-    environment:
-      - POSTGRES_DB=agisfl
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+- JWT-based authentication
+- Input sanitization
+- Secure WebSocket connections  
+- Network traffic encryption
+- Localhost-only binding by default
+- Admin privilege checks for system monitoring
 
-volumes:
-  postgres_data:
+## 🧪 System Requirements
+
+### Minimum Requirements
+- **OS**: Windows 10+ or Linux (Ubuntu 18.04+)
+- **RAM**: 4GB
+- **CPU**: Dual-core 2.0GHz
+- **Disk**: 2GB free space
+- **Network**: Active network interface
+
+### Recommended Requirements
+- **OS**: Windows 11 or Linux (Ubuntu 20.04+)
+- **RAM**: 8GB+
+- **CPU**: Quad-core 2.5GHz+
+- **Disk**: 5GB+ free space
+- **Network**: Gigabit Ethernet
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**"Permission denied" errors**:
+- Run as Administrator (Windows) or with sudo (Linux)
+- Network monitoring requires elevated privileges
+
+**Port 5000 already in use**:
+- Change PORT in .env file
+- Stop other applications using port 5000
+
+**Module not found errors**:
+- Run `npm install` to reinstall dependencies
+- Check Node.js version (16+ required)
+
+**Database connection issues**:
+- Ensure `data/` directory exists
+- Check file permissions on `data/agisfl.db`
+
+### Logs
+- Application logs: `logs/` directory
+- Console output for real-time debugging
+- WebSocket connection status in browser dev tools
+
+## 🤝 Development
+
+### Adding New Features
+1. Backend: Add services to `server/services/`
+2. Frontend: Add components to `client/src/components/`
+3. API: Update routes in `server/routes.ts`
+4. Types: Update schemas in `shared/schema.ts`
+
+### Building for Distribution
+```bash
+# Build Electron app
+npm run electron:build
+
+# Create installers
+npm run dist
 ```
-
-## 🔒 Production Deployment
-
-### Security Checklist
-- [ ] Configure HTTPS/TLS certificates
-- [ ] Set up firewall rules
-- [ ] Enable database encryption
-- [ ] Configure backup strategies
-- [ ] Set up monitoring and alerting
-- [ ] Review access control policies
-
-### Monitoring & Maintenance
-- **Log Management**: Centralized logging with log rotation
-- **Health Checks**: Automated system health monitoring
-- **Backups**: Scheduled database and configuration backups
-- **Updates**: Regular security patches and dependency updates
-
-## 📚 API Documentation
-
-### REST Endpoints
-```
-GET    /api/dashboard          # Dashboard overview
-GET    /api/threats           # Active threats
-GET    /api/network-metrics   # Network statistics
-GET    /api/system-metrics    # System performance
-POST   /api/auth/login        # User authentication
-GET    /api/fl/status         # FL training status
-```
-
-### WebSocket Events
-```
-dashboard:update     # Real-time dashboard updates
-threat:detected      # New threat alerts
-fl:training:complete # FL training completion
-system:health        # System health updates
-```
-
-## 🤝 Contributing
-
-### Development Setup
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Install dependencies: `npm install && pip install -r requirements.txt`
-4. Make your changes and add tests
-5. Run tests: `npm test && python -m pytest`
-6. Submit a pull request
-
-### Code Style
-- **TypeScript/JavaScript**: ESLint + Prettier
-- **Python**: Black + Flake8
-- **Commit Messages**: Conventional Commits
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see LICENSE file for details
 
-## 🙏 Acknowledgments
+## 🆘 Support
 
-- **NSL-KDD Dataset** for network intrusion data
-- **Scapy** for packet analysis capabilities
-- **React Community** for amazing UI components
-- **Federated Learning Research** community
+For issues and support:
+1. Check the troubleshooting section
+2. Review logs in `logs/` directory
+3. Create an issue on GitHub with system details
 
-## 📞 Support
+## 🔄 Version History
 
-### Documentation
-- [Installation Guide](docs/installation.md)
-- [API Reference](docs/api.md)
-- [Configuration Guide](docs/configuration.md)
-- [Troubleshooting](docs/troubleshooting.md)
-
-### Community
-- **GitHub Issues**: [Report bugs](https://github.com/yourusername/AgisFL/issues)
-- **Discussions**: [Community forum](https://github.com/yourusername/AgisFL/discussions)
-- **Email**: support@agisfl.com
+- **v1.0.0**: Initial release with core FL-IDS functionality
+  - Real-time network monitoring
+  - Federated learning integration
+  - Cross-platform desktop support
+  - Modern React-based UI
 
 ---
 
-**AgisFL** - *Protecting networks through federated intelligence* 🛡️✨
+**AgisFL** - Securing networks through collaborative intelligence
+```# Run the automated setup script
+setup.bat
+```
+
+### Linux
+```bash
+# Make script executable and run
+chmod +x setup.sh
+./setup.sh
+```
+
+### Manual Installation
+```bash
+# Install Node.js dependencies
+npm install
+
+# Install Python dependencies
+pip install flask flask-socketio flask-cors pandas numpy scikit-learn psutil requests cryptography
+
+# Install Electron for desktop app
+npm install --save-dev electron electron-builder
+
+# Create necessary directories
+mkdir -p logs data models temp backups
+```
+
+## 🚀 Running the Application
+
+### Desktop Application (Recommended)
+```bash
+# Start the desktop app
+npm run electron
+
+# Or use the batch/shell script
+start-desktop.bat    # Windows
+./start-desktop.sh   # Linux
+```
+
+### Development Mode
+```bash
+# Start development server
+npm run dev
+
+# Or use the main start script
+start.bat    # Windows  
+./start.sh   # Linux
+```
+
+### Production Web Mode
+```bash
+# Build and start production server
+npm run build
+npm start
+```
+
+## 📱 Usage
+
+1. **Launch Application**: Run the desktop app or access via web browser at `http://localhost:5000`
+
+2. **Dashboard Overview**: 
+   - System metrics (CPU, Memory, Disk, Network)
+   - Real-time threat detection
+   - Network packet analysis
+   - Federated learning client status
+
+3. **Navigation**:
+   - **Dashboard**: System overview and key metrics
+   - **Network Analysis**: Real-time network monitoring and packet capture
+   - **Threat Detection**: Active threats and security alerts
+   - **Federated Learning**: FL client management and model training
+
+4. **Real-time Features**:
+   - Live system monitoring every 5 seconds
+   - Network packet capture and analysis
+   - Automatic threat detection and alerting
+   - FL model training progress tracking
+
+## 🏗️ Architecture
+
+```
+AgisFL/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # UI components
+│   │   ├── pages/         # Application pages
+│   │   └── hooks/         # Custom React hooks
+├── server/                # Node.js backend
+│   ├── services/          # Monitoring services
+│   ├── storage.ts         # Data management
+│   └── routes.ts          # API endpoints
+├── shared/                # Shared TypeScript definitions
+├── electron-main.js       # Electron main process
+└── setup scripts          # Platform setup scripts
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+Create a `.env` file:
+```env
+NODE_ENV=production
+PORT=5000
+HOST=0.0.0.0
+
+# Security
+JWT_SECRET=your-secure-secret
+SESSION_SECRET=your-session-secret
+
+# Monitoring Settings
+MONITOR_INTERVAL=5
+PACKET_CAPTURE_DURATION=10
+LOG_LEVEL=INFO
+
+# FL Settings
+FL_MIN_CLIENTS=2
+FL_ROUNDS_PER_TRAINING=10
+THREAT_THRESHOLD=0.7
+```
+
+### Database
+- Uses SQLite for local data storage
+- Database file: `data/agisfl.db`
+- Automatically initialized on first run
+
+## 🔒 Security Features
+
+- JWT-based authentication
+- Input sanitization
+- Secure WebSocket connections  
+- Network traffic encryption
+- Localhost-only binding by default
+- Admin privilege checks for system monitoring
+
+## 🧪 System Requirements
+
+### Minimum Requirements
+- **OS**: Windows 10+ or Linux (Ubuntu 18.04+)
+- **RAM**: 4GB
+- **CPU**: Dual-core 2.0GHz
+- **Disk**: 2GB free space
+- **Network**: Active network interface
+
+### Recommended Requirements
+- **OS**: Windows 11 or Linux (Ubuntu 20.04+)
+- **RAM**: 8GB+
+- **CPU**: Quad-core 2.5GHz+
+- **Disk**: 5GB+ free space
+- **Network**: Gigabit Ethernet
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**"Permission denied" errors**:
+- Run as Administrator (Windows) or with sudo (Linux)
+- Network monitoring requires elevated privileges
+
+**Port 5000 already in use**:
+- Change PORT in .env file
+- Stop other applications using port 5000
+
+**Module not found errors**:
+- Run `npm install` to reinstall dependencies
+- Check Node.js version (16+ required)
+
+**Database connection issues**:
+- Ensure `data/` directory exists
+- Check file permissions on `data/agisfl.db`
+
+### Logs
+- Application logs: `logs/` directory
+- Console output for real-time debugging
+- WebSocket connection status in browser dev tools
+
+## 🤝 Development
+
+### Adding New Features
+1. Backend: Add services to `server/services/`
+2. Frontend: Add components to `client/src/components/`
+3. API: Update routes in `server/routes.ts`
+4. Types: Update schemas in `shared/schema.ts`
+
+### Building for Distribution
+```bash
+# Build Electron app
+npm run electron:build
+
+# Create installers
+npm run dist

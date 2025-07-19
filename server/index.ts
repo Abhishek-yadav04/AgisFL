@@ -1,82 +1,47 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { WebSocketServer } from 'ws';
+import express from 'express';
 import { createServer } from 'http';
+import { serveStatic } from './vite.js';
+import { createServer as createAPIServer } from './routes.js';
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+const port = process.env.PORT || 5000;
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+// Create HTTP server
+const httpServer = createServer(app);
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
+// Setup API routes and services
+const apiApp = await createAPIServer();
 
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
+// Mount API routes
+app.use('/api', apiApp);
 
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  serveStatic(app);
+} else {
+  // In development, just serve a basic status page
+  app.get('/', (req, res) => {
+    res.json({ 
+      status: 'AgisFL Backend Running',
+      timestamp: new Date().toISOString(),
+      environment: 'development'
+    });
   });
+}
 
-  next();
+// Start server
+httpServer.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 AgisFL Server running on http://0.0.0.0:${port}`);
+  console.log(`📊 Dashboard: http://0.0.0.0:${port}`);
+  console.log(`🔌 WebSocket: ws://0.0.0.0:${port}/ws`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
-(async () => {
-  try {
-    const httpServer = createServer(app);
-    await registerRoutes(app, httpServer);
-
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-
-      console.error('Server error:', err);
-      res.status(status).json({ message });
-    });
-
-    // Setup development or production mode
-    if (app.get("env") === "development") {
-      await setupVite(app, httpServer);
-    } else {
-      serveStatic(app);
-    }
-
-    const port = parseInt(process.env.PORT || '5000', 10);
-
-    httpServer.listen(port, "0.0.0.0", () => {
-      log(`🚀 AgisFL Server running on http://0.0.0.0:${port}`);
-      log(`📊 Dashboard: http://0.0.0.0:${port}/dashboard`);
-      log(`🔐 Default Login: admin / password123`);
-    });
-
-    // Graceful shutdown
-    process.on('SIGTERM', () => {
-      console.log('SIGTERM received. Shutting down gracefully...');
-      httpServer.close(() => {
-        console.log('Server closed');
-        process.exit(0);
-      });
-    });
-
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-})();
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🔄 Received SIGTERM, shutting down gracefully');
+  httpServer.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});

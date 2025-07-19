@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -37,7 +36,7 @@ function rateLimitMiddleware(req: any, res: any, next: any) {
   }
 
   const record = rateLimitStore.get(ip);
-  
+
   if (now > record.resetTime) {
     record.attempts = 0;
     record.resetTime = now + windowMs;
@@ -65,10 +64,10 @@ function simulateSendMFA(username: string, code: string) {
 router.post("/api/auth/login", rateLimitMiddleware, async (req, res) => {
   try {
     const { username, password, mfaCode, rememberMe } = loginSchema.parse(req.body);
-    
+
     if (username === DEMO_CREDENTIALS.username && password === DEMO_CREDENTIALS.password) {
       const requiresMFA = !mfaCode;
-      
+
       if (requiresMFA) {
         const code = generateMFACode();
         mfaStore.set(username, {
@@ -76,9 +75,9 @@ router.post("/api/auth/login", rateLimitMiddleware, async (req, res) => {
           expires: Date.now() + 300000,
           verified: false
         });
-        
+
         simulateSendMFA(username, code);
-        
+
         return res.json({
           requiresMFA: true,
           message: "MFA code sent. Check console for demo code.",
@@ -216,7 +215,7 @@ router.get("/api/threats", authenticateToken, (req, res) => {
   try {
     const threats = threatDetector.getAllThreats();
     const stats = threatDetector.getThreatStats();
-    
+
     res.json({
       threats,
       statistics: stats,
@@ -232,7 +231,7 @@ router.get("/api/network/metrics", authenticateToken, (req, res) => {
   try {
     const metrics = networkMonitor.getLatestMetrics();
     const topology = networkMonitor.getNetworkTopology();
-    
+
     res.json({
       metrics,
       topology,
@@ -249,7 +248,7 @@ router.get("/api/federated-learning/status", authenticateToken, (req, res) => {
     const status = flCoordinator.getStatus();
     const nodes = flCoordinator.getNodes();
     const trainingHistory = flCoordinator.getTrainingHistory();
-    
+
     res.json({
       status,
       nodes,
@@ -266,7 +265,7 @@ router.get("/api/system/metrics", authenticateToken, (req, res) => {
   try {
     const realMetrics = realSystemMonitor.getLatestMetrics();
     const health = realSystemMonitor.getSystemHealth();
-    
+
     res.json({
       metrics: realMetrics,
       health,
@@ -309,7 +308,7 @@ router.get("/api/security/scan", authenticateToken, async (req, res) => {
         ]
       }
     };
-    
+
     res.json(scanResults);
   } catch (error) {
     console.error("Security scan error:", error);
@@ -321,7 +320,7 @@ export function registerRoutes(app: any, httpServer?: any) {
   app.use(router);
 
   console.log("🔧 Starting monitoring services...");
-  
+
   try {
     systemMonitor.start();
     networkMonitor.start();
@@ -337,6 +336,6 @@ export function registerRoutes(app: any, httpServer?: any) {
     const wss = setupWebSocket(httpServer);
     return httpServer;
   }
-  
+
   return app;
 }

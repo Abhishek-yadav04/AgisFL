@@ -89,7 +89,7 @@ async function handleWebSocketMessage(ws: WebSocket, data: any) {
   try {
     switch (type) {
       case 'acknowledge_alert':
-        if (payload.alertId) {
+        if (payload?.alertId) {
           await storage.acknowledgeAlert(payload.alertId);
           await sendDashboardUpdate(ws);
           ws.send(JSON.stringify({ type: 'alert_acknowledged', alertId: payload.alertId }));
@@ -97,15 +97,124 @@ async function handleWebSocketMessage(ws: WebSocket, data: any) {
         break;
 
       case 'mitigate_threat':
-        if (payload.threatId) {
-          await threatDetector.mitigateThreat(payload.threatId);
+        if (payload?.threatId) {
+          // Find threat and mark as mitigated
+          const threats = threatDetector.getAllThreats();
+          const threat = threats.find(t => t.id === payload.threatId);
+          if (threat) {
+            threat.mitigated = true;
+            await sendDashboardUpdate(ws);
+            ws.send(JSON.stringify({ type: 'threat_mitigated', threatId: payload.threatId }));
+          } else {
+            ws.send(JSON.stringify({ type: 'error', message: 'Threat not found' }));
+          }
+        }
+        break;
+
+      case 'start_fl_training':
+        try {
+          flCoordinator.start();
           await sendDashboardUpdate(ws);
-          ws.send(JSON.stringify({ type: 'threat_mitigated', threatId: payload.threatId }));
+          ws.send(JSON.stringify({ type: 'fl_training_started', message: 'Federated learning started' }));
+        } catch (error) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Failed to start FL training' }));
+        }
+        break;
+
+      case 'pause_fl_training':
+        try {
+          flCoordinator.stop();
+          await sendDashboardUpdate(ws);
+          ws.send(JSON.stringify({ type: 'fl_training_paused', message: 'Federated learning paused' }));
+        } catch (error) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Failed to pause FL training' }));
+        }
+        break;
+
+      case 'reset_fl_training':
+        try {
+          flCoordinator.stop();
+          // Reset training state
+          setTimeout(() => {
+            flCoordinator.start();
+          }, 1000);
+          await sendDashboardUpdate(ws);
+          ws.send(JSON.stringify({ type: 'fl_training_reset', message: 'Federated learning reset' }));
+        } catch (error) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Failed to reset FL training' }));
+        }
+        break;
+
+      case 'add_fl_client':
+        if (payload?.clientId) {
+          try {
+            await flCoordinator.addClient(payload.clientId);
+            await sendDashboardUpdate(ws);
+            ws.send(JSON.stringify({ type: 'fl_client_added', clientId: payload.clientId }));
+          } catch (error) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Failed to add FL client' }));
+          }
+        }
+        break;
+
+      case 'remove_fl_client':
+        if (payload?.clientId) {
+          try {
+            await flCoordinator.removeClient(payload.clientId);
+            await sendDashboardUpdate(ws);
+            ws.send(JSON.stringify({ type: 'fl_client_removed', clientId: payload.clientId }));
+          } catch (error) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Failed to remove FL client' }));
+          }
         }
         break;
 
       case 'request_update':
         await sendDashboardUpdate(ws);
+        break;
+
+      case 'request_fl_data':
+        try {
+          const status = flCoordinator.getStatus();
+          const clients = await flCoordinator.getClients();
+          const currentModel = await flCoordinator.getCurrentModel();
+          const trainingHistory = flCoordinator.getTrainingHistory();
+
+          ws.send(JSON.stringify({
+            type: 'fl_data_update',
+            data: {
+              isRunning: status.isRunning,
+              trainingRound: status.currentRound,
+              overallAccuracy: status.modelAccuracy,
+              participantCount: status.activeClients,
+              clients: clients,
+              currentModel: currentModel,
+              trainingHistory: trainingHistory,
+              lastUpdate: status.lastUpdate
+            }
+          }));
+        } catch (error) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Failed to fetch FL data' }));
+        }
+        break;
+
+      case 'request_threats':
+        try {
+          const activeThreats = threatDetector.getActiveThreats();
+          const allThreats = threatDetector.getAllThreats();
+          const stats = threatDetector.getThreatStats();
+
+          ws.send(JSON.stringify({
+            type: 'threats_update',
+            data: {
+              activeThreats: activeThreats,
+              allThreats: allThreats,
+              stats: stats
+            }
+          }));
+        } catch (error) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Failed to fetch threat data' }));
+        }
         break;
 
       case 'ping':

@@ -2,23 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
   }
   
   body {
-    @apply bg-gray-900 text-white antialiased;
+    @apply antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  * {
+    @apply border-border;
   }
 }
 
 @layer components {
   .metric-card {
-    @apply transition-all duration-300 hover:scale-105 hover:shadow-lg;
+    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-xl;
   }
   
   .chart-container {
-    @apply relative;
+    @apply relative overflow-hidden;
   }
   
   .status-indicator {
@@ -26,7 +34,7 @@
   }
   
   .status-active {
-    @apply bg-green-500;
+    @apply bg-green-500 animate-pulse;
   }
   
   .status-warning {
@@ -34,50 +42,176 @@
   }
   
   .status-error {
-    @apply bg-red-500;
+    @apply bg-red-500 animate-pulse;
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-xl bg-white/10 border border-white/20;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-1;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
   }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-800;
+  @apply bg-gray-100 dark:bg-gray-800 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-600 rounded-full;
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-gray-400 dark:hover:bg-gray-500;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-500;
+::-webkit-scrollbar-corner {
+  @apply bg-transparent;
 }
 
-/* Loading animations */
-@keyframes pulse {
+/* Custom animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes pulse-slow {
   0%, 100% {
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.7;
   }
 }
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Chart styles */
+/* Loading states */
+.skeleton {
+  @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
+}
+
+/* Chart customizations */
 .recharts-wrapper {
-  @apply text-white;
+  @apply text-gray-700 dark:text-gray-300;
 }
 
 .recharts-cartesian-axis-tick-value {
-  @apply fill-gray-400;
+  @apply fill-gray-500 dark:fill-gray-400;
 }
 
 .recharts-legend-item-text {
-  @apply text-gray-300;
+  @apply text-gray-700 dark:text-gray-300;
+}
+
+/* Table enhancements */
+.table-row-hover {
+  @apply hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200;
+}
+
+/* Button variants */
+.btn-ghost {
+  @apply bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors duration-200;
+}
+
+.btn-outline {
+  @apply border border-gray-300 dark:border-gray-600 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors duration-200;
+}
+
+/* Status indicators */
+.status-dot {
+  @apply w-2 h-2 rounded-full inline-block;
+}
+
+.status-dot-green {
+  @apply bg-green-500 animate-pulse;
+}
+
+.status-dot-yellow {
+  @apply bg-yellow-500;
+}
+
+.status-dot-red {
+  @apply bg-red-500;
+}
+
+/* Backdrop blur utilities */
+.backdrop-blur-glass {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Performance optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break {
+    page-break-after: always;
+  }
 }

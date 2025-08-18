@@ -7,7 +7,7 @@ export COLLEGE_PROJECT=true
 export JWT_SECRET="agisfl-college-project-2025-secure-jwt-secret-key"
 
 # --- Helper Functions ---
-function print_header() {
+print_header() {
     echo "========================================"
     echo "    AgisFL Enterprise Platform v1.1"
     echo "    Universal Startup Script"

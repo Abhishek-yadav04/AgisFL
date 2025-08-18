@@ -1,0 +1,21 @@
+{
+  "name": "agisfl-enterprise",
+  "version": "3.1.0",
+  "private": true,
+  "description": "AgisFL Enterprise - Federated Learning & Intrusion Detection System",
+  "scripts": {
+    "install:frontend": "cd frontend && npm install",
+    "install:all": "npm run install:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "dev:frontend": "cd frontend && npm run dev",
+    "start": "cd backend && python main.py",
+    "dev": "concurrently \"npm run dev:frontend\" \"cd backend && python main.py\"",
+    "build": "npm run build:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}

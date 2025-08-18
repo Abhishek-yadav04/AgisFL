@@ -153,7 +153,8 @@ if "%MODE%"=="3" (
     uvicorn main:app --host 127.0.0.1 --port 8001 --reload --log-level info
 ) else if "%MODE%"=="5" (
     echo [DESKTOP] Starting desktop application...
-    cd ../frontend
+    popd
+    pushd frontend >nul 2>&1
     if exist "dist-electron\win-unpacked\AgisFL Enterprise.exe" (
         echo [DESKTOP] Starting built desktop application...
         start "" "dist-electron\win-unpacked\AgisFL Enterprise.exe"
@@ -172,6 +173,7 @@ if "%MODE%"=="3" (
             exit /b 1
         )
     )
+    popd
 ) else (
     echo [PROD] Starting production server...
     rem Prefer uvicorn if installed (better performance & reload options disabled)
@@ -205,7 +207,7 @@ if "%MODE%"=="1" (
 :: ------------------------------------------------------------
 :build_frontend
 pushd frontend >nul 2>&1 || (echo [ERROR] Frontend directory not found! & exit /b 1)
-if not exist node_modules (
+if not exist "node_modules" (
     echo [FRONTEND] Installing dependencies ^(first run^)...
     call npm install || (echo [ERROR] npm install failed & popd & exit /b 1)
 ) else (

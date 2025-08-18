@@ -11,7 +11,9 @@ import {
   RefreshCw,
   Zap,
   Shield,
-  Activity
+  Activity,
+  Brain,
+  Target
 } from 'lucide-react';
 import { useAppStore } from '../../stores/appStore';
 import { clsx } from 'clsx';

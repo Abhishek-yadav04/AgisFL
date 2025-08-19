@@ -17,14 +17,22 @@ function startBackend() {
     const backendPath = path.join(__dirname, '../../backend');
     const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
     
+    // Set up proper Python environment
+    const env = {
+      ...process.env,
+      PYTHONPATH: backendPath,
+      PYTHONUNBUFFERED: '1'
+    };
+    
     backendProcess = spawn(pythonCmd, ['main_minimal.py'], {
       cwd: backendPath,
-      stdio: ['pipe', 'pipe', 'pipe']
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: env
     });
     
     backendProcess.stdout.on('data', (data) => {
       console.log(`[BACKEND] ${data.toString()}`);
-      if (data.toString().includes('Uvicorn running')) {
+      if (data.toString().includes('Uvicorn running') || data.toString().includes('Application startup complete')) {
         backendReady = true;
         resolve();
       }
@@ -32,11 +40,20 @@ function startBackend() {
     
     backendProcess.stderr.on('data', (data) => {
       console.error(`[BACKEND ERROR] ${data.toString()}`);
+      // Don't reject on stderr as some libraries output warnings there
     });
     
     backendProcess.on('close', (code) => {
       console.log(`[BACKEND] Process exited with code ${code}`);
       backendReady = false;
+      if (code !== 0 && code !== null) {
+        console.error(`[BACKEND] Backend process failed with exit code ${code}`);
+      }
+    });
+    
+    backendProcess.on('error', (error) => {
+      console.error(`[BACKEND] Failed to start backend process:`, error);
+      reject(error);
     });
     
     // Timeout after 30 seconds

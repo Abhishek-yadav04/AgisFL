@@ -2,6 +2,9 @@
 # These are Python dependencies that might be needed for the desktop app
 
 # Core dependencies
+fastapi==0.104.1
+uvicorn==0.24.0
+numpy==1.24.3
 requests==2.32.3
 websockets==12.0
 python-dotenv==1.0.1

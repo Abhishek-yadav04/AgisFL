@@ -118,10 +118,10 @@ function createWindow() {
         await mainWindow.webContents.session.clearCache();
       } catch (_) { /* ignore */ }
       const cacheBust = `v=${Date.now()}`;
-      mainWindow.loadURL(`http://127.0.0.1:8001/app?military=true&${cacheBust}`).catch((err) => {
+      mainWindow.loadURL(`http://127.0.0.1:8001/app?${cacheBust}`).catch((err) => {
         console.error('[ELECTRON] Failed to load dashboard:', err);
-        // Try direct military template
-        mainWindow.loadURL('http://127.0.0.1:8001/military').catch(() => {
+        // Try direct app route
+        mainWindow.loadURL('http://127.0.0.1:8001/app').catch(() => {
           loadFallback();
         });
       });

@@ -9,3 +9,7 @@ python-dotenv==1.0.1
 # Optional: For enhanced desktop features
 pywin32>=306; sys_platform == "win32"
 psutil==6.1.0
+
+# Backend dependencies for desktop mode
+scapy==2.5.0
+flwr==1.8.0

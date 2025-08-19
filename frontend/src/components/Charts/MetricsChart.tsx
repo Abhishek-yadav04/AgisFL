@@ -134,8 +134,24 @@ const MetricsChart: React.FC<MetricsChartProps> = ({
       if (ctx) {
         const gradientFill = ctx.createLinearGradient(0, 0, 0, height);
         const color = dataset.borderColor || `hsl(${index * 60}, 70%, 50%)`;
-        gradientFill.addColorStop(0, `${color}40`);
-        gradientFill.addColorStop(1, `${color}00`);
+        
+        // Convert color to rgba format for proper gradient
+        let startColor, endColor;
+        if (color.startsWith('rgb(')) {
+          const rgbValues = color.slice(4, -1);
+          startColor = `rgba(${rgbValues}, 0.25)`;
+          endColor = `rgba(${rgbValues}, 0)`;
+        } else if (color.startsWith('hsl(')) {
+          startColor = color.replace('hsl(', 'hsla(').replace(')', ', 0.25)');
+          endColor = color.replace('hsl(', 'hsla(').replace(')', ', 0)');
+        } else {
+          // Fallback for hex colors or other formats
+          startColor = `${color}40`;
+          endColor = `${color}00`;
+        }
+        
+        gradientFill.addColorStop(0, startColor);
+        gradientFill.addColorStop(1, endColor);
         
         return {
           ...dataset,

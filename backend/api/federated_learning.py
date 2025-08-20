@@ -1,8 +1,8 @@
-"""Federated Learning API endpoints (Upgraded)"""
+"""Federated Learning API endpoints (Upgraded In-File Version)"""
 
 from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisconnect
 from fastapi.security.api_key import APIKeyHeader
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from pydantic import BaseModel, Field
 import structlog
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/fl", tags=["Federated Learning"])
 
 # ------------------ AUTH ------------------
 API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
-VALID_KEYS = {"admin-key": "admin", "user-key": "user"}  # replace with DB later
+VALID_KEYS = {"admin-key": "admin", "user-key": "user"}  # TODO: replace with DB later
 
 async def get_current_user(api_key: str = Depends(API_KEY_HEADER)) -> str:
     if api_key not in VALID_KEYS:
@@ -35,27 +35,38 @@ class StatusResponse(BaseModel):
     total_rounds: int
     metrics: Dict[str, Any]
 
-# ------------------ WEBSOCKET ------------------
-active_connections: List[WebSocket] = []
+# ------------------ WEBSOCKET MANAGER ------------------
+class WSConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
 
-async def notify_ws_clients(message: Dict[str, Any]):
-    for conn in list(active_connections):
-        try:
-            await conn.send_json(message)
-        except Exception:
-            active_connections.remove(conn)
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        logger.info("WS connected", total=len(self.active_connections))
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+            logger.info("WS disconnected", total=len(self.active_connections))
+
+    async def broadcast(self, message: Dict[str, Any]):
+        for conn in list(self.active_connections):
+            try:
+                await conn.send_json(message)
+            except Exception:
+                self.disconnect(conn)
+
+ws_manager = WSConnectionManager()
 
 @router.websocket("/ws/training")
 async def training_progress_ws(websocket: WebSocket):
-    await websocket.accept()
-    active_connections.append(websocket)
-    logger.info("WebSocket connected", total=len(active_connections))
+    await ws_manager.connect(websocket)
     try:
         while True:
             await websocket.receive_text()  # keep alive
     except WebSocketDisconnect:
-        active_connections.remove(websocket)
-        logger.info("WebSocket disconnected", total=len(active_connections))
+        ws_manager.disconnect(websocket)
 
 # ------------------ ROUTES ------------------
 @router.get("/status", response_model=StatusResponse)
@@ -70,7 +81,7 @@ async def start_fl_training(req: TrainingRequest, user: str = Depends(get_curren
     """Start FL training"""
     if not app_state.fl_engine:
         raise HTTPException(status_code=503, detail="FL engine not available")
-    await app_state.fl_engine.start_training(req.rounds, callback=notify_ws_clients)
+    await app_state.fl_engine.start_training(req.rounds, callback=ws_manager.broadcast)
     logger.info("Training started", rounds=req.rounds, user=user)
     return {"message": "FL training started", "rounds": req.rounds}
 
@@ -80,9 +91,29 @@ async def stop_fl_training(user: str = Depends(get_current_user)):
     if not app_state.fl_engine:
         raise HTTPException(status_code=503, detail="FL engine not available")
     app_state.fl_engine.stop_training()
-    await notify_ws_clients({"event": "stopped"})
+    await ws_manager.broadcast({"event": "stopped"})
     logger.info("Training stopped", user=user)
     return {"message": "FL training stopped"}
+
+@router.post("/pause")
+async def pause_fl_training(user: str = Depends(get_current_user)):
+    """Pause FL training"""
+    if not app_state.fl_engine:
+        raise HTTPException(status_code=503, detail="FL engine not available")
+    app_state.fl_engine.pause_training()
+    await ws_manager.broadcast({"event": "paused"})
+    logger.info("Training paused", user=user)
+    return {"message": "FL training paused"}
+
+@router.post("/resume")
+async def resume_fl_training(user: str = Depends(get_current_user)):
+    """Resume FL training"""
+    if not app_state.fl_engine:
+        raise HTTPException(status_code=503, detail="FL engine not available")
+    app_state.fl_engine.resume_training()
+    await ws_manager.broadcast({"event": "resumed"})
+    logger.info("Training resumed", user=user)
+    return {"message": "FL training resumed"}
 
 @router.get("/strategies")
 async def get_fl_strategies(user: str = Depends(get_current_user)) -> Dict[str, Any]:
@@ -113,7 +144,7 @@ async def set_fl_strategy(strategy_name: str, user: str = Depends(get_current_us
     try:
         app_state.fl_engine.set_strategy(strategy_name)
         logger.info("Strategy changed", strategy=strategy_name, user=user)
-        await notify_ws_clients({"event": "strategy_changed", "strategy": strategy_name})
+        await ws_manager.broadcast({"event": "strategy_changed", "strategy": strategy_name})
         return {"message": f"Strategy set to {strategy_name}"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

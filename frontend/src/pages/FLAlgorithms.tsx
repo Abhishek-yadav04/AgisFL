@@ -1,361 +1,263 @@
-import React, { useState, useEffect } from 'react';
-import { Brain, TrendingUp, Users, Shield, BarChart3, Play, Pause, Settings } from 'lucide-react';
+// frontend/src/pages/FLAlgorithms.tsx
+import React, { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import { Download, Brain, Activity, Gauge, Filter } from "lucide-react";
+import toast from "react-hot-toast";
 
-interface FLAlgorithm {
+import { researchAPI } from "../services/api";
+
+// -------------------
+// Types
+// -------------------
+type Algorithm = {
   name: string;
-  category: string;
-  description: string;
-  implementation_status: string;
-  performance_metrics: {
-    convergence_rate: number;
-    communication_efficiency: number;
-    privacy_preservation: number;
+  description?: string;
+  implementation_status?: "production" | "testing" | "experimental" | string;
+  performance_metrics?: {
+    accuracy?: number;
+    convergence_rate?: number;
+    communication_efficiency?: number;
+    robustness?: number;
   };
-  use_cases: string[];
-}
+};
 
-const FLAlgorithms: React.FC = () => {
-  const [algorithms, setAlgorithms] = useState<FLAlgorithm[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState<FLAlgorithm | null>(null);
-  const [activeTraining, setActiveTraining] = useState<string | null>(null);
+// -------------------
+// Helpers
+// -------------------
+const formatPct = (v?: number) =>
+  v === undefined || v === null ? "-" : `${(v * 100).toFixed(1)}%`;
 
-  useEffect(() => {
-    fetchAlgorithms();
-  }, []);
-
-  const fetchAlgorithms = async () => {
-    try {
-      const response = await fetch('/api/research/enterprise/research-algorithms');
-      if (response.ok) {
-        const data = await response.json();
-        setAlgorithms(data.algorithms || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch algorithms:', error);
-      // Fallback data for demo
-      setAlgorithms([
-        {
-          name: "FedAvg",
-          category: "Aggregation",
-          description: "Federated Averaging - The foundational FL algorithm that averages model parameters across clients",
-          implementation_status: "PRODUCTION",
-          performance_metrics: {
-            convergence_rate: 0.87,
-            communication_efficiency: 0.88,
-            privacy_preservation: 0.80
-          },
-          use_cases: ["Base FL Training", "Model Aggregation", "Client Coordination"]
-        },
-        {
-          name: "FedProx",
-          category: "Optimization",
-          description: "Federated Proximal Optimization for handling heterogeneous data distributions",
-          implementation_status: "PRODUCTION",
-          performance_metrics: {
-            convergence_rate: 0.89,
-            communication_efficiency: 0.92,
-            privacy_preservation: 0.85
-          },
-          use_cases: ["IDS Model Training", "Anomaly Detection", "Threat Classification"]
-        },
-        {
-          name: "FedNova",
-          category: "Normalization",
-          description: "Federated Learning with Normalized Averaging for improved convergence",
-          implementation_status: "RESEARCH",
-          performance_metrics: {
-            convergence_rate: 0.91,
-            communication_efficiency: 0.89,
-            privacy_preservation: 0.87
-          },
-          use_cases: ["Advanced FL", "Research Projects", "Experimental Deployments"]
-        }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const startTraining = async (algorithmName: string) => {
-    setActiveTraining(algorithmName);
-    // Simulate training start
-    setTimeout(() => {
-      setActiveTraining(null);
-    }, 3000);
-  };
-
-
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PRODUCTION': return 'bg-green-600/20 text-green-400 border-green-500/30';
-      case 'RESEARCH': return 'bg-yellow-600/20 text-yellow-400 border-yellow-500/30';
-      case 'PLANNING': return 'bg-blue-600/20 text-blue-400 border-blue-500/30';
-      default: return 'bg-gray-600/20 text-gray-400 border-gray-500/30';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
+const exportToCSV = (rows: Algorithm[], filename = "fl_algorithms.csv") => {
+  if (!rows?.length) {
+    toast("No algorithms to export");
+    return;
   }
+  const headers = [
+    "name",
+    "description",
+    "implementation_status",
+    "accuracy",
+    "convergence_rate",
+    "communication_efficiency",
+    "robustness",
+  ];
+  const csv = [
+    headers.join(","),
+    ...rows.map((r) =>
+      headers
+        .map((h) => {
+          let val: any =
+            h in (r.performance_metrics || {})
+              ? (r.performance_metrics as any)[h]
+              : (r as any)[h];
+          if (val === undefined || val === null) return '""';
+          const s = String(val).replace(/"/g, '""');
+          return `"${s}"`;
+        })
+        .join(",")
+    ),
+  ].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast.success("Exported CSV");
+};
+
+// -------------------
+// Component
+// -------------------
+const FLAlgorithms: React.FC = () => {
+  const { data: algorithmsResp, isLoading } = useQuery(
+    ["research-algorithms"],
+    () => researchAPI.getEnterpriseAlgorithms(),
+    { retry: 1 }
+  );
+
+  const algorithms: Algorithm[] =
+    algorithmsResp?.data?.algorithms ?? [];
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortKey, setSortKey] = useState<string>("accuracy");
+  const [selectedAlg, setSelectedAlg] = useState<Algorithm | null>(null);
+
+  const filtered = useMemo(() => {
+    let list = algorithms;
+    if (search) {
+      list = list.filter((a) =>
+        a.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    if (statusFilter !== "all") {
+      list = list.filter(
+        (a) =>
+          (a.implementation_status ?? "other").toLowerCase() ===
+          statusFilter.toLowerCase()
+      );
+    }
+    if (sortKey) {
+      list = [...list].sort((a, b) => {
+        const av = a.performance_metrics?.[sortKey as keyof Algorithm] ?? 0;
+        const bv = b.performance_metrics?.[sortKey as keyof Algorithm] ?? 0;
+        return Number(bv) - Number(av);
+      });
+    }
+    return list;
+  }, [algorithms, search, statusFilter, sortKey]);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Federated Learning Algorithms</h1>
-          <p className="text-gray-400 mt-2">Advanced FL algorithms for enterprise IDS applications</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-transparent bg-clip-text">
+            Federated Learning Algorithms
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Explore and evaluate available FL algorithms with performance metrics
+          </p>
         </div>
-        <div className="flex items-center space-x-3">
-          <button className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-            <Settings className="w-5 h-5" />
-            <span>Configure</span>
+        <div className="flex flex-wrap gap-2">
+          <input
+            type="text"
+            placeholder="Search algorithms..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-3 py-2 border rounded-lg"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border rounded-lg"
+          >
+            <option value="all">All Status</option>
+            <option value="production">Production</option>
+            <option value="testing">Testing</option>
+            <option value="experimental">Experimental</option>
+          </select>
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value)}
+            className="px-3 py-2 border rounded-lg"
+          >
+            <option value="accuracy">Sort by Accuracy</option>
+            <option value="convergence_rate">Sort by Convergence</option>
+            <option value="communication_efficiency">
+              Sort by Efficiency
+            </option>
+            <option value="robustness">Sort by Robustness</option>
+          </select>
+          <button
+            onClick={() => exportToCSV(filtered)}
+            className="px-4 py-2 rounded-lg border flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" /> Export
           </button>
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center space-x-3">
-            <Brain className="w-8 h-8 text-blue-400" />
-            <div>
-              <p className="text-gray-400 text-sm">Total Algorithms</p>
-              <p className="text-2xl font-bold text-white">{algorithms.length}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center space-x-3">
-            <TrendingUp className="w-8 h-8 text-green-400" />
-            <div>
-              <p className="text-gray-400 text-sm">Production Ready</p>
-              <p className="text-2xl font-bold text-white">
-                {algorithms.filter(alg => alg.implementation_status === 'PRODUCTION').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center space-x-3">
-            <Users className="w-8 h-8 text-purple-400" />
-            <div>
-              <p className="text-gray-400 text-sm">Active Training</p>
-              <p className="text-2xl font-bold text-white">
-                {activeTraining ? 1 : 0}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center space-x-3">
-            <Shield className="w-8 h-8 text-orange-400" />
-            <div>
-              <p className="text-gray-400 text-sm">Avg Privacy Score</p>
-              <p className="text-2xl font-bold text-white">
-                {Math.round(algorithms.reduce((sum, alg) => sum + alg.performance_metrics.privacy_preservation, 0) / algorithms.length * 100)}%
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Algorithms Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {algorithms.map((algorithm) => (
-          <div key={algorithm.name} className="bg-gray-800 rounded-lg border border-gray-700 p-6 hover:border-blue-500/50 transition-colors">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-2">{algorithm.name}</h3>
-                <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusBadge(algorithm.implementation_status)}`}>
-                  {algorithm.implementation_status}
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setSelectedAlgorithm(algorithm)}
-                  className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-600/20 rounded-lg transition-colors"
-                  title="View Details"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => startTraining(algorithm.name)}
-                  disabled={activeTraining === algorithm.name}
-                  className={`p-2 rounded-lg transition-colors ${
-                    activeTraining === algorithm.name
-                      ? 'bg-yellow-600/20 text-yellow-400'
-                      : 'text-green-400 hover:text-green-300 hover:bg-green-600/20'
+      {/* Grid of algorithms */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isLoading && <p>Loading algorithms...</p>}
+        {!isLoading &&
+          filtered.map((alg) => (
+            <motion.div
+              key={alg.name}
+              whileHover={{ scale: 1.02 }}
+              className="p-5 rounded-xl border bg-white shadow-sm hover:shadow-md cursor-pointer"
+              onClick={() => setSelectedAlg(alg)}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold">{alg.name}</h3>
+                <span
+                  className={`px-2 py-1 text-xs rounded-full ${
+                    alg.implementation_status === "production"
+                      ? "bg-green-100 text-green-700"
+                      : alg.implementation_status === "testing"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-yellow-100 text-yellow-700"
                   }`}
-                  title={activeTraining === algorithm.name ? 'Training...' : 'Start Training'}
                 >
-                  {activeTraining === algorithm.name ? (
-                    <Pause className="w-4 h-4" />
-                  ) : (
-                    <Play className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <p className="text-gray-300 text-sm mb-4">{algorithm.description}</p>
-
-            <div className="mb-4">
-              <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Category</p>
-              <p className="text-white text-sm">{algorithm.category}</p>
-            </div>
-
-            <div className="mb-4">
-              <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Performance Metrics</p>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <p className="text-xs text-gray-400">Convergence</p>
-                  <p className="text-sm font-medium text-green-400">
-                    {(algorithm.performance_metrics.convergence_rate * 100).toFixed(0)}%
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-gray-400">Efficiency</p>
-                  <p className="text-sm font-medium text-blue-400">
-                    {(algorithm.performance_metrics.communication_efficiency * 100).toFixed(0)}%
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-gray-400">Privacy</p>
-                  <p className="text-sm font-medium text-purple-400">
-                    {(algorithm.performance_metrics.privacy_preservation * 100).toFixed(0)}%
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Use Cases</p>
-              <div className="flex flex-wrap gap-2">
-                {algorithm.use_cases.map((useCase, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded-full"
-                  >
-                    {useCase}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Algorithm Details Modal */}
-      {selectedAlgorithm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Algorithm Details</h3>
-              <button
-                onClick={() => setSelectedAlgorithm(null)}
-                className="text-gray-400 hover:text-gray-300"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Name</label>
-                <p className="text-white text-lg font-semibold">{selectedAlgorithm.name}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Category</label>
-                <p className="text-white">{selectedAlgorithm.category}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Description</label>
-                <p className="text-white">{selectedAlgorithm.description}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Implementation Status</label>
-                <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusBadge(selectedAlgorithm.implementation_status)}`}>
-                  {selectedAlgorithm.implementation_status}
+                  {alg.implementation_status ?? "N/A"}
                 </span>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Performance Metrics</label>
-                <div className="grid grid-cols-3 gap-4 mt-2">
-                  <div className="bg-gray-700 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-400">Convergence Rate</p>
-                    <p className="text-lg font-bold text-green-400">
-                      {(selectedAlgorithm.performance_metrics.convergence_rate * 100).toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="bg-gray-700 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-400">Communication Efficiency</p>
-                    <p className="text-lg font-bold text-blue-400">
-                      {(selectedAlgorithm.performance_metrics.communication_efficiency * 100).toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="bg-gray-700 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-400">Privacy Preservation</p>
-                    <p className="text-lg font-bold text-purple-400">
-                      {(selectedAlgorithm.performance_metrics.privacy_preservation * 100).toFixed(1)}%
-                    </p>
-                  </div>
+              <p className="text-sm text-gray-600 mb-4">
+                {alg.description || "No description"}
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2 bg-gray-50 rounded">
+                  Accuracy: {formatPct(alg.performance_metrics?.accuracy)}
+                </div>
+                <div className="p-2 bg-gray-50 rounded">
+                  Conv.: {formatPct(alg.performance_metrics?.convergence_rate)}
+                </div>
+                <div className="p-2 bg-gray-50 rounded">
+                  Efficiency:{" "}
+                  {formatPct(alg.performance_metrics?.communication_efficiency)}
+                </div>
+                <div className="p-2 bg-gray-50 rounded">
+                  Robustness: {formatPct(alg.performance_metrics?.robustness)}
                 </div>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Use Cases</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {selectedAlgorithm.use_cases.map((useCase, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-blue-600/20 text-blue-400 text-sm rounded-full border border-blue-500/30"
-                    >
-                      {useCase}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex space-x-3 pt-4">
+            </motion.div>
+          ))}
+      </div>
+
+      {/* Details Modal */}
+      <AnimatePresence>
+        {selectedAlg && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-2xl shadow-lg max-w-lg w-full p-6"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">{selectedAlg.name}</h2>
                 <button
-                  onClick={() => startTraining(selectedAlgorithm.name)}
-                  disabled={activeTraining === selectedAlgorithm.name}
-                  className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  className="text-gray-500 hover:text-gray-700"
+                  onClick={() => setSelectedAlg(null)}
                 >
-                  {activeTraining === selectedAlgorithm.name ? (
-                    <>
-                      <Pause className="w-4 h-4" />
-                      <span>Training...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4" />
-                      <span>Start Training</span>
-                    </>
+                  ✕
+                </button>
+              </div>
+              <p className="text-gray-600 mb-4">
+                {selectedAlg.description ?? "No description available"}
+              </p>
+              <div className="space-y-2 text-sm">
+                <div>Status: {selectedAlg.implementation_status}</div>
+                <div>
+                  Accuracy: {formatPct(selectedAlg.performance_metrics?.accuracy)}
+                </div>
+                <div>
+                  Convergence:{" "}
+                  {formatPct(selectedAlg.performance_metrics?.convergence_rate)}
+                </div>
+                <div>
+                  Efficiency:{" "}
+                  {formatPct(
+                    selectedAlg.performance_metrics?.communication_efficiency
                   )}
-                </button>
-                <button
-                  onClick={() => setSelectedAlgorithm(null)}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  Close
-                </button>
+                </div>
+                <div>
+                  Robustness:{" "}
+                  {formatPct(selectedAlg.performance_metrics?.robustness)}
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

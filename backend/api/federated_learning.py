@@ -1,140 +1,119 @@
-"""
-Federated Learning API Endpoints — AgisFL (upgraded)
-- JWT/RBAC protected
-- Structured logging via structlog
-- WebSocket: /api/fl/ws/training for real-time progress
-"""
+"""Federated Learning API endpoints (Upgraded)"""
 
-from fastapi import APIRouter, HTTPException, Query, Depends, WebSocket, WebSocketDisconnect
-from typing import Dict, Any, Set
+from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisconnect
+from fastapi.security.api_key import APIKeyHeader
+from typing import Dict, Any, List, Optional
+from pydantic import BaseModel, Field
 import structlog
 
-from ..app_state import app_state  # keep your existing pattern if different
-from ..security.auth import get_current_user, require_role
-from ..schemas.fl import TrainingStatus, StrategyListResponse, StrategyInfo
-from ..services.ws_manager import ws_manager
+from ..main import app_state
 
 logger = structlog.get_logger()
 router = APIRouter(prefix="/api/fl", tags=["Federated Learning"])
 
+# ------------------ AUTH ------------------
+API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
+VALID_KEYS = {"admin-key": "admin", "user-key": "user"}  # replace with DB later
 
-def _engine():
-    engine = getattr(app_state, "fl_engine", None)
-    if not engine:
-        raise HTTPException(status_code=503, detail="FL engine not available")
-    return engine
+async def get_current_user(api_key: str = Depends(API_KEY_HEADER)) -> str:
+    if api_key not in VALID_KEYS:
+        raise HTTPException(status_code=401, detail="Invalid or missing API Key")
+    return VALID_KEYS[api_key]
 
+# ------------------ SCHEMAS ------------------
+class TrainingRequest(BaseModel):
+    rounds: int = Field(50, gt=0, le=1000, description="Number of FL training rounds")
 
-@router.get("/status", response_model=TrainingStatus)
-async def get_fl_status(user: Dict = Depends(get_current_user)) -> Dict[str, Any]:
-    """Return FL status/metrics."""
-    engine = _engine()
-    try:
-        metrics = await engine.get_current_metrics()
-        logger.info("fl.status", user=user.get("username"), **{k: v for k, v in metrics.items() if k in ("status","round","total_rounds","accuracy","loss")})
-        return TrainingStatus(**metrics)
-    except Exception as e:
-        logger.exception("fl.status.error", error=str(e))
-        raise HTTPException(status_code=500, detail="Error fetching FL status")
+class StrategyResponse(BaseModel):
+    name: str
+    description: str
+    suitable_for: List[str]
+    performance: Dict[str, float]
 
+class StatusResponse(BaseModel):
+    current_round: int
+    total_rounds: int
+    metrics: Dict[str, Any]
 
-@router.post("/start")
-async def start_fl_training(
-    rounds: int = Query(50, ge=1, le=10000, description="Number of FL rounds"),
-    user: Dict = Depends(require_role("admin")),
-) -> Dict[str, Any]:
-    """Start FL training (admin only)."""
-    engine = _engine()
-    try:
-        await engine.start_training(rounds)
-        logger.info("fl.start", user=user.get("username"), rounds=rounds)
-        return {"message": "FL training started", "rounds": rounds}
-    except Exception as e:
-        logger.exception("fl.start.error", error=str(e))
-        raise HTTPException(status_code=500, detail="Error starting training")
+# ------------------ WEBSOCKET ------------------
+active_connections: List[WebSocket] = []
 
+async def notify_ws_clients(message: Dict[str, Any]):
+    for conn in list(active_connections):
+        try:
+            await conn.send_json(message)
+        except Exception:
+            active_connections.remove(conn)
 
-@router.post("/stop")
-async def stop_fl_training(user: Dict = Depends(require_role("admin"))) -> Dict[str, Any]:
-    """Stop ongoing FL training (admin only)."""
-    engine = _engine()
-    try:
-        engine.stop_training()
-        logger.info("fl.stop", user=user.get("username"))
-        return {"message": "FL training stopped"}
-    except Exception as e:
-        logger.exception("fl.stop.error", error=str(e))
-        raise HTTPException(status_code=500, detail="Error stopping training")
-
-
-@router.get("/strategies", response_model=StrategyListResponse)
-async def get_fl_strategies(user: Dict = Depends(get_current_user)) -> Dict[str, Any]:
-    """Get available strategies + current."""
-    engine = _engine()
-    try:
-        if hasattr(engine, "get_available_strategies"):
-            strategies = engine.get_available_strategies()
-        else:
-            strategies = [
-                {
-                    "name": "FedAvg",
-                    "description": "Federated Averaging - standard FL algorithm",
-                    "suitable_for": ["IID data", "Balanced clients"],
-                    "performance": {"convergence": 0.85, "communication": 0.90},
-                },
-                {
-                    "name": "FedProx",
-                    "description": "Federated Proximal - handles heterogeneous data",
-                    "suitable_for": ["Non-IID data", "System heterogeneity"],
-                    "performance": {"convergence": 0.88, "communication": 0.85},
-                },
-            ]
-        current = getattr(engine, "current_strategy", None) or "FedAvg"
-        return StrategyListResponse(
-            strategies=[StrategyInfo(**s) for s in strategies],
-            current_strategy=current,
-        )
-    except Exception as e:
-        logger.exception("fl.strategies.error", error=str(e))
-        raise HTTPException(status_code=500, detail="Error fetching strategies")
-
-
-@router.post("/strategy/{strategy_name}")
-async def set_fl_strategy(strategy_name: str, user: Dict = Depends(require_role("admin"))) -> Dict[str, Any]:
-    """Set strategy (admin only)."""
-    engine = _engine()
-    try:
-        if hasattr(engine, "get_available_strategies"):
-            names = {s["name"] for s in engine.get_available_strategies()}
-            if strategy_name not in names:
-                raise HTTPException(status_code=400, detail=f"Unknown strategy '{strategy_name}'")
-        engine.set_strategy(strategy_name)
-        logger.info("fl.strategy.set", user=user.get("username"), strategy=strategy_name)
-        return {"message": f"Strategy set to {strategy_name}"}
-    except HTTPException:
-        raise
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.exception("fl.strategy.error", error=str(e))
-        raise HTTPException(status_code=500, detail="Error updating strategy")
-
-
-# ---------------------------
-# WebSocket: live training progress
-# ---------------------------
 @router.websocket("/ws/training")
-async def training_ws(ws: WebSocket):
-    """
-    Live progress stream.
-    Your engine should call: await ws_manager.broadcast({...}) during training.
-    """
-    await ws_manager.connect(ws)
+async def training_progress_ws(websocket: WebSocket):
+    await websocket.accept()
+    active_connections.append(websocket)
+    logger.info("WebSocket connected", total=len(active_connections))
     try:
         while True:
-            # Keep-alive: ignore messages from client; this is broadcast-only.
-            await ws.receive_text()
+            await websocket.receive_text()  # keep alive
     except WebSocketDisconnect:
-        ws_manager.disconnect(ws)
-    except Exception:
-        ws_manager.disconnect(ws)
+        active_connections.remove(websocket)
+        logger.info("WebSocket disconnected", total=len(active_connections))
+
+# ------------------ ROUTES ------------------
+@router.get("/status", response_model=StatusResponse)
+async def get_fl_status(user: str = Depends(get_current_user)):
+    """Get FL system status"""
+    if not app_state.fl_engine:
+        raise HTTPException(status_code=503, detail="FL engine not available")
+    return await app_state.fl_engine.get_current_metrics()
+
+@router.post("/start")
+async def start_fl_training(req: TrainingRequest, user: str = Depends(get_current_user)):
+    """Start FL training"""
+    if not app_state.fl_engine:
+        raise HTTPException(status_code=503, detail="FL engine not available")
+    await app_state.fl_engine.start_training(req.rounds, callback=notify_ws_clients)
+    logger.info("Training started", rounds=req.rounds, user=user)
+    return {"message": "FL training started", "rounds": req.rounds}
+
+@router.post("/stop")
+async def stop_fl_training(user: str = Depends(get_current_user)):
+    """Stop FL training"""
+    if not app_state.fl_engine:
+        raise HTTPException(status_code=503, detail="FL engine not available")
+    app_state.fl_engine.stop_training()
+    await notify_ws_clients({"event": "stopped"})
+    logger.info("Training stopped", user=user)
+    return {"message": "FL training stopped"}
+
+@router.get("/strategies")
+async def get_fl_strategies(user: str = Depends(get_current_user)) -> Dict[str, Any]:
+    """Get available FL strategies"""
+    return {
+        "strategies": [
+            {
+                "name": "FedAvg",
+                "description": "Federated Averaging - Standard FL algorithm",
+                "suitable_for": ["IID data", "Balanced clients"],
+                "performance": {"convergence": 0.85, "communication": 0.90}
+            },
+            {
+                "name": "FedProx", 
+                "description": "Federated Proximal - Handles heterogeneous data",
+                "suitable_for": ["Non-IID data", "System heterogeneity"],
+                "performance": {"convergence": 0.88, "communication": 0.85}
+            }
+        ],
+        "current_strategy": app_state.fl_engine.current_strategy if app_state.fl_engine else "FedAvg"
+    }
+
+@router.post("/strategy/{strategy_name}")
+async def set_fl_strategy(strategy_name: str, user: str = Depends(get_current_user)):
+    """Set FL strategy"""
+    if not app_state.fl_engine:
+        raise HTTPException(status_code=503, detail="FL engine not available")
+    try:
+        app_state.fl_engine.set_strategy(strategy_name)
+        logger.info("Strategy changed", strategy=strategy_name, user=user)
+        await notify_ws_clients({"event": "strategy_changed", "strategy": strategy_name})
+        return {"message": f"Strategy set to {strategy_name}"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

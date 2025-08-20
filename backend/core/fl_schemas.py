@@ -2,7 +2,9 @@
 
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional
+from datetime import datetime
 
+# ✅ Existing API Schemas
 class FLStatusResponse(BaseModel):
     rounds_completed: int
     total_rounds: int
@@ -32,3 +34,27 @@ class FLStrategyResponse(BaseModel):
 
 class FLSetStrategyResponse(BaseModel):
     message: str
+
+
+# ✅ New: WebSocket + Training Event Schemas
+class FLClientUpdate(BaseModel):
+    client_id: str
+    round: int
+    metrics: Dict[str, Any]
+    timestamp: datetime
+
+class FLGlobalModel(BaseModel):
+    round: int
+    accuracy: float
+    loss: float
+    aggregated_at: datetime
+
+class FLTrainingEvent(BaseModel):
+    event: str   # e.g., "round_start", "round_end", "model_aggregated"
+    payload: Dict[str, Any]
+    timestamp: datetime
+    sender: Optional[str] = None
+
+class WebSocketMessage(BaseModel):
+    type: str    # "client_update", "global_update", "event"
+    data: Dict[str, Any]

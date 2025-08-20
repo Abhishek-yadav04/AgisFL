@@ -56,6 +56,34 @@ class WebSocketManager:
         
         for websocket in disconnected:
             self.disconnect(websocket)
+
+    class WSManager:
+        def __init__(self) -> None:
+            self.active: Set[WebSocket] = set()
+            self._lock = asyncio.Lock()
+
+
+        async def connect(self, ws: WebSocket):
+            await ws.accept()
+        async with self._lock:
+            self.active.add(ws)
+
+
+        def disconnect(self, ws: WebSocket):
+            self.active.discard(ws)
+
+
+        async def broadcast(self, message: dict):
+            dead = []
+            for ws in list(self.active):
+        try:
+            await ws.send_json(message)
+        except Exception:
+            dead.append(ws)
+        for ws in dead:
+            self.disconnect(ws)
+            
+        ws_manager = WSManager()
     
     def get_connection_count(self) -> int:
         """Get number of active connections"""

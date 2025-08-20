@@ -70,6 +70,28 @@ export const dashboardAPI = {
   getHealth: () => api.get('/health'),
 };
 
+export const federatedLearningAPI = {
+  // Strategies & Experiments
+  getStrategies: () => api.get('/fl/strategies'),
+  getExperiments: () => api.get('/experiments'),
+  getStatus: () => api.get('/fl/status'),
+  startTraining: () => api.post('/federated/train'),
+  getAlgorithms: () => api.get('/research/enterprise/research-algorithms'),
+
+  // 🔹 New Enterprise-Grade FL Algorithms Endpoints
+  trainAlgorithm: (algorithm: string, config: any) =>
+    api.post(`/fl/algorithms/${encodeURIComponent(algorithm)}/train`, config),
+
+  validateAlgorithm: (algorithm: string, datasetId: string) =>
+    api.post(`/fl/algorithms/${encodeURIComponent(algorithm)}/validate`, { dataset_id: datasetId }),
+
+  benchmarkAlgorithm: (algorithm: string, benchmarkSuite: string) =>
+    api.post(`/fl/algorithms/${encodeURIComponent(algorithm)}/benchmark`, { suite: benchmarkSuite }),
+
+  optimizeAlgorithm: (algorithm: string, options: any) =>
+    api.post(`/fl/algorithms/${encodeURIComponent(algorithm)}/optimize`, options),
+};
+
 export const systemAPI = {
   getMetrics: () => api.get('/system/metrics'),
   getHealth: () => api.get('/health'),
@@ -191,15 +213,6 @@ export const threatIntelAPI = {
 export const packetAnalysisAPI = {
   getLiveAnalysis: () => api.get('/packet-analysis/live-analysis'),
   getNetworkTopology: () => api.get('/packet-analysis/network-topology'),
-};
-
-export const militaryAPI = {
-  getDatasetsOverview: () => api.get('/datasets/military/overview'),
-  getTrainingData: () => api.get('/datasets/military/training-data'),
-  getResearchExperiments: () => api.get('/research/experiments'),
-  getPublications: () => api.get('/research/publications'),
-  getCyberWarfareStatus: () => api.get('/cyber-warfare/tools/status'),
-  getOperationsSummary: () => api.get('/cyber-warfare/operations/summary'),
 };
 
 export const githubAPI = {

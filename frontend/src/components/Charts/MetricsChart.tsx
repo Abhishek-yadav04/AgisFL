@@ -144,6 +144,9 @@ const MetricsChart: React.FC<MetricsChartProps> = ({
         } else if (color.startsWith('hsl(')) {
           startColor = color.replace('hsl(', 'hsla(').replace(')', ', 0.25)');
           endColor = color.replace('hsl(', 'hsla(').replace(')', ', 0)');
+        } else if (color.startsWith('rgba(')) {
+          startColor = color.replace(/, ?\d(\.\d+)?\)$/, ', 0.25)');
+          endColor = color.replace(/, ?\d(\.\d+)?\)$/, ', 0)');
         } else {
           // Fallback for hex colors or other formats
           startColor = `${color}40`;

@@ -14,7 +14,7 @@ import Dashboard from './pages/Dashboard';
 import FederatedLearning from './pages/FederatedLearning';
 import Security from './pages/SecurityCenter';
 import Network from './pages/NetworkMonitoring';
-import Datasets from './pages/Datasets';
+import Datasets from './pages/DatasetManager';
 import Integrations from './pages/Integrations';
 
 // Stores

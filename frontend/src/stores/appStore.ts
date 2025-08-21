@@ -1,125 +1,258 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+
+// ============================================================================
+// 1. TYPE DEFINITIONS
+// ============================================================================
+// Centralized type definitions for clarity and maintainability.
+
+type Theme = 'dark' | 'light';
+type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'error';
+type PerformanceMode = 'high' | 'balanced' | 'power-save';
+type UserRole = 'admin' | 'researcher' | 'operator' | 'guest';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  permissions: string[];
+  avatarUrl?: string;
+}
+
+interface Notification {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+}
+
+interface UserSettings {
+  autoRefresh: boolean;
+  refreshInterval: 5000 | 10000 | 30000; // 5s, 10s, 30s
+  performanceMode: PerformanceMode;
+  language: 'en-US' | 'de-DE' | 'ja-JP';
+}
+
+// ============================================================================
+// 2. STATE INTERFACE
+// ============================================================================
+// The complete shape of our global state, composed of logical slices.
 
 interface AppState {
-  // Theme
-  theme: 'dark' | 'light';
-  toggleTheme: () => void;
-  
-  // Layout
+  // --- UI Slice ---
+  theme: Theme;
   sidebarCollapsed: boolean;
+  activeModal: string | null;
+  toggleTheme: () => void;
   toggleSidebar: () => void;
+  openModal: (modalId: string) => void;
+  closeModal: () => void;
   
-  // Real-time settings
-  autoRefresh: boolean;
-  refreshInterval: number;
-  setAutoRefresh: (enabled: boolean) => void;
-  setRefreshInterval: (interval: number) => void;
-  
-  // Notifications
-  notifications: Array<{
-    id: string;
-    type: 'success' | 'error' | 'warning' | 'info';
-    title: string;
-    message: string;
-    timestamp: Date;
-    read: boolean;
-  }>;
-  addNotification: (notification: Omit<AppState['notifications'][0], 'id' | 'timestamp' | 'read'>) => void;
+  // --- User Session Slice ---
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (userData: User) => void;
+  logout: () => void;
+  hasPermission: (permission: string) => boolean;
+
+  // --- User Settings Slice ---
+  userSettings: UserSettings;
+  updateSettings: (settings: Partial<UserSettings>) => void;
+
+  // --- Notifications Slice ---
+  notifications: Notification[];
+  unreadNotificationsCount: number;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
   clearNotifications: () => void;
-  
-  // Connection status
-  connectionStatus: 'connected' | 'disconnected' | 'connecting' | 'error';
-  setConnectionStatus: (status: AppState['connectionStatus']) => void;
-  
-  // Active features
+
+  // --- System Status Slice ---
+  connectionStatus: ConnectionStatus;
+  lastConnected: Date | null;
   activeFeatures: {
     realTimeMonitoring: boolean;
     attackSimulation: boolean;
     flTraining: boolean;
-    networkCapture: boolean;
   };
+  setConnectionStatus: (status: ConnectionStatus) => void;
   toggleFeature: (feature: keyof AppState['activeFeatures']) => void;
-  
-  // Performance settings
-  performanceMode: 'high' | 'balanced' | 'power-save';
-  setPerformanceMode: (mode: AppState['performanceMode']) => void;
 }
+
+// ============================================================================
+// 3. ZUSTAND STORE IMPLEMENTATION
+// ============================================================================
+// Uses `immer` for safe immutable updates and `persist` for storing user preferences.
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set, get) => ({
-      // Theme
+    immer((set, get) => ({
+      // ===================================
+      // UI Slice
+      // For managing the state of the user interface.
+      // ===================================
       theme: 'dark',
-      toggleTheme: () => set((state) => ({ 
-        theme: state.theme === 'dark' ? 'light' : 'dark' 
-      })),
-      
-      // Layout
       sidebarCollapsed: false,
-      toggleSidebar: () => set((state) => ({ 
-        sidebarCollapsed: !state.sidebarCollapsed 
-      })),
+      activeModal: null,
       
-      // Real-time settings
-      autoRefresh: true,
-      refreshInterval: 5000,
-      setAutoRefresh: (enabled) => set({ autoRefresh: enabled }),
-      setRefreshInterval: (interval) => set({ refreshInterval: interval }),
+      /** Toggles the color scheme between dark and light mode. */
+      toggleTheme: () => set(state => {
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      }),
       
-      // Notifications
+      /** Toggles the collapsed state of the main sidebar. */
+      toggleSidebar: () => set(state => {
+        state.sidebarCollapsed = !state.sidebarCollapsed;
+      }),
+
+      /** Opens a modal dialog by its unique identifier. */
+      openModal: (modalId) => set(state => {
+        state.activeModal = modalId;
+      }),
+
+      /** Closes any currently active modal dialog. */
+      closeModal: () => set(state => {
+        state.activeModal = null;
+      }),
+
+      // ===================================
+      // User Session Slice
+      // Handles user authentication and permissions.
+      // ===================================
+      user: null,
+      isAuthenticated: false,
+
+      /** Logs a user in and sets their session data. */
+      login: (userData) => set(state => {
+        state.user = userData;
+        state.isAuthenticated = true;
+      }),
+
+      /** Logs the current user out and clears session data. */
+      logout: () => set(state => {
+        state.user = null;
+        state.isAuthenticated = false;
+      }),
+
+      /** Checks if the authenticated user has a specific permission. */
+      hasPermission: (permission) => {
+        const user = get().user;
+        return user?.permissions.includes(permission) ?? false;
+      },
+
+      // ===================================
+      // User Settings Slice
+      // Manages user-configurable application settings.
+      // ===================================
+      userSettings: {
+        autoRefresh: true,
+        refreshInterval: 5000,
+        performanceMode: 'balanced',
+        language: 'en-US',
+      },
+
+      /** Updates one or more user settings. */
+      updateSettings: (settings) => set(state => {
+        state.userSettings = { ...state.userSettings, ...settings };
+      }),
+
+      // ===================================
+      // Notifications Slice
+      // Manages a queue of global notifications for the user.
+      // ===================================
       notifications: [],
-      addNotification: (notification) => set((state) => ({
-        notifications: [
-          {
-            ...notification,
-            id: `${Date.now()}-${Math.random()}`,
-            timestamp: new Date(),
-            read: false,
-          },
-          ...state.notifications.slice(0, 49), // Keep max 50 notifications
-        ]
-      })),
-      markAsRead: (id) => set((state) => ({
-        notifications: state.notifications.map(n => 
-          n.id === id ? { ...n, read: true } : n
-        )
-      })),
-      clearNotifications: () => set({ notifications: [] }),
+      unreadNotificationsCount: 0,
+
+      /** Adds a new notification to the top of the list. */
+      addNotification: (notification) => set(state => {
+        const newNotification: Notification = {
+          ...notification,
+          id: `${Date.now()}-${Math.random()}`,
+          timestamp: new Date(),
+          read: false,
+        };
+        state.notifications.unshift(newNotification);
+        // Limit the number of notifications stored
+        if (state.notifications.length > 50) {
+          state.notifications.pop();
+        }
+        state.unreadNotificationsCount++;
+      }),
+
+      /** Marks a single notification as read by its ID. */
+      markAsRead: (id) => set(state => {
+        const notification = state.notifications.find(n => n.id === id);
+        if (notification && !notification.read) {
+          notification.read = true;
+          state.unreadNotificationsCount--;
+        }
+      }),
       
-      // Connection status
+      /** Marks all notifications as read. */
+      markAllAsRead: () => set(state => {
+        state.notifications.forEach(n => { n.read = true; });
+        state.unreadNotificationsCount = 0;
+      }),
+
+      /** Removes all notifications from the store. */
+      clearNotifications: () => set(state => {
+        state.notifications = [];
+        state.unreadNotificationsCount = 0;
+      }),
+
+      // ===================================
+      // System Status Slice
+      // Tracks the real-time status of the application and its features.
+      // ===================================
       connectionStatus: 'disconnected',
-      setConnectionStatus: (status) => set({ connectionStatus: status }),
-      
-      // Active features
+      lastConnected: null,
       activeFeatures: {
         realTimeMonitoring: true,
         attackSimulation: false,
         flTraining: true,
-        networkCapture: true,
       },
-      toggleFeature: (feature) => set((state) => ({
-        activeFeatures: {
-          ...state.activeFeatures,
-          [feature]: !state.activeFeatures[feature],
+
+      /** Sets the current backend connection status. */
+      setConnectionStatus: (status) => set(state => {
+        state.connectionStatus = status;
+        if (status === 'connected') {
+          state.lastConnected = new Date();
         }
-      })),
-      
-      // Performance settings
-      performanceMode: 'balanced',
-      setPerformanceMode: (mode) => set({ performanceMode: mode }),
-    }),
+      }),
+
+      /** Toggles the active state of a core system feature. */
+      toggleFeature: (feature) => set(state => {
+        state.activeFeatures[feature] = !state.activeFeatures[feature];
+      }),
+    })),
     {
-      name: 'agisfl-app-store',
+      name: 'agisfl-enterprise-app-store',
+      storage: createJSONStorage(() => localStorage),
+      /**
+       * The `partialize` option allows us to select which parts of the state
+       * should be persisted to localStorage. We only want to save user preferences,
+       * not transient state like notifications or connection status.
+       */
       partialize: (state) => ({
         theme: state.theme,
         sidebarCollapsed: state.sidebarCollapsed,
-        autoRefresh: state.autoRefresh,
-        refreshInterval: state.refreshInterval,
-        activeFeatures: state.activeFeatures,
-        performanceMode: state.performanceMode,
+        userSettings: state.userSettings,
       }),
     }
   )
 );
+
+// ============================================================================
+// 4. SELECTORS (Optional but Recommended)
+// ============================================================================
+// Pre-defined selectors can simplify component logic and improve performance.
+
+export const selectUnreadNotifications = (state: AppState) => 
+  state.notifications.filter(n => !n.read);
+
+export const selectIsAdmin = (state: AppState) => 
+  state.user?.role === 'admin';

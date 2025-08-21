@@ -21,6 +21,7 @@
     "axios": "^1.7.9",
     "chart.js": "^4.5.0",
     "clsx": "^2.1.1",
+    "react-csv": "^2.2.2",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.539.0",

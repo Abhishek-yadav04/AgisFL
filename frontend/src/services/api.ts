@@ -64,32 +64,20 @@ api.interceptors.response.use(
 // Core API endpoints
 export const dashboardAPI = {
   getDashboard: () => api.get('/dashboard'),
-  getComprehensive: () => api.get('/dashboard/comprehensive'),
-  getCharts: () => api.get('/dashboard/charts'),
-  getRealTime: () => api.get('/dashboard/real-time'),
   getHealth: () => api.get('/health'),
 };
 
 export const federatedLearningAPI = {
-  // Strategies & Experiments
-  getStrategies: () => api.get('/fl/strategies'),
-  getExperiments: () => api.get('/experiments'),
   getStatus: () => api.get('/fl/status'),
-  startTraining: () => api.post('/federated/train'),
-  getAlgorithms: () => api.get('/research/enterprise/research-algorithms'),
-
-  // 🔹 New Enterprise-Grade FL Algorithms Endpoints
-  trainAlgorithm: (algorithm: string, config: any) =>
-    api.post(`/fl/algorithms/${encodeURIComponent(algorithm)}/train`, config),
-
-  validateAlgorithm: (algorithm: string, datasetId: string) =>
-    api.post(`/fl/algorithms/${encodeURIComponent(algorithm)}/validate`, { dataset_id: datasetId }),
-
-  benchmarkAlgorithm: (algorithm: string, benchmarkSuite: string) =>
-    api.post(`/fl/algorithms/${encodeURIComponent(algorithm)}/benchmark`, { suite: benchmarkSuite }),
-
-  optimizeAlgorithm: (algorithm: string, options: any) =>
-    api.post(`/fl/algorithms/${encodeURIComponent(algorithm)}/optimize`, options),
+  getStrategies: () => api.get('/fl/strategies'),
+  getExperiments: () => api.get('/fl/experiments'),
+  startTraining: (config: { rounds: number }) => api.post('/fl/start', config),
+  stopTraining: () => api.post('/fl/stop'),
+  pauseTraining: () => api.post('/fl/pause'),
+  resumeTraining: () => api.post('/fl/resume'),
+  setStrategy: (strategy: string) => api.post(`/fl/strategy/${strategy}`),
+  getExperiment: (id: string) => api.get(`/fl/experiments/${id}`),
+  deleteExperiment: (id: string) => api.delete(`/fl/experiments/${id}`),
 };
 
 export const systemAPI = {
@@ -97,27 +85,19 @@ export const systemAPI = {
   getHealth: () => api.get('/health'),
 };
 
-export const federatedLearningAPI = {
-  getStrategies: () => api.get('/fl/strategies'),
-  getExperiments: () => api.get('/experiments'),
-  getStatus: () => api.get('/fl/status'),
-  startTraining: () => api.post('/federated/train'),
-  getAlgorithms: () => api.get('/research/enterprise/research-algorithms'),
-};
-
 export const securityAPI = {
-  getThreats: () => api.get('/threats'),
-  getSecurityMetrics: () => api.get('/security/metrics'),
-  getSecurityThreats: () => api.get('/security/threats'),
-  getLiveThreats: () => api.get('/security/threats/live'),
+  getThreats: () => api.get('/security/threats'),
+  getMetrics: () => api.get('/security/metrics'),
+  startMonitoring: () => api.post('/security/start'),
+  stopMonitoring: () => api.post('/security/stop'),
 };
 
 export const networkAPI = {
   getStats: () => api.get('/network/stats'),
   getPackets: () => api.get('/network/packets'),
-  getLivePackets: () => api.get('/network/packets/live'),
   getAnomalies: () => api.get('/network/anomalies'),
-  getStatistics: () => api.get('/network/statistics'),
+  startCapture: () => api.post('/network/start'),
+  stopCapture: () => api.post('/network/stop'),
 };
 
 export const datasetsAPI = {
@@ -127,46 +107,35 @@ export const datasetsAPI = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
   deleteDataset: (id: string) => api.delete(`/datasets/${id}`),
-  getStatistics: (id: string) => api.get(`/datasets/${id}/statistics`),
-  getOverview: () => api.get('/datasets/statistics/overview'),
-};
-
-export const researchAPI = {
-  getProjects: () => api.get('/research/projects'),
-  createProject: (data: any) => api.post('/research/projects', data),
-  getProject: (id: string) => api.get(`/research/projects/${id}`),
-  updateProject: (id: string, data: any) => api.put(`/research/projects/${id}`, data),
-  deleteProject: (id: string) => api.delete(`/research/projects/${id}`),
-  runExperiment: (id: string, config: any) => api.post(`/research/projects/${id}/experiments`, config),
-  getAlgorithms: () => api.get('/research/algorithms'),
-  getStatistics: () => api.get('/research/statistics'),
-  getEnterpriseAlgorithms: () => api.get('/research/enterprise/research-algorithms'),
-  getPublications: () => api.get('/research/enterprise/publications'),
+  list: (params: any) => api.get('/datasets', { params }),
+  preview: (id: string) => api.get(`/datasets/${id}/preview`),
+  download: (id: string) => {
+    window.open(`${API_BASE_URL}/datasets/${id}/download`, '_blank');
+  },
+  upload: (file: File, metadata: any, onProgress?: (progress: number) => void) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (metadata) {
+      Object.entries(metadata).forEach(([key, value]) => {
+        formData.append(key, String(value));
+      });
+    }
+    return api.post('/datasets/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const progress = (progressEvent.loaded / progressEvent.total) * 100;
+          onProgress(progress);
+        }
+      }
+    });
+  },
+  delete: (id: string) => api.delete(`/datasets/${id}`),
 };
 
 export const integrationsAPI = {
   getOverview: () => api.get('/integrations/overview'),
   refresh: () => api.post('/integrations/refresh'),
-  // Scapy
-  getScapyPackets: () => api.get('/network/packets/live'),
-  startScapyMonitoring: () => api.post('/network/start'),
-  stopScapyMonitoring: () => api.post('/network/stop'),
-  getScapyCapabilities: () => api.get('/network/capabilities'),
-  // Flower
-  getFlowerStatus: () => api.get('/flower/status'),
-  getFlowerClients: () => api.get('/flower/clients'),
-  setFlowerStrategy: (strategy: string) => api.post(`/flower/strategy/${strategy}`),
-  startFlowerTraining: () => api.post('/flower/start'),
-  stopFlowerTraining: () => api.post('/flower/stop'),
-  // Suricata
-  getSuricataAlerts: () => api.get('/suricata/alerts/live'),
-  getSuricataRules: () => api.get('/suricata/rules/statistics'),
-  getSuricataPerformance: () => api.get('/suricata/performance'),
-  startSuricataMonitoring: () => api.post('/suricata/start'),
-  // Grafana
-  getGrafanaDashboards: () => api.get('/grafana/dashboards'),
-  getGrafanaDashboard: (name: string) => api.get(`/grafana/dashboard/${encodeURIComponent(name)}`),
-  getGrafanaTimeseries: () => api.get('/grafana/metrics/timeseries'),
 };
 
 export const flIdsAPI = {
@@ -183,41 +152,28 @@ export const flIdsAPI = {
   registerClient: (clientData: any) => api.post('/fl-ids/federated-learning/client/register', clientData),
   getPerformanceAnalytics: () => api.get('/fl-ids/analytics/performance'),
   getHealth: () => api.get('/fl-ids/health'),
-  getEnterpriseFeatures: () => api.get('/fl-ids/enterprise/features'),
-  getClientManagement: () => api.get('/fl-ids/enterprise/client-management'),
-  getThreatIntelligence: () => api.get('/fl-ids/enterprise/threat-intelligence'),
+  startTraining: (config: any) => api.post('/fl-ids/start-training', config),
+  stopTraining: () => api.post('/fl-ids/stop-training'),
+  pauseTraining: () => api.post('/fl-ids/pause-training'),
+  resumeTraining: () => api.post('/fl-ids/resume-training'),
 };
 
-export const adminAPI = {
-  getStatus: () => api.get('/admin/status'),
-  requestPrivileges: () => api.post('/admin/request-privileges'),
-  enableSimulation: () => api.post('/admin/enable-simulation'),
-};
-
-export const optimizerAPI = {
-  getStatus: () => api.get('/optimizer/status'),
-  optimize: () => api.post('/optimizer/optimize'),
-  getMetrics: () => api.get('/optimizer/metrics'),
+export const researchAPI = {
+  getProjects: () => api.get('/research/projects'),
+  createProject: (data: any) => api.post('/research/projects', data),
+  getProject: (id: string) => api.get(`/research/projects/${id}`),
+  updateProject: (id: string, data: any) => api.put(`/research/projects/${id}`, data),
+  deleteProject: (id: string) => api.delete(`/research/projects/${id}`),
+  runExperiment: (id: string, config: any) => api.post(`/research/projects/${id}/experiments`, config),
+  getAlgorithms: () => api.get('/research/algorithms'),
+  getStatistics: () => api.get('/research/statistics'),
+  getEnterpriseAlgorithms: () => api.get('/research/enterprise/research-algorithms'),
+  getPublications: () => api.get('/research/enterprise/publications'),
 };
 
 export const settingsAPI = {
   getSettings: () => api.get('/settings'),
   updateSettings: (settings: any) => api.post('/settings', settings),
-};
-
-export const threatIntelAPI = {
-  getLiveFeed: () => api.get('/threat-intel/live-feed'),
-  getIOCDatabase: () => api.get('/threat-intel/ioc-database'),
-};
-
-export const packetAnalysisAPI = {
-  getLiveAnalysis: () => api.get('/packet-analysis/live-analysis'),
-  getNetworkTopology: () => api.get('/packet-analysis/network-topology'),
-};
-
-export const githubAPI = {
-  getThreatAnalysis: () => api.get('/github/threat-analysis'),
-  getRepositoryHealth: () => api.get('/github/repository-health'),
 };
 
 export default api;

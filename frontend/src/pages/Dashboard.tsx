@@ -1,4 +1,3 @@
-// frontend/src/pages/Dashboard.tsx
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -17,51 +16,32 @@ import {
   Download,
   PauseCircle,
   Play,
-  StopCircle
+  StopCircle,
+  Users,
+  Zap
 } from "lucide-react";
 
 import { MetricCard } from "../components/Cards/MetricCard";
 import MetricsChart from "../components/Charts/MetricsChart";
 import { DataTable } from "../components/Tables/DataTable";
 import { useRealTimeData } from "../hooks/useRealTimeData";
-import { useWebSocket } from "../hooks/useWebSocket";
-import { dashboardAPI, flIdsAPI, integrationsAPI } from "../services/api";
+import { dashboardAPI, federatedLearningAPI, flIdsAPI } from "../services/api";
 import { useAppStore } from "../stores/appStore";
 
-type DashboardResponse = {
-  data?: any;
-};
-
-const formatPercent = (v?: number) => `${Math.round((v ?? 0) * 10) / 10}%`;
-const formatNumber = (v?: number) => (v ?? 0).toLocaleString();
-const shortTime = (iso?: string) =>
-  iso ? new Date(iso).toLocaleTimeString() : "-";
-
-// -----------------------------
-// Main Component
-// -----------------------------
 const Dashboard: React.FC = () => {
   const queryClient = useQueryClient();
-  const { autoRefresh, refreshInterval, addNotification, setConnectionStatus } =
-    useAppStore();
+  const { autoRefresh, refreshInterval, addNotification, setConnectionStatus } = useAppStore();
 
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
   const [actionPending, setActionPending] = useState<string | null>(null);
 
-  // --- WebSocket hook (for global live updates) ---
-  const { status: wsStatus } = useWebSocket("/api/fl/ws/training", {
-    reconnect: true,
-    reconnectAttempts: 10,
-    debug: import.meta.env.DEV === true,
-  });
-
-  // --- Dashboard API (main) ---
+  // Dashboard data
   const {
     data: dashboardData,
     isLoading: dashboardLoading,
     isError: dashboardError,
     refetch: refetchDashboard,
-  } = useQuery<DashboardResponse>({
+  } = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => dashboardAPI.getDashboard(),
     refetchInterval: autoRefresh ? refreshInterval : false,
@@ -78,15 +58,15 @@ const Dashboard: React.FC = () => {
     },
   });
 
-  // --- Integrations ---
-  const { data: integrationsData } = useQuery({
-    queryKey: ["integrations"],
-    queryFn: () => integrationsAPI.getOverview(),
-    refetchInterval: 10000,
+  // FL status
+  const { data: flStatusData, refetch: refetchFlStatus } = useQuery({
+    queryKey: ["fl-status"],
+    queryFn: () => federatedLearningAPI.getStatus(),
+    refetchInterval: 5000,
     retry: 1,
   });
 
-  // --- FL real-time (poll or websocket fallback) ---
+  // Real-time FL-IDS data
   const {
     data: flIdsData,
     loading: flIdsLoading,
@@ -94,78 +74,120 @@ const Dashboard: React.FC = () => {
     refresh: refreshFlIds,
   } = useRealTimeData(
     () => flIdsAPI.getRealTimeMetrics(),
-    { interval: 2000, enabled: autoRefresh }
+    { 
+      interval: 2000, 
+      enabled: autoRefresh,
+      onError: () => setConnectionStatus('error'),
+      onSuccess: () => setConnectionStatus('connected')
+    }
   );
 
-  // --- FL status (periodic) ---
-  const { data: flStatusData, refetch: refetchFlStatus } = useQuery({
-    queryKey: ["fl-status"],
-    queryFn: () => flIdsAPI.getFLStatus(),
-    refetchInterval: 5000,
-    retry: 1,
+  // Mutations for FL control
+  const startMutation = useMutation({
+    mutationFn: (rounds: number) => federatedLearningAPI.startTraining({ rounds }),
+    onMutate: () => setActionPending("start"),
+    onSuccess: () => {
+      toast.success("FL training started");
+      setActionPending(null);
+      queryClient.invalidateQueries({ queryKey: ["fl-status"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      addNotification({
+        type: "success",
+        title: "Training Started",
+        message: "Federated learning training has been initiated",
+      });
+    },
+    onError: (err: any) => {
+      setActionPending(null);
+      toast.error(`Start failed: ${err?.message ?? "unknown"}`);
+    },
   });
 
-  // -----------------------------
-  // Chart / metric preparation
-  // -----------------------------
+  const stopMutation = useMutation({
+    mutationFn: () => federatedLearningAPI.stopTraining(),
+    onMutate: () => setActionPending("stop"),
+    onSuccess: () => {
+      toast.success("Training stopped");
+      setActionPending(null);
+      queryClient.invalidateQueries({ queryKey: ["fl-status"] });
+    },
+    onError: (err: any) => {
+      setActionPending(null);
+      toast.error(`Stop failed: ${err?.message ?? "unknown"}`);
+    },
+  });
+
+  // Prepare chart data
   const apiData = dashboardData?.data ?? {};
   const flStatus = flStatusData?.data ?? {};
 
   const systemChartData = useMemo(() => {
-    const cpu =
-      apiData?.performance?.cpu_usage ?? apiData?.system?.cpu_percent ?? 0;
-    const mem =
-      apiData?.performance?.memory_usage ?? apiData?.system?.memory_percent ?? 0;
-    const disk =
-      apiData?.performance?.disk_usage ?? apiData?.system?.disk_percent ?? 0;
-    const net = Math.min(100, (apiData?.performance?.network_traffic_mb ?? 0) / 10);
+    const cpu = apiData?.system?.cpu_percent ?? 45;
+    const memory = apiData?.system?.memory_percent ?? 62;
+    const disk = apiData?.system?.disk_percent ?? 35;
+    const network = Math.min(100, (apiData?.system?.network_sent_mb ?? 0) / 10);
 
     return {
       labels: ["CPU", "Memory", "Disk", "Network"],
       datasets: [
         {
           label: "System Usage (%)",
-          data: [cpu, mem, disk, net],
-          // leave color selection to component stylesheet for theming
-          tension: 0.2,
+          data: [cpu, memory, disk, network],
+          backgroundColor: [
+            'rgba(59, 130, 246, 0.8)',
+            'rgba(16, 185, 129, 0.8)',
+            'rgba(139, 92, 246, 0.8)',
+            'rgba(245, 158, 11, 0.8)'
+          ],
+          borderColor: [
+            'rgb(59, 130, 246)',
+            'rgb(16, 185, 129)',
+            'rgb(139, 92, 246)',
+            'rgb(245, 158, 11)'
+          ],
+          borderWidth: 2,
         },
       ],
     };
   }, [apiData]);
 
   const flAccuracyData = useMemo(() => {
-    // If engine provides history, use it
-    const history = flStatus?.training_history ?? apiData?.federated_learning?.history;
+    const history = flStatus?.training_history ?? [];
     if (Array.isArray(history) && history.length) {
       return {
-        labels: history.map((r: any, i: number) => `R${r.round ?? i + 1}`),
+        labels: history.map((r: any, i: number) => `Round ${r.round ?? i + 1}`),
         datasets: [
           {
             label: "Global Accuracy",
-            data: history.map((r: any) => (r.accuracy ?? 0) * 1),
+            data: history.map((r: any) => (r.accuracy ?? 0) * 100),
+            borderColor: 'rgb(16, 185, 129)',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
             tension: 0.3,
+            fill: true,
           },
         ],
       };
     }
-    // fallback synthetic
+    
+    // Fallback synthetic data
     return {
       labels: Array.from({ length: 10 }, (_, i) => `Round ${i + 1}`),
       datasets: [
         {
           label: "Global Accuracy",
           data: Array.from({ length: 10 }, (_, i) =>
-            Math.min(0.98, 0.75 + i * 0.01 + (Math.random() * 0.01))
+            Math.min(98, 75 + i * 2 + (Math.random() * 2))
           ),
+          borderColor: 'rgb(16, 185, 129)',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
           tension: 0.3,
+          fill: true,
         },
       ],
     };
   }, [flStatus, apiData]);
 
-  // -----------------------------
   // Alerts table columns
-  // -----------------------------
   const alertsColumns = useMemo(
     () => [
       { key: "type", label: "Type", sortable: true },
@@ -197,7 +219,7 @@ const Dashboard: React.FC = () => {
         sortable: true,
         render: (value: string) => (
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {shortTime(value)}
+            {value ? new Date(value).toLocaleTimeString() : '-'}
           </span>
         ),
       },
@@ -205,74 +227,6 @@ const Dashboard: React.FC = () => {
     []
   );
 
-  // -----------------------------
-  // Mutations: FL control actions
-  // -----------------------------
-  const startMutation = useMutation({
-    mutationFn: (rounds: number) => flIdsAPI.startTraining({ rounds }),
-    onMutate: () => setActionPending("start"),
-    onSuccess: () => {
-      toast.success("FL training started");
-      setActionPending(null);
-      queryClient.invalidateQueries({ queryKey: ["fl-status"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      addNotification({
-        type: "success",
-        title: "Training Started",
-        message: "Federated learning training started",
-      });
-    },
-    onError: (err: any) => {
-      setActionPending(null);
-      toast.error(`Start failed: ${err?.message ?? "unknown"}`);
-    },
-  });
-
-  const stopMutation = useMutation({
-    mutationFn: () => flIdsAPI.stopTraining(),
-    onMutate: () => setActionPending("stop"),
-    onSuccess: () => {
-      toast.success("Stop requested");
-      setActionPending(null);
-      queryClient.invalidateQueries({ queryKey: ["fl-status"] });
-    },
-    onError: (err: any) => {
-      setActionPending(null);
-      toast.error(`Stop failed: ${err?.message ?? "unknown"}`);
-    },
-  });
-
-  const pauseMutation = useMutation({
-    mutationFn: () => flIdsAPI.pauseTraining(),
-    onMutate: () => setActionPending("pause"),
-    onSuccess: () => {
-      toast.success("Training paused");
-      setActionPending(null);
-      queryClient.invalidateQueries({ queryKey: ["fl-status"] });
-    },
-    onError: (err: any) => {
-      setActionPending(null);
-      toast.error(`Pause failed: ${err?.message ?? "unknown"}`);
-    },
-  });
-
-  const resumeMutation = useMutation({
-    mutationFn: () => flIdsAPI.resumeTraining(),
-    onMutate: () => setActionPending("resume"),
-    onSuccess: () => {
-      toast.success("Training resumed");
-      setActionPending(null);
-      queryClient.invalidateQueries({ queryKey: ["fl-status"] });
-    },
-    onError: (err: any) => {
-      setActionPending(null);
-      toast.error(`Resume failed: ${err?.message ?? "unknown"}`);
-    },
-  });
-
-  // -----------------------------
-  // Helpers
-  // -----------------------------
   const exportAlertsCsv = useCallback(() => {
     const alerts = apiData?.alerts ?? [];
     if (!alerts.length) {
@@ -296,24 +250,11 @@ const Dashboard: React.FC = () => {
     toast.success("Alerts exported");
   }, [apiData]);
 
-  // -----------------------------
   // Effects
-  // -----------------------------
   useEffect(() => {
-    // reflect websocket connectivity to global app store
-    setConnectionStatus(wsStatus === "open" ? "connected" : wsStatus === "reconnecting" ? "reconnecting" : "disconnected");
-  }, [wsStatus, setConnectionStatus]);
+    setConnectionStatus(flIdsConnected ? "connected" : "disconnected");
+  }, [flIdsConnected, setConnectionStatus]);
 
-  // notify on flIds connection changes
-  useEffect(() => {
-    if (!flIdsLoading && flIdsConnected) {
-      toast.success("FL-IDS live feed connected");
-    }
-  }, [flIdsLoading, flIdsConnected]);
-
-  // -----------------------------
-  // Render
-  // -----------------------------
   const loading = dashboardLoading || (!dashboardData && !dashboardError);
 
   return (
@@ -326,7 +267,7 @@ const Dashboard: React.FC = () => {
       >
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-            Command Center
+            Enterprise Command Center
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
             Real-time federated learning & security intelligence platform
@@ -334,16 +275,11 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <div
-            role="status"
-            aria-live="polite"
-            className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
-          >
+          <div className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <div
               className={`w-2 h-2 rounded-full ${
                 flIdsConnected ? "bg-green-500 animate-pulse" : "bg-red-500"
               }`}
-              aria-hidden
             />
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {flIdsConnected ? "Live Data" : "Offline"}
@@ -355,9 +291,8 @@ const Dashboard: React.FC = () => {
               refetchDashboard();
               refetchFlStatus();
               refreshFlIds();
-              toast.success("Refresh requested");
+              toast.success("Dashboard refreshed");
             }}
-            aria-label="Refresh dashboard"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
             disabled={loading}
           >
@@ -371,16 +306,8 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="FL Training Round"
-          value={
-            apiData?.federated_learning?.current_round ??
-            flStatus?.current_round ??
-            0
-          }
-          subtitle={`${
-            apiData?.federated_learning?.active_clients ??
-            apiData?.federated_learning?.participating_clients ??
-            0
-          } active clients`}
+          value={String(apiData?.federated_learning?.current_round ?? flStatus?.current_round ?? 0)}
+          subtitle={`${apiData?.federated_learning?.active_clients ?? 0} active clients`}
           icon={Brain}
           color="blue"
           trend={{ value: 2.3, direction: "up" }}
@@ -390,11 +317,7 @@ const Dashboard: React.FC = () => {
 
         <MetricCard
           title="Global Accuracy"
-          value={`${(
-            ((apiData?.federated_learning?.global_accuracy ??
-              flIdsData?.fl_status?.global_accuracy ??
-              0.94) as number) * 100
-          ).toFixed(1)}%`}
+          value={`${((apiData?.federated_learning?.global_accuracy ?? 0.94) * 100).toFixed(1)}%`}
           subtitle={apiData?.federated_learning?.strategy ?? "FedAvg"}
           icon={TrendingUp}
           color="green"
@@ -405,9 +328,8 @@ const Dashboard: React.FC = () => {
 
         <MetricCard
           title="Security Score"
-          value={`${apiData?.security?.security_score ?? apiData?.overview?.security_score ?? 95}%`}
-          subtitle={`${apiData?.security?.threats_detected ?? apiData?.security?.threats_blocked ?? 0
-            } threats detected`}
+          value={`${apiData?.security?.security_score ?? 95}%`}
+          subtitle={`${apiData?.security?.threats_detected ?? 0} threats detected`}
           icon={Shield}
           color="red"
           trend={{ value: -0.5, direction: "down" }}
@@ -418,8 +340,7 @@ const Dashboard: React.FC = () => {
         <MetricCard
           title="System Health"
           value={`${apiData?.overview?.system_health ?? 92}%`}
-          subtitle={`${apiData?.overview?.total_processes ?? apiData?.system?.processes ?? 0
-            } processes`}
+          subtitle={`${apiData?.system?.processes ?? 0} processes`}
           icon={Activity}
           color="purple"
           trend={{ value: 0.8, direction: "up" }}
@@ -428,8 +349,8 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* FL-IDS Engine card + actions */}
-      {flIdsData && (
+      {/* FL-IDS Engine Status */}
+      {(flIdsData || flStatus) && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -443,51 +364,22 @@ const Dashboard: React.FC = () => {
               <div>
                 <h3 className="text-xl font-bold">FL-IDS Engine</h3>
                 <p className="text-blue-100">
-                  {flIdsData.features_active ?? 0}/50 features active •{" "}
-                  {flIdsData.engine_status ?? "unknown"}
+                  Enterprise Federated Learning & Intrusion Detection System
                 </p>
               </div>
             </div>
 
             <div className="flex items-center space-x-3">
-              {/* Start / Pause / Resume / Stop controls */}
               <button
                 onClick={() => {
-                  if (!window.confirm("Start FL training?")) return;
+                  if (!window.confirm("Start FL training with 50 rounds?")) return;
                   startMutation.mutate(50);
                 }}
                 className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md flex items-center gap-2"
                 disabled={!!actionPending}
-                aria-label="Start FL training"
               >
                 <Play className="w-4 h-4" />
-                <span>Start</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  if (!window.confirm("Pause FL training?")) return;
-                  pauseMutation.mutate();
-                }}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md flex items-center gap-2"
-                disabled={!!actionPending}
-                aria-label="Pause FL training"
-              >
-                <PauseCircle className="w-4 h-4" />
-                <span>Pause</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  if (!window.confirm("Resume FL training?")) return;
-                  resumeMutation.mutate();
-                }}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md flex items-center gap-2"
-                disabled={!!actionPending}
-                aria-label="Resume FL training"
-              >
-                <Play className="w-4 h-4" />
-                <span>Resume</span>
+                <span>Start Training</span>
               </button>
 
               <button
@@ -497,7 +389,6 @@ const Dashboard: React.FC = () => {
                 }}
                 className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md flex items-center gap-2"
                 disabled={!!actionPending}
-                aria-label="Stop FL training"
               >
                 <StopCircle className="w-4 h-4" />
                 <span>Stop</span>
@@ -505,46 +396,33 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex-1 pr-6">
-              <div className="flex items-center gap-6">
-                <div>
-                  <p className="text-3xl font-bold">
-                    {flIdsData.metrics?.threats_detected ?? 0}
-                  </p>
-                  <p className="text-sm text-blue-100">Threats Detected</p>
-                </div>
-
-                <div>
-                  <p className="text-3xl font-bold">
-                    {Math.round(flIdsData.metrics?.throughput_pps ?? 0)}
-                  </p>
-                  <p className="text-sm text-blue-100">Packets/sec</p>
-                </div>
-
-                <div>
-                  <p className="text-3xl font-bold">
-                    {(flIdsData.metrics?.latency_ms ?? 0).toFixed(1)}ms
-                  </p>
-                  <p className="text-sm text-blue-100">Latency</p>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold">
+                {flIdsData?.metrics?.threats_detected ?? apiData?.security?.threats_detected ?? 0}
               </div>
+              <div className="text-sm text-blue-100">Threats Detected</div>
             </div>
 
-            <div className="w-1/3">
-              {flIdsData.recent_threats?.length > 0 && (
-                <div className="bg-white/10 rounded-xl p-4">
-                  <h4 className="font-semibold mb-2">Recent Threats</h4>
-                  <div className="space-y-2">
-                    {flIdsData.recent_threats.slice(0, 3).map((threat: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between text-sm">
-                        <span>{threat.type ?? threat.attack_type ?? "Unknown"}</span>
-                        <span className="text-blue-100">{threat.source_ip}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="text-center">
+              <div className="text-3xl font-bold">
+                {Math.round(flIdsData?.metrics?.throughput_pps ?? 1250)}
+              </div>
+              <div className="text-sm text-blue-100">Packets/sec</div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-3xl font-bold">
+                {(flIdsData?.metrics?.latency_ms ?? 1.2).toFixed(1)}ms
+              </div>
+              <div className="text-sm text-blue-100">Response Time</div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-3xl font-bold">
+                {apiData?.federated_learning?.active_clients ?? flStatus?.active_clients ?? 8}
+              </div>
+              <div className="text-sm text-blue-100">FL Clients</div>
             </div>
           </div>
         </motion.div>
@@ -570,94 +448,122 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* Integrations */}
-      {integrationsData?.data && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {integrationsData.data.integrations?.map((integration: any, i: number) => (
-            <motion.div
-              key={integration.name}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-              className="bg-white/80 dark:bg-gray-800/70 backdrop-blur rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-semibold text-gray-900 dark:text-white">
-                  {integration.name}
-                </h4>
-                <div
-                  className={`w-3 h-3 rounded-full ${integration.status === "active" ? "bg-green-500" : "bg-red-500"}`}
-                />
+      {/* Performance Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <motion.div className="bg-white/80 dark:bg-gray-800/70 backdrop-blur rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">System Performance</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Cpu className="w-4 h-4 text-blue-500" />
+                <span className="text-gray-600 dark:text-gray-400">CPU Usage</span>
               </div>
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Type</span>
-                  <span className="text-gray-900 dark:text-white font-medium">{integration.type}</span>
-                </div>
-
-                {integration.packets !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Packets</span>
-                    <span className="text-gray-900 dark:text-white font-medium">{formatNumber(integration.packets)}</span>
-                  </div>
-                )}
-
-                {integration.clients !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Clients</span>
-                    <span className="text-gray-900 dark:text-white font-medium">{integration.clients}</span>
-                  </div>
-                )}
-
-                {integration.alerts !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Alerts</span>
-                    <span className="text-gray-900 dark:text-white font-medium">{integration.alerts}</span>
-                  </div>
-                )}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {apiData?.system?.cpu_percent ?? 45}%
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Database className="w-4 h-4 text-green-500" />
+                <span className="text-gray-600 dark:text-gray-400">Memory</span>
               </div>
-            </motion.div>
-          ))}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {apiData?.system?.memory_percent ?? 62}%
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Wifi className="w-4 h-4 text-purple-500" />
+                <span className="text-gray-600 dark:text-gray-400">Network</span>
+              </div>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {apiData?.system?.network_sent_mb ?? 125} MB
+              </span>
+            </div>
+          </div>
         </motion.div>
-      )}
 
-      {/* Alerts (table) */}
+        <motion.div className="bg-white/80 dark:bg-gray-800/70 backdrop-blur rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">FL Training Status</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Strategy</span>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {apiData?.federated_learning?.strategy ?? "FedAvg"}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Convergence</span>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {((apiData?.federated_learning?.convergence_rate ?? 0.95) * 100).toFixed(1)}%
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Data Samples</span>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {(apiData?.federated_learning?.data_samples ?? 50000).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div className="bg-white/80 dark:bg-gray-800/70 backdrop-blur rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Security Overview</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <span className="text-gray-600 dark:text-gray-400">Active Threats</span>
+              </div>
+              <span className="font-semibold text-red-600 dark:text-red-400">
+                {apiData?.security?.threats_detected ?? 0}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Shield className="w-4 h-4 text-green-500" />
+                <span className="text-gray-600 dark:text-gray-400">Blocked</span>
+              </div>
+              <span className="font-semibold text-green-600 dark:text-green-400">
+                {apiData?.security?.threats_blocked ?? 0}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Activity className="w-4 h-4 text-blue-500" />
+                <span className="text-gray-600 dark:text-gray-400">Monitoring</span>
+              </div>
+              <span className="font-semibold text-blue-600 dark:text-blue-400">
+                Active
+              </span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Alerts Table */}
       {apiData?.alerts && apiData.alerts.length > 0 && (
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold">Recent Alerts</h3>
-
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Security Alerts</h3>
             <div className="flex items-center gap-2">
               <button
                 onClick={exportAlertsCsv}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-800"
-                aria-label="Export alerts CSV"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 <Download className="w-4 h-4" />
                 Export CSV
-              </button>
-              <button
-                onClick={() => {
-                  refetchDashboard();
-                  toast.success("Alerts refreshed");
-                }}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-800"
-                aria-label="Refresh alerts"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
               </button>
             </div>
           </div>
 
           <DataTable
-            title=""
-            subtitle=""
             data={apiData.alerts}
             columns={alertsColumns}
             searchable
@@ -668,68 +574,8 @@ const Dashboard: React.FC = () => {
           />
         </div>
       )}
-
-      {/* Performance + FL Status + Security Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div className="bg-white/80 dark:bg-gray-800/70 backdrop-blur rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold mb-4">System Performance</h3>
-          <div className="space-y-4">
-            <StatItem icon={<Cpu className="w-4 h-4 text-blue-500" />} label="CPU" value={`${apiData?.performance?.cpu_usage ?? apiData?.system?.cpu_percent ?? 0}%`} />
-            <StatItem icon={<Database className="w-4 h-4 text-green-500" />} label="Memory" value={`${apiData?.performance?.memory_usage ?? apiData?.system?.memory_percent ?? 0}%`} />
-            <StatItem icon={<Database className="w-4 h-4 text-purple-500" />} label="Disk" value={`${apiData?.performance?.disk_usage ?? apiData?.system?.disk_percent ?? 0}%`} />
-            <StatItem icon={<Wifi className="w-4 h-4 text-orange-500" />} label="Network" value={`${apiData?.performance?.network_traffic_mb ?? 0}MB`} />
-          </div>
-        </motion.div>
-
-        <motion.div className="bg-white/80 dark:bg-gray-800/70 backdrop-blur rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold mb-4">FL Training Status</h3>
-          <div className="space-y-4">
-            <FlexRow label="Strategy" value={apiData?.federated_learning?.strategy ?? "FedAvg"} />
-            <FlexRow label="Convergence" value={`${((apiData?.federated_learning?.convergence_rate ?? 0.95) * 100).toFixed(1)}%`} />
-            <FlexRow label="Data Samples" value={`${(apiData?.federated_learning?.data_samples ?? 50000).toLocaleString()}`} />
-            <FlexRow label="Model Size" value={`${apiData?.federated_learning?.model_size_mb ?? 12.5} MB`} />
-          </div>
-        </motion.div>
-
-        <motion.div className="bg-white/80 dark:bg-gray-800/70 backdrop-blur rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold mb-4">Security Overview</h3>
-          <div className="space-y-4">
-            <FlexRow icon={<AlertTriangle className="w-4 h-4 text-red-500" />} label="Active Threats" value={`${apiData?.security?.threats_detected ?? 0}`} valueClassName="text-red-600" />
-            <FlexRow icon={<Shield className="w-4 h-4 text-green-500" />} label="Blocked" value={`${apiData?.security?.threats_blocked ?? 0}`} valueClassName="text-green-600" />
-            <FlexRow icon={<Brain className="w-4 h-4 text-blue-500" />} label="Monitoring" value="Active" />
-            <FlexRow icon={<Shield className="w-4 h-4 text-purple-500" />} label="Firewall" value="Enabled" />
-          </div>
-        </motion.div>
-      </div>
     </div>
   );
 };
 
 export default Dashboard;
-
-// -----------------------------
-// Small helper components
-// -----------------------------
-const StatItem: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
-  <div className="flex items-center justify-between">
-    <div className="flex items-center gap-2">
-      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-md">{icon}</div>
-      <div>
-        <div className="text-sm text-gray-600 dark:text-gray-400">{label}</div>
-      </div>
-    </div>
-    <div className="font-semibold text-gray-900 dark:text-white">{value}</div>
-  </div>
-);
-
-const FlexRow: React.FC<{ icon?: React.ReactNode; label: string; value: string; valueClassName?: string }> = ({ icon, label, value, valueClassName }) => (
-  <div className="flex items-center justify-between">
-    <div className="flex items-center gap-3">
-      {icon && <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-md">{icon}</div>}
-      <div>
-        <div className="text-sm text-gray-600 dark:text-gray-400">{label}</div>
-      </div>
-    </div>
-    <div className={`font-semibold ${valueClassName ?? "text-gray-900 dark:text-white"}`}>{value}</div>
-  </div>
-);

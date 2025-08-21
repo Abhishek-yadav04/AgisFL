@@ -15,11 +15,7 @@ import FederatedLearning from './pages/FederatedLearning';
 import Security from './pages/Security';
 import Network from './pages/Network';
 import Datasets from './pages/Datasets';
-import Research from './pages/Research';
 import Integrations from './pages/Integrations';
-import Advanced from './pages/Advanced';
-import Analytics from './pages/Analytics';
-import Settings from './pages/Settings';
 
 // Stores
 import { useAppStore } from './stores/appStore';

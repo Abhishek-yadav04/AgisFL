@@ -47,20 +47,143 @@ AgisFL Enterprise implements a distributed Federated Learning Intrusion Detectio
 ## 📁 Directory Structure
 
 ```
-agisfl-enterprise/
-├── backend/                 # FastAPI backend
-│   ├── api/                # API endpoints
-│   ├── core/               # Core FL-IDS engine
-│   ├── features/           # Feature modules
-│   ├── integrations/       # External integrations
-│   └── main.py            # Application entry
-├── frontend/               # React frontend
-│   ├── src/               # Source code
-│   ├── electron/          # Electron main process
-│   └── dist-electron/     # Built desktop app
-├── tests/                 # Comprehensive tests
-└── START_AGISFL.bat      # Universal startup script
-```
+AgisFL/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── .gitignore
+├── ARCHITECTURE.md
+├── backend/
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── API_REFERENCE.md
+│   │   ├── dashboard.py
+│   │   ├── datasets.py
+│   │   ├── federated_learning.py
+│   │   ├── integrations.py
+│   │   ├── network.py
+│   │   └── security.py
+│   ├── config/
+│   │   └── __init__.py
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── fl_engine.py
+│   │   ├── fl_schemas.py
+│   │   ├── ids_engine.py
+│   │   ├── monitoring.py
+│   │   ├── security.py
+│   │   └── websocket.py
+│   ├── deploy.sh
+│   ├── docker-compose.yml
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── pyproject.toml
+│   ├── README.md
+│   ├── requirements_production.txt
+│   ├── requirements.txt
+│   ├── run_anywhere.py
+│   ├── start.py
+│   └── tests/
+│       └── test_main.py
+├── datasets/
+│   └── README.md
+├── electron/
+│   ├── assets/
+│   │   ├── icon.png
+│   │   └── splash.html
+│   ├── fallback.html
+│   ├── package-lock.json
+│   ├── package.json
+│   └── src/
+│       ├── main.js
+│       └── preload.js
+├── frontend/
+│   ├── deprecated/
+│   │   └── README.md
+│   ├── electron/
+│   │   ├── main.js
+│   │   └── preload.js
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public/
+│   │   ├── icon.png
+│   │   ├── icon.svg
+│   │   └── vite.svg
+│   ├── requirements.txt
+│   ├── src/
+│   │   ├── App_Complete.tsx
+│   │   ├── App.tsx
+│   │   ├── assets/
+│   │   │   ├── icon.png
+│   │   │   └── icon.svg
+│   │   ├── components/
+│   │   │   ├── AlertsList.tsx
+│   │   │   ├── Cards/
+│   │   │   │   └── MetricCard.tsx
+│   │   │   ├── ChartContainer.tsx
+│   │   │   ├── Charts/
+│   │   │   │   ├── MetricsChart.tsx
+│   │   │   │   └── RealTimeChart.tsx
+│   │   │   ├── Header.tsx
+│   │   │   ├── IntegrationStatus.tsx
+│   │   │   ├── Layout/
+│   │   │   │   ├── Header.tsx
+│   │   │   │   ├── MainLayout.tsx
+│   │   │   │   └── Sidebar.tsx
+│   │   │   ├── Layout.tsx
+│   │   │   ├── MetricCard.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── Tables/
+│   │   │   │   └── DataTable.tsx
+│   │   │   └── UI/
+│   │   │       └── LoadingSpinner.tsx
+│   │   ├── hooks/
+│   │   │   ├── useRealTimeData.ts
+│   │   │   └── useWebSocket.ts
+│   │   ├── index.css
+│   │   ├── main.tsx
+│   │   ├── pages/
+│   │   │   ├── Analytics.tsx
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── DatasetManager.tsx
+│   │   │   ├── FederatedLearning.tsx
+│   │   │   ├── FLAlgorithms.tsx
+│   │   │   ├── Integrations.tsx
+│   │   │   ├── NetworkMonitoring.tsx
+│   │   │   ├── SecurityCenter.tsx
+│   │   │   ├── Settings.tsx
+│   │   │   └── SystemMetrics.tsx
+│   │   ├── services/
+│   │   │   ├── api.ts
+│   │   │   └── websocket.ts
+│   │   ├── stores/
+│   │   │   ├── appStore.ts
+│   │   │   ├── themeStore.ts
+│   │   │   └── useAppStore.ts
+│   │   └── types/
+│   │       └── index.ts
+│   ├── tailwind.config.js
+│   ├── tsconfig.json
+│   └── vite.config.ts
+├── package-lock.json
+├── package.json
+├── pyproject.toml
+├── QUICK_START.md
+├── README.md
+├── START_AGISFL.bat
+├── start.sh
+└── tests/
+    ├── test_app.py
+    ├── test_comprehensive.py
+    ├── test_fl_metrics.py
+    ├── test_healthz_readyz.py
+    └── test_production_ready.py
+''''
 
 ## 🔄 Data Flow
 

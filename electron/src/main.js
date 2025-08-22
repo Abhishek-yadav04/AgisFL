@@ -24,7 +24,7 @@ function startBackend() {
       PYTHONUNBUFFERED: '1'
     };
     
-    backendProcess = spawn(pythonCmd, ['main_minimal.py'], {
+    backendProcess = spawn(pythonCmd, ['main.py'], {
       cwd: backendPath,
       stdio: ['pipe', 'pipe', 'pipe'],
       env: env

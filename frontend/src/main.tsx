@@ -1,8 +1,8 @@
 import React, { StrictMode, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
-// import reportWebVitals from './reportWebVitals'; // Performance analytics
 
 // Centralized Error Boundary component
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -41,13 +41,12 @@ const root = ReactDOM.createRoot(container);
 // Render the app
 root.render(
   <StrictMode>
-    <ErrorBoundary>
-      <Suspense fallback={<div>Loading…</div>}>
-        <App />
-      </Suspense>
-    </ErrorBoundary>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <Suspense fallback={<div>Loading…</div>}>
+          <App />
+        </Suspense>
+      </ErrorBoundary>
+    </BrowserRouter>
   </StrictMode>
 );
-
-// Report web vitals for analytics dashboards
-// reportWebVitals(console.log); // Replace console.log with your analytics tracker

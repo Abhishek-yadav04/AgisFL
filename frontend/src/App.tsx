@@ -6,8 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Layout Components
-import Sidebar from './components/Layout/Sidebar';
-import Header from './components/Layout/Header';
+import TopNavigation from './components/Layout/TopNavigation';
 import LoadingSpinner from './components/UI/LoadingSpinner';
 
 // Page Components
@@ -37,7 +36,7 @@ const queryClient = new QueryClient({
 });
 
 const App: React.FC = () => {
-  const { theme, sidebarCollapsed } = useAppStore();
+  const { theme } = useAppStore();
   const [isLoading, setIsLoading] = useState(true);
 
   // Apply theme to document
@@ -70,38 +69,32 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <Sidebar />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+          <TopNavigation />
           
-          <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
-            sidebarCollapsed ? 'ml-20' : 'ml-80'
-          }`}>
-            <Header />
-            
-            <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-              <Suspense fallback={
-                <div className="flex items-center justify-center h-full">
-                  <LoadingSpinner size="lg" />
-                </div>
-              }>
-                <AnimatePresence mode="wait">
-                  <Routes>
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/security" element={<SecurityCenter />} />
-                    <Route path="/network" element={<NetworkMonitoring />} />
-                    <Route path="/federated-learning" element={<FederatedLearning />} />
-                    <Route path="/datasets" element={<DatasetManager />} />
-                    <Route path="/algorithms" element={<FLAlgorithms />} />
-                    <Route path="/integrations" element={<Integrations />} />
-                    <Route path="/analytics" element={<Analytics />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                  </Routes>
-                </AnimatePresence>
-              </Suspense>
-            </main>
-          </div>
+          <main className="pt-20 min-h-screen bg-gray-50 dark:bg-gray-900">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-full">
+                <LoadingSpinner size="lg" />
+              </div>
+            }>
+              <AnimatePresence mode="wait">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/security" element={<SecurityCenter />} />
+                  <Route path="/network" element={<NetworkMonitoring />} />
+                  <Route path="/federated-learning" element={<FederatedLearning />} />
+                  <Route path="/datasets" element={<DatasetManager />} />
+                  <Route path="/algorithms" element={<FLAlgorithms />} />
+                  <Route path="/integrations" element={<Integrations />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
+              </AnimatePresence>
+            </Suspense>
+          </main>
         </div>
         
         <Toaster

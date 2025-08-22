@@ -29,7 +29,9 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:8001",
-        "http://127.0.0.1:8001"
+        "http://127.0.0.1:8001",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
     ]
     
     # Federated Learning
@@ -45,6 +47,10 @@ class Settings(BaseSettings):
     # Monitoring
     metrics_enabled: bool = True
     log_level: str = "INFO"
+    
+    # Rate limiting
+    rate_limit_requests: int = 100
+    rate_limit_window: str = "1/minute"
     
     @field_validator("cors_origins", mode="before")
     @classmethod

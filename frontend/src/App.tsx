@@ -1,14 +1,14 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Layout Components
 import TopNavigation from './components/Layout/TopNavigation';
 import LoadingSpinner from './components/UI/LoadingSpinner';
-import MainLayout from './components/Layout/MainLayout';
+
 // Page Components
 import Dashboard from './pages/Dashboard';
 import SecurityCenter from './pages/SecurityCenter';
@@ -37,7 +37,6 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   const { theme } = useAppStore();
-  const [isLoading, setIsLoading] = useState(true);
 
   // Apply theme to document
   useEffect(() => {
@@ -46,51 +45,36 @@ const App: React.FC = () => {
     root.classList.add(theme);
   }, [theme]);
 
-  // Simulate initial loading
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 mx-auto">
-            <span className="text-white font-bold text-xl">A</span>
-          </div>
-          <LoadingSpinner size="lg" />
-          <p className="text-white mt-4 font-medium">Loading AgisFL Enterprise...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
-      <MainLayout>
-        <Suspense fallback={
-          <div className="flex items-center justify-center h-full">
-            <LoadingSpinner size="lg" />
-          </div>
-        }>
-          <AnimatePresence mode="wait">
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/security" element={<SecurityCenter />} />
-              <Route path="/network" element={<NetworkMonitoring />} />
-              <Route path="/federated-learning" element={<FederatedLearning />} />
-              <Route path="/datasets" element={<DatasetManager />} />
-              <Route path="/algorithms" element={<FLAlgorithms />} />
-              <Route path="/integrations" element={<Integrations />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </AnimatePresence>
-        </Suspense>
-      </MainLayout>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        <TopNavigation />
+        
+        <main className="pt-20">
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-96">
+              <LoadingSpinner size="lg" />
+            </div>
+          }>
+            <AnimatePresence mode="wait">
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/security" element={<SecurityCenter />} />
+                <Route path="/network" element={<NetworkMonitoring />} />
+                <Route path="/federated-learning" element={<FederatedLearning />} />
+                <Route path="/datasets" element={<DatasetManager />} />
+                <Route path="/algorithms" element={<FLAlgorithms />} />
+                <Route path="/integrations" element={<Integrations />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </AnimatePresence>
+          </Suspense>
+        </main>
+      </div>
+      
       <Toaster position="bottom-right" toastOptions={{
         duration: 4000,
         style: {

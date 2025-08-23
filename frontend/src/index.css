@@ -13,6 +13,7 @@ html {
 
 body {
   font-feature-settings: 'cv02','cv03','cv04','cv11';
+  padding-top: 80px; /* Account for fixed top navigation */
 }
 
 /* Custom CSS Variables for theming */

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -21,7 +21,9 @@ import {
   Activity,
   ChevronDown,
   Search,
-  Command
+  Wifi,
+  WifiOff,
+  RefreshCw
 } from 'lucide-react';
 import { useAppStore } from '../../stores/appStore';
 import { clsx } from 'clsx';
@@ -98,6 +100,14 @@ const TopNavigation: React.FC = () => {
     error: 'bg-red-600 animate-pulse',
   };
 
+  const getConnectionIcon = () => {
+    switch (connectionStatus) {
+      case 'connected': return <Wifi className="w-4 h-4 text-green-500" />;
+      case 'connecting': return <RefreshCw className="w-4 h-4 text-yellow-500 animate-spin" />;
+      default: return <WifiOff className="w-4 h-4 text-red-500" />;
+    }
+  };
+
   const getConnectionText = () => {
     switch (connectionStatus) {
       case 'connected': return 'Connected';
@@ -107,6 +117,19 @@ const TopNavigation: React.FC = () => {
       default: return 'Unknown';
     }
   };
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setMobileMenuOpen(false);
+      setUserMenuOpen(false);
+    };
+
+    if (mobileMenuOpen || userMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [mobileMenuOpen, userMenuOpen]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-lg">
@@ -201,7 +224,7 @@ const TopNavigation: React.FC = () => {
 
             {/* Connection Status */}
             <div className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              <div className={clsx('w-2 h-2 rounded-full', connectionStatusColors[connectionStatus])} />
+              {getConnectionIcon()}
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {getConnectionText()}
               </span>
@@ -245,7 +268,10 @@ const TopNavigation: React.FC = () => {
             {/* User Menu */}
             <div className="relative">
               <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUserMenuOpen(!userMenuOpen);
+                }}
                 className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="hidden md:block text-right">
@@ -275,6 +301,7 @@ const TopNavigation: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
@@ -302,7 +329,10 @@ const TopNavigation: React.FC = () => {
 
             {/* Mobile Menu Button */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMobileMenuOpen(!mobileMenuOpen);
+              }}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               {mobileMenuOpen ? (
@@ -334,7 +364,7 @@ const TopNavigation: React.FC = () => {
                       className={clsx(
                         'flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                         isActive
-                          ? 'bg-gradient-to-r text-white shadow-lg'
+                          ? `bg-gradient-to-r ${item.color} text-white shadow-lg`
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                       )}
                     >
@@ -348,17 +378,6 @@ const TopNavigation: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Click outside to close menus */}
-      {(mobileMenuOpen || userMenuOpen) && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => {
-            setMobileMenuOpen(false);
-            setUserMenuOpen(false);
-          }}
-        />
-      )}
     </nav>
   );
 };

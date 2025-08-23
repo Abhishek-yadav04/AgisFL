@@ -1,6 +1,6 @@
 import React, { StrictMode, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
 import './index.css';
 
@@ -41,12 +41,12 @@ const root = ReactDOM.createRoot(container);
 // Render the app
 root.render(
   <StrictMode>
-    <BrowserRouter>
+    <Router>
       <ErrorBoundary>
         <Suspense fallback={<div>Loading…</div>}>
           <App />
         </Suspense>
       </ErrorBoundary>
-    </BrowserRouter>
+    </Router>
   </StrictMode>
 );

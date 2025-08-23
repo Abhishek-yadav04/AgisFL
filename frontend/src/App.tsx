@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Layout Components
 import TopNavigation from './components/Layout/TopNavigation';
 import LoadingSpinner from './components/UI/LoadingSpinner';
-
+import MainLayout from './components/Layout/MainLayout';
 // Page Components
 import Dashboard from './pages/Dashboard';
 import SecurityCenter from './pages/SecurityCenter';
@@ -68,59 +68,39 @@ const App: React.FC = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <TopNavigation />
-          
-          <main className="pt-20 min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-full">
-                <LoadingSpinner size="lg" />
-              </div>
-            }>
-              <AnimatePresence mode="wait">
-                <Routes>
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/security" element={<SecurityCenter />} />
-                  <Route path="/network" element={<NetworkMonitoring />} />
-                  <Route path="/federated-learning" element={<FederatedLearning />} />
-                  <Route path="/datasets" element={<DatasetManager />} />
-                  <Route path="/algorithms" element={<FLAlgorithms />} />
-                  <Route path="/integrations" element={<Integrations />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Routes>
-              </AnimatePresence>
-            </Suspense>
-          </main>
-        </div>
-        
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: theme === 'dark' ? '#1f2937' : '#ffffff',
-              color: theme === 'dark' ? '#e5e7eb' : '#1f2937',
-              border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
-            },
-            success: {
-              iconTheme: {
-                primary: '#10b981',
-                secondary: 'white',
-              },
-            },
-            error: {
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: 'white',
-              },
-            },
-          }}
-        />
-      </Router>
+      <MainLayout>
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-full">
+            <LoadingSpinner size="lg" />
+          </div>
+        }>
+          <AnimatePresence mode="wait">
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/security" element={<SecurityCenter />} />
+              <Route path="/network" element={<NetworkMonitoring />} />
+              <Route path="/federated-learning" element={<FederatedLearning />} />
+              <Route path="/datasets" element={<DatasetManager />} />
+              <Route path="/algorithms" element={<FLAlgorithms />} />
+              <Route path="/integrations" element={<Integrations />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </AnimatePresence>
+        </Suspense>
+      </MainLayout>
+      <Toaster position="bottom-right" toastOptions={{
+        duration: 4000,
+        style: {
+          background: theme === 'dark' ? '#1f2937' : '#ffffff',
+          color: theme === 'dark' ? '#e5e7eb' : '#1f2937',
+          border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+        },
+        success: { iconTheme: { primary: '#10b981', secondary: 'white', }, },
+        error: { iconTheme: { primary: '#ef4444', secondary: 'white', }, },
+      }} />
       
       {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>

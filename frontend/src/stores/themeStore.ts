@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { persistNSync } from 'persist-and-sync';
 import type { StateCreator } from 'zustand';
 
 interface ThemeState {

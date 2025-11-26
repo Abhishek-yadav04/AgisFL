@@ -12,16 +12,16 @@ scipy==1.11.4
 
 # Federated Learning - Top Tier
 flwr==1.11.0
-torch==2.1.2
+torch==2.8.0
 torchvision==0.16.2
 tensorflow==2.16.1
 
 # Security & Networking
-cryptography==42.0.8
+cryptography==44.0.1
 PyJWT==2.9.0
 bcrypt==4.1.2
-python-multipart==0.0.12
-cryptography==42.0.8
+python-multipart==0.0.18
+cryptography==44.0.1
 alembic==1.13.1
 PyJWT==2.9.0
 
@@ -37,8 +37,8 @@ redis==5.0.1
 
 # HTTP & API
 httpx==0.26.0
-requests==2.32.3
-aiohttp==3.9.1
+requests==2.32.4
+aiohttp==3.12.14
 
 # Configuration & Environment
 python-dotenv==1.0.1
@@ -49,7 +49,7 @@ click==8.1.7
 pytest==8.3.3
 pytest-asyncio==0.24.0
 pytest-cov==5.0.0
-black==24.1.1
+black==24.3.0
 ruff==0.1.9
 
 # Monitoring & Observability
@@ -70,7 +70,7 @@ dash==2.17.1
 flwr==1.11.0
 
 # Additional Tools - Fixed compatibility
-jinja2==3.1.4
-python-multipart==0.0.12
+jinja2==3.1.6
+python-multipart==0.0.18
 rich==13.8.1
 click==8.1.7

@@ -1,0 +1,52 @@
+{
+  "malicious_ips": [
+    "192.168.1.100",
+    "10.0.0.50",
+    "172.16.0.100",
+    "185.220.100.240",
+    "185.220.101.0",
+    "198.96.155.3",
+    "89.248.165.74",
+    "194.26.29.0",
+    "45.95.169.0"
+  ],
+  "suspicious_ports": [
+    1337, 4444, 6666, 31337, 12345, 54321, 9999,
+    3389, 5900, 23, 135, 139, 445, 1433, 3306, 5432,
+    6379, 27017, 9200, 11211, 50070
+  ],
+  "malware_signatures": [
+    "cmd.exe", "powershell", "wget", "curl", "nc.exe",
+    "mimikatz", "psexec", "wmic", "reg.exe", "net.exe",
+    "tasklist", "systeminfo", "whoami", "ipconfig"
+  ],
+  "sql_injection_patterns": [
+    "' OR '1'='1", "\" OR \"1\"=\"1", "UNION SELECT",
+    "DROP TABLE", "INSERT INTO", "UPDATE SET",
+    "DELETE FROM", "EXEC(", "xp_cmdshell"
+  ],
+  "xss_patterns": [
+    "<script>", "javascript:", "onload=", "onerror=",
+    "<iframe>", "eval(", "document.cookie"
+  ],
+  "ddos_thresholds": {
+    "syn_flood": 1000,
+    "udp_flood": 500,
+    "icmp_flood": 200,
+    "connection_rate": 100
+  },
+  "brute_force_thresholds": {
+    "max_attempts": 10,
+    "time_window": 300,
+    "target_ports": [22, 23, 21, 3389, 5900, 80, 443]
+  },
+  "port_scan_detection": {
+    "max_ports": 10,
+    "time_window": 60,
+    "suspicious_scan_ports": [21, 22, 23, 25, 53, 80, 110, 443, 993, 995]
+  },
+  "dns_tunneling": {
+    "max_query_length": 100,
+    "suspicious_domains": ["dnscat", "iodine", "dns2tcp"]
+  }
+}

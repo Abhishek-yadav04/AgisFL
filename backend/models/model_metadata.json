@@ -1,0 +1,20 @@
+{
+  "model_type": "Isolation Forest",
+  "contamination": 0.1,
+  "n_estimators": 100,
+  "baseline_samples": 5000,
+  "feature_names": [
+    "packet_size",
+    "protocol_type",
+    "src_port",
+    "dst_port",
+    "packet_rate",
+    "connection_duration",
+    "bytes_transferred",
+    "flags_count",
+    "tcp_window_size",
+    "payload_entropy"
+  ],
+  "threat_threshold": -0.1,
+  "created": "production_ready"
+}

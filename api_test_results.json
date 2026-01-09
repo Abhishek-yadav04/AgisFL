@@ -1,0 +1,38 @@
+[
+  {
+    "endpoint": "/health",
+    "status_code": 200,
+    "success": true,
+    "response_size": 217
+  },
+  {
+    "endpoint": "/api/health",
+    "status_code": 200,
+    "success": true,
+    "response_size": 302
+  },
+  {
+    "endpoint": "/api/version",
+    "status_code": 200,
+    "success": true,
+    "response_size": 93
+  },
+  {
+    "endpoint": "/metrics",
+    "status_code": 200,
+    "success": true,
+    "response_size": 78
+  },
+  {
+    "endpoint": "/api/fl/overview",
+    "status_code": 200,
+    "success": true,
+    "response_size": 102
+  },
+  {
+    "endpoint": "/api/fl/status",
+    "status_code": 200,
+    "success": true,
+    "response_size": 103
+  }
+]

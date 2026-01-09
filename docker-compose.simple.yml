@@ -1,0 +1,53 @@
+services:
+  # AgisFL Backend
+  agisfl-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DISABLE_AUTHENTICATION=${DISABLE_AUTHENTICATION:-true}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./agisfl.db}
+      - JWT_SECRET=${JWT_SECRET:-default_jwt_secret}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-default_encryption_key}
+    volumes:
+      - ./logs:/app/logs
+      - ./governance_data:/app/governance_data
+      - ./agisfl.db:/app/agisfl.db
+      - ./agisfl_fallback.db:/app/agisfl_fallback.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - agisfl-network
+
+  # AgisFL Frontend
+  agisfl-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    restart: unless-stopped
+    depends_on:
+      - agisfl-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - agisfl-network
+
+networks:
+  agisfl-network:
+    driver: bridge

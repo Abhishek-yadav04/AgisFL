@@ -1,0 +1,24 @@
+<!-- Alliance Network Icon -->
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Central hub -->
+  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.3"/>
+  
+  <!-- Alliance nodes -->
+  <circle cx="6" cy="6" r="2.5" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.2"/>
+  <circle cx="18" cy="6" r="2.5" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.2"/>
+  <circle cx="6" cy="18" r="2.5" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.2"/>
+  <circle cx="18" cy="18" r="2.5" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.2"/>
+  
+  <!-- Alliance connections -->
+  <line x1="8.5" y1="8.5" x2="10" y2="10" stroke="currentColor" stroke-width="2" opacity="0.7"/>
+  <line x1="15.5" y1="8.5" x2="14" y2="10" stroke="currentColor" stroke-width="2" opacity="0.7"/>
+  <line x1="8.5" y1="15.5" x2="10" y2="14" stroke="currentColor" stroke-width="2" opacity="0.7"/>
+  <line x1="15.5" y1="15.5" x2="14" y2="14" stroke="currentColor" stroke-width="2" opacity="0.7"/>
+  
+  <!-- Partnership symbols -->
+  <circle cx="6" cy="6" r="0.8" fill="white"/>
+  <circle cx="18" cy="6" r="0.8" fill="white"/>
+  <circle cx="6" cy="18" r="0.8" fill="white"/>
+  <circle cx="18" cy="18" r="0.8" fill="white"/>
+  <circle cx="12" cy="12" r="1" fill="white"/>
+</svg>

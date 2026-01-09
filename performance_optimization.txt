@@ -1,0 +1,20 @@
+
+# Add to main.py for performance optimization
+import uvloop
+import asyncio
+
+# Use uvloop for better performance
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
+# Optimize uvicorn settings
+if __name__ == "__main__":
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        loop="uvloop",
+        http="httptools",
+        access_log=False,  # Disable for performance
+        server_header=False,
+        date_header=False
+    )

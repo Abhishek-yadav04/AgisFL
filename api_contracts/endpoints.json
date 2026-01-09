@@ -1,0 +1,164 @@
+{
+  "metadata": {
+    "generated_at": "2025-09-21T00:00:00Z",
+    "project_root": ".",
+    "total_endpoints": 7,
+    "discovery_engine_version": "1.0"
+  },
+  "endpoints": [
+    {
+      "path": "/status",
+      "method": "HTTPMethod.GET",
+      "function_name": "get_autofl_status",
+      "file_path": "backend\\api\\autofl.py",
+      "line_number": 7,
+      "parameters": [],
+      "responses": [],
+      "tags": [
+        "Autofl"
+      ],
+      "summary": "get_autofl_status",
+      "description": "",
+      "status": "EndpointStatus.STUB",
+      "security": null,
+      "dependencies": null
+    },
+    {
+      "path": "/start-autonomous",
+      "method": "HTTPMethod.POST",
+      "function_name": "start_autonomous_mode",
+      "file_path": "backend\\api\\autofl.py",
+      "line_number": 19,
+      "parameters": [],
+      "responses": [],
+      "tags": [
+        "Autofl"
+      ],
+      "summary": "start_autonomous_mode",
+      "description": "",
+      "status": "EndpointStatus.STUB",
+      "security": null,
+      "dependencies": null
+    },
+    {
+      "path": "/metrics",
+      "method": "HTTPMethod.GET",
+      "function_name": "get_metrics",
+      "file_path": "backend\\api\\monitoring.py",
+      "line_number": 8,
+      "parameters": [],
+      "responses": [],
+      "tags": [
+        "Monitoring"
+      ],
+      "summary": "get_metrics",
+      "description": "",
+      "status": "EndpointStatus.STUB",
+      "security": null,
+      "dependencies": null
+    },
+    {
+      "path": "/system/status",
+      "method": "HTTPMethod.GET",
+      "function_name": "get_monitoring_system_status",
+      "file_path": "backend\\api\\monitoring.py",
+      "line_number": 21,
+      "parameters": [],
+      "responses": [],
+      "tags": [
+        "Monitoring"
+      ],
+      "summary": "get_monitoring_system_status",
+      "description": "",
+      "status": "EndpointStatus.STUB",
+      "security": null,
+      "dependencies": null
+    },
+    {
+      "path": "/alerts",
+      "method": "HTTPMethod.GET",
+      "function_name": "get_monitoring_alerts",
+      "file_path": "backend\\api\\monitoring.py",
+      "line_number": 33,
+      "parameters": [],
+      "responses": [],
+      "tags": [
+        "Monitoring"
+      ],
+      "summary": "Get monitoring alerts",
+      "description": "Get monitoring alerts",
+      "status": "EndpointStatus.STUB",
+      "security": null,
+      "dependencies": null
+    },
+    {
+      "path": "/performance",
+      "method": "HTTPMethod.GET",
+      "function_name": "get_performance_metrics",
+      "file_path": "backend\\api\\monitoring.py",
+      "line_number": 45,
+      "parameters": [],
+      "responses": [],
+      "tags": [
+        "Monitoring"
+      ],
+      "summary": "Get performance monitoring metrics",
+      "description": "Get performance monitoring metrics",
+      "status": "EndpointStatus.STUB",
+      "security": null,
+      "dependencies": null
+    },
+    {
+      "path": "/overview",
+      "method": "HTTPMethod.GET",
+      "function_name": "get_rules_overview",
+      "file_path": "backend\\api\\rules_management.py",
+      "line_number": 134,
+      "parameters": [],
+      "responses": [],
+      "tags": [
+        "Rules Management"
+      ],
+      "summary": "Get comprehensive overview of all rules",
+      "description": "Get comprehensive overview of all rules",
+      "status": "EndpointStatus.IMPLEMENTED",
+      "security": null,
+      "dependencies": null
+    }
+  ],
+  "statistics": {
+    "by_status": {
+      "implemented": 1,
+      "mock": 0,
+      "stub": 6,
+      "not_registered": 0,
+      "unknown": 0
+    },
+    "by_method": {
+      "GET": 6,
+      "POST": 1,
+      "PUT": 0,
+      "DELETE": 0,
+      "PATCH": 0,
+      "OPTIONS": 0,
+      "HEAD": 0
+    },
+    "registered_routers": [
+      "security_router",
+      "dashboard_router",
+      "ecosystem_router",
+      "router",
+      "integrations_router",
+      "realtime_router",
+      "monitoring_router",
+      "privacy_router",
+      "system_router",
+      "fl_router",
+      "auth_router"
+    ],
+    "coverage": {
+      "implemented_percentage": 14.285714285714285,
+      "registered_percentage": 100.0
+    }
+  }
+}

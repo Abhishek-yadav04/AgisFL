@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # AgisFL Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DISABLE_AUTHENTICATION=true
+    volumes:
+      - ./logs:/app/logs
+      - ./agisfl.db:/app/agisfl.db
+      - ./backend:/app
+    restart: unless-stopped
+    depends_on:
+      - redis
+    networks:
+      - agisfl-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - agisfl-network
+
+networks:
+  agisfl-network:
+    driver: bridge

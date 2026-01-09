@@ -1,0 +1,28 @@
+<!-- Advanced Federated Learning Icon -->
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Central AI Core -->
+  <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
+  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+
+  <!-- Neural Network Layers (Advanced Feature) -->
+  <rect x="9" y="7" width="6" height="1" fill="currentColor" opacity="0.8"/>
+  <rect x="9" y="10" width="6" height="1" fill="currentColor" opacity="0.8"/>
+  <rect x="9" y="13" width="6" height="1" fill="currentColor" opacity="0.8"/>
+  <rect x="9" y="16" width="6" height="1" fill="currentColor" opacity="0.8"/>
+
+  <!-- Advanced Client Nodes -->
+  <circle cx="5" cy="5" r="1.5" fill="currentColor" opacity="0.9"/>
+  <circle cx="19" cy="5" r="1.5" fill="currentColor" opacity="0.9"/>
+  <circle cx="5" cy="19" r="1.5" fill="currentColor" opacity="0.9"/>
+  <circle cx="19" cy="19" r="1.5" fill="currentColor" opacity="0.9"/>
+
+  <!-- Optimization Arrows (Advanced Algorithms) -->
+  <path d="M7 7 L9 9" stroke="currentColor" stroke-width="1" opacity="0.7"/>
+  <path d="M17 7 L15 9" stroke="currentColor" stroke-width="1" opacity="0.7"/>
+  <path d="M7 17 L9 15" stroke="currentColor" stroke-width="1" opacity="0.7"/>
+  <path d="M17 17 L15 15" stroke="currentColor" stroke-width="1" opacity="0.7"/>
+
+  <!-- Advanced Processing Indicator -->
+  <circle cx="12" cy="12" r="1" fill="currentColor"/>
+  <path d="M10 10 L11 11 L10 12" stroke="currentColor" stroke-width="1" fill="none"/>
+</svg>

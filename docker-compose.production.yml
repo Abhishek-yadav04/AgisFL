@@ -1,0 +1,77 @@
+services:
+  # AgisFL Backend
+  agisfl-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DISABLE_AUTHENTICATION=${DISABLE_AUTHENTICATION:-true}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./agisfl.db}
+      - JWT_SECRET=${JWT_SECRET:-default_jwt_secret}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-default_encryption_key}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-Rahul@10071890}
+    volumes:
+      - ./logs:/app/logs
+      - ./governance_data:/app/governance_data
+      - ./agisfl.db:/app/agisfl.db
+      - ./agisfl_fallback.db:/app/agisfl_fallback.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # depends_on:
+    #   - redis  # Commented out to allow backend to start without Redis
+    networks:
+      - agisfl-network
+
+  # AgisFL Frontend
+  agisfl-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    restart: unless-stopped
+    depends_on:
+      - agisfl-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - agisfl-network
+
+  # Redis Cache (Linux container on Windows)
+  redis:
+    image: redis:7-alpine
+    platform: linux/amd64
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-Rahul@10071890}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-Rahul@10071890}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - agisfl-network
+
+volumes:
+  redis_data:
+
+networks:
+  agisfl-network:
+    driver: bridge

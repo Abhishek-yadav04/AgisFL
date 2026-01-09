@@ -1,76 +1,85 @@
-import React from 'react';
-import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
-import { clsx } from 'clsx';
+import React from 'react'
+import { motion } from 'framer-motion'
+import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from '@heroicons/react/24/solid'
 
 interface MetricCardProps {
-  title: string;
-  value: string;
-  subtitle?: string;
-  icon: LucideIcon;
-  color: 'blue' | 'green' | 'purple' | 'yellow' | 'red';
-  trend?: number;
-  loading?: boolean;
+  title: string
+  value: string | number
+  icon: React.ComponentType<{ className?: string }>
+  trend?: 'up' | 'down' | 'neutral'
+  trendValue?: string
+  color?: 'primary' | 'success' | 'warning' | 'error'
+  loading?: boolean
 }
 
-const colorClasses = {
-  blue: 'from-blue-600 to-blue-700 text-blue-200',
-  green: 'from-green-600 to-green-700 text-green-200',
-  purple: 'from-purple-600 to-purple-700 text-purple-200',
-  yellow: 'from-yellow-600 to-yellow-700 text-yellow-200',
-  red: 'from-red-600 to-red-700 text-red-200',
-};
-
-export const MetricCard: React.FC<MetricCardProps> = ({
+const MetricCard: React.FC<MetricCardProps> = ({
   title,
   value,
-  subtitle,
   icon: Icon,
-  color,
-  trend,
-  loading = false
+  trend = 'neutral',
+  trendValue,
+  color = 'primary',
+  loading = false,
 }) => {
+  const colorClasses = {
+    primary: 'text-primary-400',
+    success: 'text-success-400',
+    warning: 'text-warning-400',
+    error: 'text-error-400',
+  }
+
+  const trendClasses = {
+    up: 'text-success-400',
+    down: 'text-error-400',
+    neutral: 'text-gray-400',
+  }
+
+  const TrendIcon = {
+    up: ArrowUpIcon,
+    down: ArrowDownIcon,
+    neutral: MinusIcon,
+  }[trend]
+
   if (loading) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 animate-pulse">
-        <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-        <div className="h-8 bg-gray-700 rounded w-1/2 mb-2"></div>
-        <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+      <div className="metric-card">
+        <div className="flex items-center justify-between mb-4">
+          <div className="loading-skeleton h-4 w-20" />
+          <div className="loading-skeleton h-6 w-6 rounded" />
+        </div>
+        <div className="loading-skeleton h-8 w-16 mb-2" />
+        <div className="loading-skeleton h-3 w-24" />
       </div>
-    );
+    )
   }
 
   return (
-    <div className={clsx(
-      'bg-gradient-to-br rounded-lg p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg',
-      colorClasses[color]
-    )}>
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <h3 className="text-sm font-medium opacity-90">{title}</h3>
-          <p className="text-3xl font-bold text-white mt-1">{value}</p>
-          {subtitle && (
-            <p className="text-xs opacity-75 mt-1">{subtitle}</p>
-          )}
-          {trend !== undefined && (
-            <div className="flex items-center mt-2">
-              {trend > 0 ? (
-                <TrendingUp className="w-3 h-3 text-green-400 mr-1" />
-              ) : (
-                <TrendingDown className="w-3 h-3 text-red-400 mr-1" />
-              )}
-              <span className={clsx(
-                'text-xs font-medium',
-                trend > 0 ? 'text-green-400' : 'text-red-400'
-              )}>
-                {Math.abs(trend)}%
-              </span>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2 }}
+      className="metric-card group"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="metric-label">{title}</h3>
+        <div className={`p-2 rounded-lg bg-gray-700/50 group-hover:bg-gray-700 transition-colors ${colorClasses[color]}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+      
+      <div className="flex items-end justify-between">
+        <div>
+          <div className="metric-value">{value}</div>
+          {trendValue && (
+            <div className={`flex items-center text-sm font-medium ${trendClasses[trend]}`}>
+              <TrendIcon className="w-3 h-3 mr-1" />
+              {trendValue}
             </div>
           )}
         </div>
-        <div className="opacity-75">
-          <Icon className="w-8 h-8" />
-        </div>
       </div>
-    </div>
-  );
-};
+    </motion.div>
+  )
+}
+
+export default MetricCard

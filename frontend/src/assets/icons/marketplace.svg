@@ -1,0 +1,17 @@
+<!-- Marketplace Icon -->
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M3 7H21L19 17H5L3 7Z" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.2"/>
+  <path d="M3 7L1 3H5L7 7" stroke="currentColor" stroke-width="2" fill="none"/>
+  <circle cx="9" cy="20" r="1" stroke="currentColor" stroke-width="2" fill="currentColor"/>
+  <circle cx="17" cy="20" r="1" stroke="currentColor" stroke-width="2" fill="currentColor"/>
+  
+  <!-- Data package symbols -->
+  <rect x="7" y="10" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.6"/>
+  <rect x="11" y="10" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.8"/>
+  <rect x="15" y="10" width="3" height="2" rx="0.5" fill="currentColor" opacity="0.4"/>
+  
+  <!-- Price tags -->
+  <text x="8" y="15" font-size="4" fill="currentColor">$</text>
+  <text x="12" y="15" font-size="4" fill="currentColor">€</text>
+  <text x="16" y="15" font-size="4" fill="currentColor">¥</text>
+</svg>

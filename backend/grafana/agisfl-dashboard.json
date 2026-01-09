@@ -1,0 +1,75 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "AgisFL Enterprise Dashboard",
+    "tags": ["agisfl", "federated-learning", "security"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "system_cpu_usage_percent",
+            "legendFormat": "CPU Usage"
+          },
+          {
+            "expr": "system_memory_usage_bytes / 1024 / 1024 / 1024",
+            "legendFormat": "Memory Usage (GB)"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "HTTP Requests",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{endpoint}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Federated Learning Metrics",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "fl_training_rounds_total",
+            "legendFormat": "Training Rounds - {{algorithm}}"
+          },
+          {
+            "expr": "fl_clients_active",
+            "legendFormat": "Active Clients"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Security Metrics",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "threats_detected_total",
+            "legendFormat": "Threats - {{threat_type}}"
+          },
+          {
+            "expr": "packet_capture_total",
+            "legendFormat": "Packets - {{interface}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "5s"
+  }
+}

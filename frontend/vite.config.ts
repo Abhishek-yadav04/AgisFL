@@ -4,45 +4,46 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/app/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    port: 5173,
+    host: true,
+    hmr: { overlay: false },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+        timeout: 10000
+      },
+      '/ws': {
+        target: 'ws://localhost:8000',
+        ws: true,
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     outDir: 'dist',
-    assetsDir: 'assets',
     sourcemap: false,
-    minify: 'terser',
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
           charts: ['chart.js', 'react-chartjs-2', 'recharts'],
-          utils: ['axios', '@tanstack/react-query', 'zustand', 'framer-motion']
-        }
-      }
-    }
-  },
-  server: {
-    port: 5173,
-    host: '0.0.0.0',
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8001',
-        changeOrigin: true,
-        secure: false
+          ui: ['@headlessui/react', '@heroicons/react', 'framer-motion'],
+          utils: ['axios', 'date-fns', 'clsx']
+        },
       },
-      '/ws': {
-        target: 'ws://127.0.0.1:8001',
-        ws: true,
-        changeOrigin: true
-      }
-    }
+    },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'axios', 'chart.js', 'recharts']
+    include: ['react', 'react-dom', 'react-router-dom']
   }
 })

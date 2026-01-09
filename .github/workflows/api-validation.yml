@@ -1,0 +1,473 @@
+name: Enterprise API Contract Validation
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  PYTHON_VERSION: '3.10'
+  NODE_VERSION: '18'
+
+jobs:
+  api-discovery:
+    name: API Discovery & Contract Generation
+    runs-on: ubuntu-latest
+    outputs:
+      endpoints-changed: ${{ steps.check-changes.outputs.endpoints-changed }}
+      total-endpoints: ${{ steps.discovery.outputs.total-endpoints }}
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 2  # Need previous commit for change detection
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install pyyaml httpx pytest asyncio
+    
+    - name: Run API Discovery
+      id: discovery
+      run: |
+        python scripts/api_discovery.py --project-root . --output-dir ./api_contracts --verbose
+        echo "total-endpoints=$(jq '.metadata.total_endpoints' api_contracts/endpoints.json)" >> $GITHUB_OUTPUT
+    
+    - name: Check for Endpoint Changes
+      id: check-changes
+      run: |
+        if git diff --name-only HEAD^ HEAD | grep -E "(api/|main\.py)" > /dev/null; then
+          echo "endpoints-changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "endpoints-changed=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Upload API Contracts
+      uses: actions/upload-artifact@v3
+      with:
+        name: api-contracts
+        path: api_contracts/
+        retention-days: 30
+
+  contract-validation:
+    name: OpenAPI Contract Validation
+    runs-on: ubuntu-latest
+    needs: api-discovery
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    
+    - name: Download API Contracts
+      uses: actions/download-artifact@v3
+      with:
+        name: api-contracts
+        path: api_contracts/
+    
+    - name: Setup Node.js for OpenAPI Tools
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Install OpenAPI Tools
+      run: |
+        npm install -g @apidevtools/swagger-parser
+        npm install -g @stoplight/spectral-cli
+    
+    - name: Validate OpenAPI Specification
+      run: |
+        # Validate OpenAPI syntax
+        swagger-parser validate api_contracts/openapi.yaml
+        
+        # Run Spectral linting
+        spectral lint api_contracts/openapi.yaml --format stylish
+    
+    - name: Generate API Documentation
+      run: |
+        # Install redoc-cli for documentation generation
+        npm install -g redoc-cli
+        
+        # Generate HTML documentation
+        redoc-cli build api_contracts/openapi.yaml --output api_contracts/api_docs.html
+    
+    - name: Upload API Documentation
+      uses: actions/upload-artifact@v3
+      with:
+        name: api-documentation
+        path: api_contracts/api_docs.html
+
+  baseline-testing:
+    name: API Baseline Testing
+    runs-on: ubuntu-latest
+    needs: [api-discovery, contract-validation]
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: agisfl_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:6-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install Backend Dependencies
+      run: |
+        cd backend
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install httpx pytest pytest-asyncio
+    
+    - name: Download API Contracts
+      uses: actions/download-artifact@v3
+      with:
+        name: api-contracts
+        path: api_contracts/
+    
+    - name: Setup Test Environment
+      run: |
+        cd backend
+        # Create test environment file
+        cat > .env.test << EOF
+        ENV=test
+        DATABASE_URL=postgresql://postgres:testpass@localhost:5432/agisfl_test
+        REDIS_URL=redis://localhost:6379/0
+        SECRET_KEY=test-secret-key-for-ci
+        JWT_SECRET_KEY=test-jwt-secret
+        EOF
+    
+    - name: Start API Server
+      run: |
+        cd backend
+        # Start server in background
+        python main.py &
+        SERVER_PID=$!
+        echo $SERVER_PID > ../server.pid
+        
+        # Wait for server to start
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health > /dev/null 2>&1; do sleep 2; done'
+      env:
+        ENV: test
+    
+    - name: Run Baseline Tests
+      id: baseline-tests
+      run: |
+        # Make baseline test script executable
+        chmod +x api_contracts/baseline_test.py
+        
+        # Run baseline tests
+        python api_contracts/baseline_test.py api_contracts/endpoints.json
+        
+        # Extract results for GitHub output
+        PASSED=$(jq '.summary.passed' baseline_test_report.json)
+        MOCK=$(jq '.summary.mock_validated' baseline_test_report.json)
+        NOT_IMPL=$(jq '.summary.not_implemented' baseline_test_report.json)
+        FAILED=$(jq '.summary.failed' baseline_test_report.json)
+        
+        echo "passed=$PASSED" >> $GITHUB_OUTPUT
+        echo "mock-validated=$MOCK" >> $GITHUB_OUTPUT
+        echo "not-implemented=$NOT_IMPL" >> $GITHUB_OUTPUT
+        echo "failed=$FAILED" >> $GITHUB_OUTPUT
+    
+    - name: Stop API Server
+      if: always()
+      run: |
+        if [ -f server.pid ]; then
+          kill $(cat server.pid) || true
+          rm server.pid
+        fi
+    
+    - name: Upload Baseline Test Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: baseline-test-results
+        path: baseline_test_report.json
+    
+    - name: Comment PR with Results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync('baseline_test_report.json', 'utf8'));
+          
+          const comment = `## 🔍 API Baseline Test Results
+          
+          | Status | Count | Description |
+          |--------|-------|-------------|
+          | ✅ **PASSED** | ${report.summary.passed} | Endpoints returning valid responses |
+          | 🟡 **MOCK_VALIDATED** | ${report.summary.mock_validated} | Mock endpoints with proper headers |
+          | ⚠️ **NOT_IMPLEMENTED** | ${report.summary.not_implemented} | Endpoints returning 404 |
+          | ❌ **FAILED** | ${report.summary.failed} | Endpoints with errors |
+          
+          **Total Endpoints**: ${report.metadata.total_endpoints}
+          **Test Coverage**: ${Math.round((report.summary.passed + report.summary.mock_validated) / report.metadata.total_endpoints * 100)}%
+          
+          ${report.summary.failed > 0 ? '⚠️ **Warning**: Some endpoints are failing. Please review the failed endpoints before merging.' : ''}
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  security-scanning:
+    name: Security & Vulnerability Scanning
+    runs-on: ubuntu-latest
+    needs: api-discovery
+    if: needs.api-discovery.outputs.endpoints-changed == 'true'
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install Security Tools
+      run: |
+        pip install bandit safety semgrep
+    
+    - name: Run Bandit (SAST)
+      run: |
+        bandit -r backend/ -f json -o bandit-report.json || true
+    
+    - name: Run Safety (Dependency Check)
+      run: |
+        cd backend
+        safety check --json --output ../safety-report.json || true
+    
+    - name: Run Semgrep (SAST)
+      run: |
+        semgrep --config=auto backend/ --json --output=semgrep-report.json || true
+    
+    - name: Upload Security Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+          semgrep-report.json
+
+  performance-testing:
+    name: API Performance Testing
+    runs-on: ubuntu-latest
+    needs: [api-discovery, baseline-testing]
+    if: needs.api-discovery.outputs.endpoints-changed == 'true'
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install Performance Testing Tools
+      run: |
+        pip install locust httpx
+    
+    - name: Download API Contracts
+      uses: actions/download-artifact@v3
+      with:
+        name: api-contracts
+        path: api_contracts/
+    
+    - name: Generate Performance Test Script
+      run: |
+        cat > performance_test.py << 'EOF'
+        from locust import HttpUser, task, between
+        import json
+        import random
+        
+        class APIPerformanceTest(HttpUser):
+            wait_time = between(1, 3)
+            
+            def on_start(self):
+                # Load endpoint list
+                with open('api_contracts/endpoints.json', 'r') as f:
+                    self.endpoints = json.load(f)['endpoints']
+                
+                # Filter to GET endpoints only for performance testing
+                self.get_endpoints = [
+                    ep for ep in self.endpoints 
+                    if ep['method'] == 'GET' and ep['status'] != 'not_registered'
+                ]
+            
+            @task(3)
+            def test_random_endpoint(self):
+                if self.get_endpoints:
+                    endpoint = random.choice(self.get_endpoints)
+                    try:
+                        self.client.get(endpoint['path'])
+                    except Exception:
+                        pass
+            
+            @task(1)
+            def test_health_endpoint(self):
+                self.client.get("/health")
+        EOF
+    
+    - name: Run Performance Tests
+      run: |
+        # Start a lightweight load test
+        locust -f performance_test.py --headless -u 10 -r 2 -t 60s --host=http://localhost:8000 --html performance_report.html || true
+    
+    - name: Upload Performance Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-report
+        path: performance_report.html
+
+  summary-report:
+    name: Generate Summary Report
+    runs-on: ubuntu-latest
+    needs: [api-discovery, contract-validation, baseline-testing, security-scanning, performance-testing]
+    if: always()
+    
+    steps:
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Generate Summary Report
+      run: |
+        cat > summary_report.md << EOF
+        # 📊 Enterprise API Validation Summary Report
+        
+        **Generated**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        **Commit**: ${{ github.sha }}
+        **Branch**: ${{ github.ref_name }}
+        
+        ## 🔍 Discovery Results
+        - **Total Endpoints**: ${{ needs.api-discovery.outputs.total-endpoints }}
+        - **Endpoints Changed**: ${{ needs.api-discovery.outputs.endpoints-changed }}
+        
+    ## ✅ Baseline Testing
+    - **Passed**: ${{ needs["baseline-testing"].outputs.passed || 'N/A' }}
+    - **Mock Validated**: ${{ needs["baseline-testing"].outputs["mock-validated"] || 'N/A' }}
+    - **Not Implemented**: ${{ needs["baseline-testing"].outputs["not-implemented"] || 'N/A' }}
+    - **Failed**: ${{ needs["baseline-testing"].outputs.failed || 'N/A' }}
+        
+        ## 🛡️ Security Status
+        - **SAST Scan**: ${{ needs.security-scanning.result }}
+        - **Dependency Check**: ${{ needs.security-scanning.result }}
+        
+        ## ⚡ Performance Status
+        - **Load Testing**: ${{ needs.performance-testing.result }}
+        
+        ## 📋 Artifacts Generated
+        - API Contracts (endpoints.json, openapi.yaml)
+        - API Documentation (HTML)
+        - Baseline Test Results
+        - Security Scan Reports
+        - Performance Test Results
+        
+        ## 🎯 Next Steps
+        1. Review failed endpoints in baseline testing
+        2. Address any security vulnerabilities found
+        3. Optimize endpoints with poor performance
+        4. Update API documentation as needed
+        
+        ---
+        *Generated by Enterprise API Validation Pipeline*
+        EOF
+    
+    - name: Upload Summary Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: summary-report
+        path: summary_report.md
+    
+    - name: Post Summary to PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('summary_report.md', 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });
+
+  deployment-readiness:
+    name: Deployment Readiness Check
+    runs-on: ubuntu-latest
+    needs: [baseline-testing, security-scanning]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Check Deployment Criteria
+      run: |
+        FAILED_TESTS=${{ needs["baseline-testing"].outputs.failed || 0 }}
+        SECURITY_STATUS="${{ needs.security-scanning.result }}"
+        
+        echo "Checking deployment readiness..."
+        echo "Failed tests: $FAILED_TESTS"
+        echo "Security scan status: $SECURITY_STATUS"
+        
+        if [ "$FAILED_TESTS" -gt 0 ]; then
+          echo "❌ Deployment blocked: $FAILED_TESTS failed endpoint tests"
+          exit 1
+        fi
+        
+        if [ "$SECURITY_STATUS" = "failure" ]; then
+          echo "❌ Deployment blocked: Security scan failures detected"
+          exit 1
+        fi
+        
+        echo "✅ All deployment criteria met"
+    
+    - name: Create Deployment Tag
+      if: success()
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        TAG_NAME="deploy-$(date +%Y%m%d-%H%M%S)"
+        git tag -a "$TAG_NAME" -m "Automated deployment tag - All validation passed"
+        git push origin "$TAG_NAME"
+        
+        echo "🚀 Created deployment tag: $TAG_NAME"

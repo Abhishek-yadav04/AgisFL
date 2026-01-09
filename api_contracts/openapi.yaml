@@ -1,0 +1,195 @@
+openapi: 3.0.3
+info:
+  title: AgisFL Enterprise API
+  description: Enterprise-grade Federated Learning Platform API
+  version: 1.0.0
+  contact:
+    name: AgisFL Engineering Team
+    email: engineering@agisfl.com
+servers:
+- url: http://localhost:8000
+  description: Development server
+- url: https://api.agisfl.com
+  description: Production server
+paths:
+  /status:
+    get:
+      summary: get_autofl_status
+      description: ''
+      tags:
+      - Autofl
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+          headers:
+            X-Data-Source:
+              description: Indicates mock data source
+              schema:
+                type: string
+                enum:
+                - MOCK
+      x-implementation-status: stub
+      x-source-file: backend\api\autofl.py
+      x-function-name: get_autofl_status
+      x-mock: true
+  /start-autonomous:
+    post:
+      summary: start_autonomous_mode
+      description: ''
+      tags:
+      - Autofl
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+          headers:
+            X-Data-Source:
+              description: Indicates mock data source
+              schema:
+                type: string
+                enum:
+                - MOCK
+      x-implementation-status: stub
+      x-source-file: backend\api\autofl.py
+      x-function-name: start_autonomous_mode
+      x-mock: true
+  /metrics:
+    get:
+      summary: get_metrics
+      description: ''
+      tags:
+      - Monitoring
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+          headers:
+            X-Data-Source:
+              description: Indicates mock data source
+              schema:
+                type: string
+                enum:
+                - MOCK
+      x-implementation-status: stub
+      x-source-file: backend\api\monitoring.py
+      x-function-name: get_metrics
+      x-mock: true
+  /system/status:
+    get:
+      summary: get_monitoring_system_status
+      description: ''
+      tags:
+      - Monitoring
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+          headers:
+            X-Data-Source:
+              description: Indicates mock data source
+              schema:
+                type: string
+                enum:
+                - MOCK
+      x-implementation-status: stub
+      x-source-file: backend\api\monitoring.py
+      x-function-name: get_monitoring_system_status
+      x-mock: true
+  /alerts:
+    get:
+      summary: Get monitoring alerts
+      description: Get monitoring alerts
+      tags:
+      - Monitoring
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+          headers:
+            X-Data-Source:
+              description: Indicates mock data source
+              schema:
+                type: string
+                enum:
+                - MOCK
+      x-implementation-status: stub
+      x-source-file: backend\api\monitoring.py
+      x-function-name: get_monitoring_alerts
+      x-mock: true
+  /performance:
+    get:
+      summary: Get performance monitoring metrics
+      description: Get performance monitoring metrics
+      tags:
+      - Monitoring
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+          headers:
+            X-Data-Source:
+              description: Indicates mock data source
+              schema:
+                type: string
+                enum:
+                - MOCK
+      x-implementation-status: stub
+      x-source-file: backend\api\monitoring.py
+      x-function-name: get_performance_metrics
+      x-mock: true
+  /overview:
+    get:
+      summary: Get comprehensive overview of all rules
+      description: Get comprehensive overview of all rules
+      tags:
+      - Rules Management
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+      x-implementation-status: implemented
+      x-source-file: backend\api\rules_management.py
+      x-function-name: get_rules_overview
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas: {}
+tags:
+- name: Autofl
+  description: Autofl related endpoints
+- name: Monitoring
+  description: Monitoring related endpoints
+- name: Rules Management
+  description: Rules Management related endpoints

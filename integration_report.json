@@ -1,0 +1,46 @@
+{
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "info": 0,
+    "success_rate": 100.0
+  },
+  "results": [
+    {
+      "test": "backend/health",
+      "status": "pass"
+    },
+    {
+      "test": "backend/api/fl/status",
+      "status": "pass"
+    },
+    {
+      "test": "backend/api/experiments",
+      "status": "pass"
+    },
+    {
+      "test": "backend/api/autofl/status",
+      "status": "pass"
+    },
+    {
+      "test": "backend/api/monitoring/metrics",
+      "status": "pass"
+    },
+    {
+      "test": "frontend_access",
+      "status": "pass"
+    },
+    {
+      "test": "api_data_flow",
+      "status": "pass"
+    },
+    {
+      "test": "cors_config",
+      "status": "pass"
+    },
+    {
+      "test": "realtime_features",
+      "status": "pass"
+    }
+  ]
+}

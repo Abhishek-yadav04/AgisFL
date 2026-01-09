@@ -1,0 +1,15 @@
+<!-- Experiments Lab Icon -->
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 2V7L6.5 15C6.22 15.72 6.75 16.5 7.5 16.5H16.5C17.25 16.5 17.78 15.72 17.5 15L15 7V2H9Z" 
+        stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.2"/>
+  <path d="M9 7H15" stroke="currentColor" stroke-width="2"/>
+  <path d="M10.5 2H13.5" stroke="currentColor" stroke-width="2"/>
+  
+  <!-- Bubbles for active experiments -->
+  <circle cx="11" cy="12" r="0.5" fill="currentColor" opacity="0.8"/>
+  <circle cx="13" cy="11" r="0.7" fill="currentColor" opacity="0.6"/>
+  <circle cx="10" cy="14" r="0.4" fill="currentColor" opacity="0.9"/>
+  
+  <!-- Experiment chart -->
+  <path d="M7 19Q9 17 11 19T15 19T19 17" stroke="currentColor" stroke-width="1" fill="none" opacity="0.6"/>
+</svg>

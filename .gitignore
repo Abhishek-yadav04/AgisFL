@@ -147,3 +147,4 @@ db_dumps/
 # - To keep a specific dataset: add an exception rule (e.g. !datasets/sample_small.csv).
 ################################################################################
 
+agisfl_env/

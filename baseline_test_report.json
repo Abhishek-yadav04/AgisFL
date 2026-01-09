@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "generated_at": "2025-09-22T00:37:26.630419",
+    "total_endpoints": 7,
+    "base_url": "http://localhost:8000"
+  },
+  "summary": {
+    "passed": 0,
+    "mock_validated": 0,
+    "not_implemented": 0,
+    "failed": 7
+  },
+  "details": {
+    "passed": [],
+    "mock_validated": [],
+    "not_implemented": [],
+    "failed": [
+      {
+        "endpoint": {
+          "path": "/status",
+          "method": "HTTPMethod.GET",
+          "function_name": "get_autofl_status",
+          "file_path": "backend\\api\\autofl.py",
+          "line_number": 7,
+          "parameters": [],
+          "responses": [],
+          "tags": [
+            "Autofl"
+          ],
+          "summary": "get_autofl_status",
+          "description": "",
+          "status": "EndpointStatus.STUB",
+          "security": null,
+          "dependencies": null
+        },
+        "status_code": 400,
+        "error": "Invalid HTTP request received."
+      },
+      {
+        "endpoint": {
+          "path": "/start-autonomous",
+          "method": "HTTPMethod.POST",
+          "function_name": "start_autonomous_mode",
+          "file_path": "backend\\api\\autofl.py",
+          "line_number": 19,
+          "parameters": [],
+          "responses": [],
+          "tags": [
+            "Autofl"
+          ],
+          "summary": "start_autonomous_mode",
+          "description": "",
+          "status": "EndpointStatus.STUB",
+          "security": null,
+          "dependencies": null
+        },
+        "status_code": 400,
+        "error": "Invalid HTTP request received."
+      },
+      {
+        "endpoint": {
+          "path": "/metrics",
+          "method": "HTTPMethod.GET",
+          "function_name": "get_metrics",
+          "file_path": "backend\\api\\monitoring.py",
+          "line_number": 8,
+          "parameters": [],
+          "responses": [],
+          "tags": [
+            "Monitoring"
+          ],
+          "summary": "get_metrics",
+          "description": "",
+          "status": "EndpointStatus.STUB",
+          "security": null,
+          "dependencies": null
+        },
+        "status_code": 400,
+        "error": "Invalid HTTP request received."
+      },
+      {
+        "endpoint": {
+          "path": "/system/status",
+          "method": "HTTPMethod.GET",
+          "function_name": "get_monitoring_system_status",
+          "file_path": "backend\\api\\monitoring.py",
+          "line_number": 21,
+          "parameters": [],
+          "responses": [],
+          "tags": [
+            "Monitoring"
+          ],
+          "summary": "get_monitoring_system_status",
+          "description": "",
+          "status": "EndpointStatus.STUB",
+          "security": null,
+          "dependencies": null
+        },
+        "status_code": 400,
+        "error": "Invalid HTTP request received."
+      },
+      {
+        "endpoint": {
+          "path": "/alerts",
+          "method": "HTTPMethod.GET",
+          "function_name": "get_monitoring_alerts",
+          "file_path": "backend\\api\\monitoring.py",
+          "line_number": 33,
+          "parameters": [],
+          "responses": [],
+          "tags": [
+            "Monitoring"
+          ],
+          "summary": "Get monitoring alerts",
+          "description": "Get monitoring alerts",
+          "status": "EndpointStatus.STUB",
+          "security": null,
+          "dependencies": null
+        },
+        "status_code": 400,
+        "error": "Invalid HTTP request received."
+      },
+      {
+        "endpoint": {
+          "path": "/performance",
+          "method": "HTTPMethod.GET",
+          "function_name": "get_performance_metrics",
+          "file_path": "backend\\api\\monitoring.py",
+          "line_number": 45,
+          "parameters": [],
+          "responses": [],
+          "tags": [
+            "Monitoring"
+          ],
+          "summary": "Get performance monitoring metrics",
+          "description": "Get performance monitoring metrics",
+          "status": "EndpointStatus.STUB",
+          "security": null,
+          "dependencies": null
+        },
+        "status_code": 400,
+        "error": "Invalid HTTP request received."
+      },
+      {
+        "endpoint": {
+          "path": "/overview",
+          "method": "HTTPMethod.GET",
+          "function_name": "get_rules_overview",
+          "file_path": "backend\\api\\rules_management.py",
+          "line_number": 134,
+          "parameters": [],
+          "responses": [],
+          "tags": [
+            "Rules Management"
+          ],
+          "summary": "Get comprehensive overview of all rules",
+          "description": "Get comprehensive overview of all rules",
+          "status": "EndpointStatus.IMPLEMENTED",
+          "security": null,
+          "dependencies": null
+        },
+        "status_code": 400,
+        "error": "Invalid HTTP request received."
+      }
+    ]
+  }
+}

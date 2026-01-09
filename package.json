@@ -3,6 +3,8 @@
   "version": "3.1.0",
   "private": true,
   "description": "AgisFL Enterprise - Federated Learning & Intrusion Detection System",
+  "main": "electron/main.js",
+  "homepage": "./",
   "scripts": {
     "install:frontend": "cd frontend && npm install",
     "install:all": "npm run install:frontend",
@@ -10,12 +12,49 @@
     "dev:frontend": "cd frontend && npm run dev",
     "start": "cd backend && python main.py",
     "dev": "concurrently \"npm run dev:frontend\" \"cd backend && python main.py\"",
-    "build": "npm run build:frontend"
+    "build": "npm run build:frontend",
+    "electron": "electron .",
+    "electron:dev": "set NODE_ENV=development&& electron .",
+    "electron:pack": "npm run build && electron-builder",
+    "dist": "npm run build && electron-builder --publish=never"
   },
   "devDependencies": {
-    "concurrently": "^9.2.0"
+    "concurrently": "^9.2.0",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.agisfl.enterprise",
+    "productName": "AgisFL Enterprise",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "frontend/dist/**/*",
+      "backend/**/*",
+      "!backend/__pycache__",
+      "!backend/**/__pycache__",
+      "!backend/venv",
+      "!backend/**/.pytest_cache"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "electron/assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "electron/assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "electron/assets/icon.png"
+    }
   },
   "workspaces": [
     "frontend"
-  ]
+  ],
+  "dependencies": {
+    "@playwright/test": "^1.55.0"
+  }
 }

@@ -1,0 +1,4 @@
+[8864] 13 Sep 16:06:06.749 # Creating Server TCP listening socket 127.0.0.1:6379: bind: No error
+[22988] 13 Sep 16:06:11.714 # Creating Server TCP listening socket 127.0.0.1:6379: bind: No error
+[17260] 13 Sep 16:06:55.874 # Creating Server TCP listening socket 127.0.0.1:6379: bind: No error
+[10872] 13 Sep 16:07:03.268 # Creating Server TCP listening socket 127.0.0.1:6379: bind: No error

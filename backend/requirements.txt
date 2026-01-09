@@ -38,7 +38,7 @@ redis==5.0.1
 # HTTP & API
 httpx==0.26.0
 requests==2.32.4
-aiohttp==3.12.14
+aiohttp==3.13.3
 
 # Configuration & Environment
 python-dotenv==1.0.1

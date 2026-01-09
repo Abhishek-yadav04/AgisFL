@@ -550,5 +550,29 @@ From a single developer wanting to try federated learning in 3 lines of code, to
 ### **🎛️ For Administrators**: Enterprise-grade power  
 ### **🏢 For Enterprises**: Production-ready platform
 ### **🌍 For the World**: Democratized federated learning
+## 👨‍💻 Author
 
-*Built with ❤️ for the federated learning community*
+<p align="center">
+  <img src="https://github.com/Abhishek-yadav04.png" width="100px" style="border-radius: 50%;" alt="Abhishek Yadav" />
+</p>
+
+<p align="center">
+  <b>Abhishek Yadav</b><br>
+  Computer Science Student
+</p>
+
+<p align="center">
+  <a href="https://github.com/Abhishek-yadav04">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github" alt="GitHub" />
+  </a>
+</p>
+
+---
+
+<p align="center">
+  <b>⭐ Star this repo if you find it helpful!</b>
+</p>
+
+<p align="center">
+  Made with ❤️ by Abhishek Yadav for the federated learning community
+</p>

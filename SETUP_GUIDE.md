@@ -119,7 +119,7 @@ The system uses **MongoDB Atlas** by default with automatic fallback:
 
 ```python
 # Automatic configuration in enterprise_config.py
-MONGODB_URL = "mongodb+srv://abhshek:9MajwIMeh34Xu8Wv@cluster0.jizuftu.mongodb.net/agisfl_enterprise"
+MONGODB_URL = "mongodb+srv://yourlink/agisfl_enterprise"
 ```
 
 **No manual database setup required!**

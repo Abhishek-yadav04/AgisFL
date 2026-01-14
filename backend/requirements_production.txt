@@ -41,7 +41,7 @@ plotly==5.22.0
 dash==2.17.1
 matplotlib==3.9.2
 seaborn==0.13.2
-bokeh==3.5.2 
+bokeh==3.8.2 
 
 
 libcap

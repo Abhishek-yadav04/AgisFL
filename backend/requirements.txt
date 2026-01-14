@@ -5,7 +5,7 @@ pydantic==2.9.0
 pydantic-settings==2.5.2
 
 # Machine Learning & Data Science
-scikit-learn==1.5.2
+scikit-learn==1.6.1
 numpy==1.26.4
 pandas==2.2.2
 scipy==1.11.4
@@ -17,11 +17,11 @@ torchvision==0.16.2
 tensorflow==2.16.1
 
 # Security & Networking
-cryptography==44.0.1
+cryptography==46.0.3
 PyJWT==2.9.0
 bcrypt==4.1.2
-python-multipart==0.0.18
-cryptography==44.0.1
+python-multipart==0.0.20
+cryptography==46.0.3
 alembic==1.13.1
 PyJWT==2.9.0
 
@@ -71,6 +71,6 @@ flwr==1.11.0
 
 # Additional Tools - Fixed compatibility
 jinja2==3.1.6
-python-multipart==0.0.18
+python-multipart==0.0.20
 rich==13.8.1
 click==8.1.7

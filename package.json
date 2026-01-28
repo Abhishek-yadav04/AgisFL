@@ -21,7 +21,7 @@
   "devDependencies": {
     "concurrently": "^9.2.0",
     "electron": "^35.7.5",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^26.6.0"
   },
   "build": {
     "appId": "com.agisfl.enterprise",

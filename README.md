@@ -1,4 +1,4 @@
-# 🚀 AgisFL Enterprise v5.0 - Autonomous AI Ecosystem
+# AgisFL v5.0 - Autonomous AI Ecosystem
 
 [![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)](https://github.com/agisfl/enterprise)
 [![Security](https://img.shields.io/badge/security-enterprise--grade-green.svg)](./SECURITY.md)

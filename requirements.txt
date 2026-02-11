@@ -42,7 +42,7 @@ pandas==2.0.3
 scikit-learn==1.5.0
 
 # Additional Security and Privacy
-cryptography==44.0.1
+cryptography==46.0.5
 PyJWT==2.8.0
 geoip2==4.7.0
 phe==1.5.0

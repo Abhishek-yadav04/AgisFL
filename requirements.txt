@@ -14,7 +14,7 @@ scapy==2.7.0rc1
 psutil==5.9.8
 
 # Authentication and Security
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.4.0
 passlib[bcrypt]==1.7.4
 slowapi==0.1.9
 

@@ -37,7 +37,7 @@ redis==5.0.1
 
 # HTTP & API
 httpx==0.26.0
-requests==2.32.4
+requests==2.33.0
 aiohttp==3.13.3
 
 # Configuration & Environment

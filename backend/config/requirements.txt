@@ -9,7 +9,7 @@ sqlalchemy[asyncio]==2.0.25
 asyncpg==0.29.0
 alembic==1.13.1
 redis==5.0.1
-pymongo[srv]==4.6.1
+pymongo[srv]==4.6.3
 motor==3.3.2
 
 # Authentication & Security
@@ -77,5 +77,5 @@ gevent==23.9.1
 # Additional Enterprise Features
 celery==5.3.4
 flower==2.0.1
-sentry-sdk[fastapi]==1.39.2
+sentry-sdk[fastapi]==1.45.1
 newrelic==9.4.0

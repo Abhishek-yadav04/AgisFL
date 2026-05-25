@@ -36,7 +36,7 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-qr-code": "^2.0.18",
-    "react-router-dom": "^6.20.1",
+    "react-router-dom": "^6.30.3",
     "recharts": "^2.15.4",
     "tailwind-merge": "^2.0.0",
     "zustand": "^4.4.7"

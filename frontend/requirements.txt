@@ -7,7 +7,7 @@ uvicorn==0.24.0
 numpy==1.24.3
 requests==2.33.1
 websockets==12.0
-python-dotenv==1.0.1
+python-dotenv==1.2.2
 
 # Optional: For enhanced desktop features
 pywin32>=306; sys_platform == "win32"

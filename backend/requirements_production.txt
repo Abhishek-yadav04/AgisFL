@@ -19,7 +19,7 @@ aiofiles==24.1.0
 
 # Security & Networking
 scapy==2.7.0
-cryptography==46.0.6
+cryptography==46.0.7
 PyJWT==2.9.0
 
 # Federated Learning

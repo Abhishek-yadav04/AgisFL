@@ -1,7 +1,7 @@
 # Core FastAPI and Web Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-python-multipart==0.0.22
+python-multipart==0.0.27
 pydantic==2.9.0
 pydantic-settings==2.5.2
 
@@ -42,18 +42,18 @@ pandas==2.0.3
 scikit-learn==1.5.0
 
 # Additional Security and Privacy
-cryptography==46.0.6
+cryptography==46.0.7
 PyJWT==2.8.0
 geoip2==4.7.0
 phe==1.5.0
 
 # Development and Testing (Optional)
-pytest==7.4.3
+pytest==9.0.3
 pytest-asyncio==0.21.1
 httpx==0.25.2
 
 # Configuration Management
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 
 # JSON and Data Processing
 orjson==3.11.6

@@ -15,7 +15,7 @@ redis==5.0.1
 # Security
 python-jose[cryptography]>=3.3.1
 passlib[bcrypt]==1.7.4
-python-multipart>=0.0.27
+python-multipart>=0.0.30
 cryptography>=46.0.7
 pyotp==2.9.0
 

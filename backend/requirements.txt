@@ -12,7 +12,7 @@ scipy==1.11.4
 
 # Federated Learning - Top Tier
 flwr==1.11.0
-torch==2.8.0
+torch==2.12.0
 torchvision==0.16.2
 tensorflow==2.16.1
 

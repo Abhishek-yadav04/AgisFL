@@ -18,12 +18,12 @@ tensorflow==2.16.1
 
 # Security & Networking
 cryptography==46.0.7
-PyJWT==2.9.0
+PyJWT==2.13.0
 bcrypt==4.1.2
 python-multipart==0.0.32
 cryptography==46.0.7
 alembic==1.13.1
-PyJWT==2.9.0
+PyJWT==2.13.0
 
 # System Monitoring
 psutil==6.1.0

@@ -43,12 +43,12 @@ scikit-learn==1.5.0
 
 # Additional Security and Privacy
 cryptography==46.0.7
-PyJWT==2.8.0
+PyJWT==2.13.0
 geoip2==4.7.0
 phe==1.5.0
 
 # Development and Testing (Optional)
-pytest==9.0.3
+pytest==9.1.0
 pytest-asyncio==0.21.1
 httpx==0.25.2
 

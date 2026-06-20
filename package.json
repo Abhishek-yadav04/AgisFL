@@ -19,7 +19,7 @@
     "dist": "npm run build && electron-builder --publish=never"
   },
   "devDependencies": {
-    "concurrently": "^9.2.0",
+    "concurrently": "^9.2.3",
     "electron": "^39.8.5",
     "electron-builder": "^26.6.0"
   },

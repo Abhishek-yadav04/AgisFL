@@ -19,9 +19,9 @@
     "dist": "npm run build && electron-builder --publish=never"
   },
   "devDependencies": {
-    "concurrently": "^9.2.3",
+    "concurrently": "^9.2.4",
     "electron": "^39.8.5",
-    "electron-builder": "^26.6.0"
+    "electron-builder": "^26.15.3"
   },
   "build": {
     "appId": "com.agisfl.enterprise",
